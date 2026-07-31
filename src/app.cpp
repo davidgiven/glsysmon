@@ -47,6 +47,11 @@ bool AppRun(const DockConfig &cfg)
     io.IniFilename = nullptr;  // do not persist window layout to imgui.ini
     ImGui::StyleColorsDark();
 
+    const float ui_scale = SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window));
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.ScaleAllSizes(ui_scale);
+    style.FontScaleDpi = ui_scale;
+
     ImGui_ImplSDL3_InitForSDLGPU(window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {};
     init_info.Device = device;

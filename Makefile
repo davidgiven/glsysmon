@@ -16,6 +16,8 @@ X11_CFLAGS     := $(shell $(PKG_CONFIG) --cflags x11)
 X11_LIBS       := $(shell $(PKG_CONFIG) --libs x11)
 WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
 WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
+TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
+TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
 
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
@@ -34,7 +36,7 @@ XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
-                 $(WAYLAND_CFLAGS) -I$(BUILD)
+                 $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD)
 
 SRC_OBJS := \
 	$(BUILD)/main.o \
@@ -57,7 +59,8 @@ OBJS := $(SRC_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 all: $(BIN)
 
 $(BIN): $(OBJS)
-	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(IMGUI_LIBS) $(X11_LIBS) $(WAYLAND_LIBS)
+	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(IMGUI_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
+		$(TOMLPLUSPLUS_LIBS)
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
 	@mkdir -p $(GEN)
