@@ -44,6 +44,7 @@ bool AppRun(const DockConfig &cfg)
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.IniFilename = nullptr;  // do not persist window layout to imgui.ini
     ImGui::StyleColorsDark();
 
     ImGui_ImplSDL3_InitForSDLGPU(window);
