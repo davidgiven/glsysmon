@@ -4,6 +4,7 @@
 
 #include "app.h"
 #include "dock.h"
+#include "preferences.h"
 #include "ui.h"
 
 // Fruit DI wiring. Each module provides its own Get*Component() next to its
@@ -12,3 +13,4 @@
 fruit::Component<DockFactory> GetDockComponent();
 fruit::Component<Ui> GetUiComponent();
 fruit::Component<App> GetAppComponent();
+fruit::Component<Preferences> GetPreferencesComponent();

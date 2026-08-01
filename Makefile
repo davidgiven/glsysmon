@@ -47,6 +47,7 @@ SRC_OBJS := \
 	$(BUILD)/dock.o \
 	$(BUILD)/dock_x11.o \
 	$(BUILD)/dock_wayland.o \
+	$(BUILD)/preferences.o \
 	$(BUILD)/ui.o
 
 BACKEND_OBJS := \

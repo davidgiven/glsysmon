@@ -57,6 +57,9 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   (`SDL_PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN`), extracts the
   `wl_surface`/`wl_display` from window properties, and attaches a
   `zwlr_layer_surface_v1` role (anchor, exclusive zone, keyboard interactivity).
+- `src/preferences.h` / `src/preferences.cc` — `Preferences` interface;
+  `TomlPreferencesImpl` reads the dock placement settings from a TOML file at
+  `$XDG_CONFIG_HOME/glrellm/config.toml`; `GetPreferencesComponent()`.
 - `src/ui.h` / `src/ui.cc` — `Ui` interface; `ImGuiUiImpl` widgets;
   `GetUiComponent()`.
 
