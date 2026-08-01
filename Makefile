@@ -87,7 +87,7 @@ $(GEN)/xdg-shell-client-protocol.c: $(XDG_SHELL_XML)
 $(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
 	$(CC) -O2 $(WAYLAND_CFLAGS) -c -o $@ $<
 
-$(BUILD)/%.o: src/%.cpp $(WAYLAND_PROTOCOL_HEADER)
+$(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
 	@mkdir -p $(BUILD)
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
