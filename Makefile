@@ -19,6 +19,9 @@ WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
 TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
 TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
 
+# Fruit ships no .pc file; headers are in the default include path.
+FRUIT_LIBS := -lfruit
+
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
 # Dear ImGui platform/render backends shipped by the libimgui-dev package.
@@ -60,7 +63,7 @@ all: $(BIN)
 
 $(BIN): $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(IMGUI_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
-		$(TOMLPLUSPLUS_LIBS)
+		$(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
 	@mkdir -p $(GEN)

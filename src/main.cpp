@@ -1,4 +1,4 @@
-#include "app.h"
+#include "components.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -43,5 +43,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    return AppRun(cfg) ? 0 : 1;
+    fruit::Injector<App> injector(GetAppComponent);
+    return injector.get<App &>().Run(cfg);
 }

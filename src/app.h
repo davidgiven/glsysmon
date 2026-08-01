@@ -2,4 +2,11 @@
 
 #include "dock.h"
 
-bool AppRun(const DockConfig &cfg);
+// Application entry interface. Implementations live in app.cpp.
+class App {
+public:
+    virtual ~App() = default;
+
+    // Bootstraps SDL/ImGui, runs the main loop, returns process exit code.
+    virtual int Run(const DockConfig &cfg) = 0;
+};
