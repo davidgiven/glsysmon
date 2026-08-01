@@ -10,26 +10,26 @@ namespace {
 
 class X11DockImpl : public Dock {
 public:
-    explicit X11DockImpl(DockConfig cfg) : cfg_(std::move(cfg)) {}
+    explicit X11DockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
 
     SDL_Window *CreateWindow() override
     {
-        SDL_DisplayID display = DockGetDisplay(cfg_.monitor);
+        SDL_DisplayID display = DockGetDisplay(_cfg.monitor);
         SDL_Rect bounds;
         if (!SDL_GetDisplayUsableBounds(display, &bounds))
             return nullptr;
 
-        int width = cfg_.size;
-        int height = cfg_.size;
+        int width = _cfg.size;
+        int height = _cfg.size;
         int x = bounds.x;
         int y = bounds.y;
-        if (cfg_.side == "left" || cfg_.side == "right") {
+        if (_cfg.side == "left" || _cfg.side == "right") {
             height = bounds.h;
-            if (cfg_.side == "right")
+            if (_cfg.side == "right")
                 x = bounds.x + bounds.w - width;
         } else {
             width = bounds.w;
-            if (cfg_.side == "bottom")
+            if (_cfg.side == "bottom")
                 y = bounds.y + bounds.h - height;
         }
 
@@ -72,21 +72,21 @@ public:
         // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge extents...]
         long strut[12] = {};
         const long edge_end =
-            (cfg_.side == "left" || cfg_.side == "right") ? bounds.h - 1 : bounds.w - 1;
-        if (cfg_.side == "left") {
-            strut[0] = cfg_.size;
+            (_cfg.side == "left" || _cfg.side == "right") ? bounds.h - 1 : bounds.w - 1;
+        if (_cfg.side == "left") {
+            strut[0] = _cfg.size;
             strut[4] = 0;
             strut[5] = edge_end;
-        } else if (cfg_.side == "right") {
-            strut[1] = cfg_.size;
+        } else if (_cfg.side == "right") {
+            strut[1] = _cfg.size;
             strut[6] = 0;
             strut[7] = edge_end;
-        } else if (cfg_.side == "top") {
-            strut[2] = cfg_.size;
+        } else if (_cfg.side == "top") {
+            strut[2] = _cfg.size;
             strut[8] = 0;
             strut[9] = edge_end;
         } else {
-            strut[3] = cfg_.size;
+            strut[3] = _cfg.size;
             strut[10] = 0;
             strut[11] = edge_end;
         }
@@ -101,7 +101,7 @@ public:
     void PollWindow(SDL_Window *) override {}
 
 private:
-    DockConfig cfg_;
+    DockConfig _cfg;
 };
 
 }  // namespace

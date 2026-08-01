@@ -20,26 +20,26 @@ namespace {
 
 class FallbackDockImpl : public Dock {
 public:
-    explicit FallbackDockImpl(DockConfig cfg) : cfg_(std::move(cfg)) {}
+    explicit FallbackDockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
 
     SDL_Window *CreateWindow() override
     {
-        SDL_DisplayID display = DockGetDisplay(cfg_.monitor);
+        SDL_DisplayID display = DockGetDisplay(_cfg.monitor);
         SDL_Rect bounds;
         if (!SDL_GetDisplayUsableBounds(display, &bounds))
             return nullptr;
 
-        int width = cfg_.size;
-        int height = cfg_.size;
+        int width = _cfg.size;
+        int height = _cfg.size;
         int x = bounds.x;
         int y = bounds.y;
-        if (cfg_.side == "left" || cfg_.side == "right") {
+        if (_cfg.side == "left" || _cfg.side == "right") {
             height = bounds.h;
-            if (cfg_.side == "right")
+            if (_cfg.side == "right")
                 x = bounds.x + bounds.w - width;
         } else {
             width = bounds.w;
-            if (cfg_.side == "bottom")
+            if (_cfg.side == "bottom")
                 y = bounds.y + bounds.h - height;
         }
 
@@ -56,7 +56,7 @@ public:
     void PollWindow(SDL_Window *) override {}
 
 private:
-    DockConfig cfg_;
+    DockConfig _cfg;
 };
 
 }  // namespace

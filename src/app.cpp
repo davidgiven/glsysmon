@@ -16,7 +16,7 @@ namespace {
 class ImGuiAppImpl : public App {
 public:
     ImGuiAppImpl(DockFactory dockFactory, Ui *ui)
-        : dockFactory_(std::move(dockFactory)), ui_(ui)
+        : _dockFactory(std::move(dockFactory)), _ui(ui)
     {
     }
 
@@ -29,7 +29,7 @@ public:
             return 1;
         }
 
-        std::unique_ptr<Dock> dock = dockFactory_(cfg);
+        std::unique_ptr<Dock> dock = _dockFactory(cfg);
         SDL_Window *window = dock->CreateWindow();
         if (window == nullptr) {
             SDL_Log("Dock::CreateWindow failed: %s", SDL_GetError());
@@ -90,7 +90,7 @@ public:
             ImGui_ImplSDLGPU3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
             ImGui::NewFrame();
-            ui_->Draw(window, backend);
+            _ui->Draw(window, backend);
             ImGui::Render();
 
             ImDrawData *draw_data = ImGui::GetDrawData();
@@ -133,8 +133,8 @@ public:
     }
 
 private:
-    DockFactory dockFactory_;
-    Ui *ui_;
+    DockFactory _dockFactory;
+    Ui *_ui;
 };
 
 }  // namespace

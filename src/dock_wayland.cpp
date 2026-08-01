@@ -31,7 +31,7 @@ uint32_t AnchorForSide(const std::string &side)
 
 class WaylandDockImpl : public Dock {
 public:
-    explicit WaylandDockImpl(DockConfig cfg) : cfg_(std::move(cfg)) {}
+    explicit WaylandDockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
 
     SDL_Window *CreateWindow() override
     {
@@ -41,75 +41,75 @@ public:
         SDL_PropertiesID props = SDL_CreateProperties();
         SDL_SetBooleanProperty(
             props, SDL_PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN, true);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, cfg_.size);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, cfg_.size);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, _cfg.size);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, _cfg.size);
         SDL_Window *window = SDL_CreateWindowWithProperties(props);
         SDL_DestroyProperties(props);
         if (window == nullptr)
             return nullptr;
 
-        display_ = static_cast<wl_display *>(SDL_GetPointerProperty(
+        _display = static_cast<wl_display *>(SDL_GetPointerProperty(
             SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr));
-        surface_ = static_cast<wl_surface *>(SDL_GetPointerProperty(
+        _surface = static_cast<wl_surface *>(SDL_GetPointerProperty(
             SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nullptr));
-        if (display_ == nullptr || surface_ == nullptr) {
+        if (_display == nullptr || _surface == nullptr) {
             SDL_SetError("Wayland window surface properties unavailable");
             SDL_DestroyWindow(window);
             return nullptr;
         }
 
         // SDL owns the display; a second registry listener is allowed.
-        wl_registry *registry = wl_display_get_registry(display_);
-        wl_registry_add_listener(registry, &kRegistryListener, this);
-        wl_display_roundtrip(display_);
+        wl_registry *registry = wl_display_get_registry(_display);
+        wl_registry_add_listener(registry, &_registryListener, this);
+        wl_display_roundtrip(_display);
         wl_registry_destroy(registry);
-        if (shell_ == nullptr) {
+        if (_shell == nullptr) {
             SDL_SetError("compositor does not advertise zwlr_layer_shell_v1");
             SDL_DestroyWindow(window);
             return nullptr;
         }
 
-        SDL_DisplayID display_id = DockGetDisplay(cfg_.monitor);
+        SDL_DisplayID display_id = DockGetDisplay(_cfg.monitor);
         wl_output *output = static_cast<wl_output *>(SDL_GetPointerProperty(
             SDL_GetDisplayProperties(display_id), SDL_PROP_DISPLAY_WAYLAND_WL_OUTPUT_POINTER,
             nullptr));
 
-        layer_surface_ = zwlr_layer_shell_v1_get_layer_surface(
-            shell_, surface_, output, ZWLR_LAYER_SHELL_V1_LAYER_TOP, "glrellm");
-        if (layer_surface_ == nullptr) {
+        _layerSurface = zwlr_layer_shell_v1_get_layer_surface(
+            _shell, _surface, output, ZWLR_LAYER_SHELL_V1_LAYER_TOP, "glrellm");
+        if (_layerSurface == nullptr) {
             SDL_SetError("zwlr_layer_shell_v1_get_layer_surface failed");
             SDL_DestroyWindow(window);
             return nullptr;
         }
-        zwlr_layer_surface_v1_add_listener(layer_surface_, &kLayerSurfaceListener, this);
+        zwlr_layer_surface_v1_add_listener(_layerSurface, &_layerSurfaceListener, this);
 
-        const bool vertical = (cfg_.side == "left" || cfg_.side == "right");
-        zwlr_layer_surface_v1_set_anchor(layer_surface_, AnchorForSide(cfg_.side));
+        const bool vertical = (_cfg.side == "left" || _cfg.side == "right");
+        zwlr_layer_surface_v1_set_anchor(_layerSurface, AnchorForSide(_cfg.side));
         // size 0 on the unconstrained axis lets the compositor stretch the dock.
-        zwlr_layer_surface_v1_set_size(layer_surface_,
-                                       vertical ? static_cast<uint32_t>(cfg_.size) : 0,
-                                       vertical ? 0 : static_cast<uint32_t>(cfg_.size));
-        zwlr_layer_surface_v1_set_exclusive_zone(layer_surface_, cfg_.size);
+        zwlr_layer_surface_v1_set_size(_layerSurface,
+                                       vertical ? static_cast<uint32_t>(_cfg.size) : 0,
+                                       vertical ? 0 : static_cast<uint32_t>(_cfg.size));
+        zwlr_layer_surface_v1_set_exclusive_zone(_layerSurface, _cfg.size);
         // EXCLUSIVE so ImGui receives keyboard input on the layer surface.
         zwlr_layer_surface_v1_set_keyboard_interactivity(
-            layer_surface_, ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE);
-        wl_surface_commit(surface_);
-        wl_display_flush(display_);
+            _layerSurface, ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE);
+        wl_surface_commit(_surface);
+        wl_display_flush(_display);
 
         return window;
     }
 
     void PollWindow(SDL_Window *window) override
     {
-        if (layer_surface_ == nullptr)
+        if (_layerSurface == nullptr)
             return;
-        if (pending_width_ == 0 || pending_height_ == 0)
+        if (_pendingWidth == 0 || _pendingHeight == 0)
             return;
         // Keep the swapchain in sync with the compositor-assigned surface size.
-        SDL_SetWindowSize(window, static_cast<int>(pending_width_),
-                          static_cast<int>(pending_height_));
-        pending_width_ = 0;
-        pending_height_ = 0;
+        SDL_SetWindowSize(window, static_cast<int>(_pendingWidth),
+                          static_cast<int>(_pendingHeight));
+        _pendingWidth = 0;
+        _pendingHeight = 0;
     }
 
 private:
@@ -119,8 +119,8 @@ private:
         WaylandDockImpl *dock = static_cast<WaylandDockImpl *>(data);
         zwlr_layer_surface_v1_ack_configure(surface, serial);
         if (width > 0 && height > 0) {
-            dock->pending_width_ = width;
-            dock->pending_height_ = height;
+            dock->_pendingWidth = width;
+            dock->_pendingHeight = height;
         }
     }
 
@@ -131,31 +131,31 @@ private:
     {
         WaylandDockImpl *dock = static_cast<WaylandDockImpl *>(data);
         if (std::strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
-            dock->shell_ = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(
+            dock->_shell = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(
                 registry, name, &zwlr_layer_shell_v1_interface, version));
         }
     }
 
     static void HandleGlobalRemove(void *, wl_registry *, uint32_t) {}
 
-    DockConfig cfg_;
-    wl_display *display_ = nullptr;
-    wl_surface *surface_ = nullptr;
-    zwlr_layer_shell_v1 *shell_ = nullptr;
-    zwlr_layer_surface_v1 *layer_surface_ = nullptr;
-    uint32_t pending_width_ = 0;
-    uint32_t pending_height_ = 0;
+    DockConfig _cfg;
+    wl_display *_display = nullptr;
+    wl_surface *_surface = nullptr;
+    zwlr_layer_shell_v1 *_shell = nullptr;
+    zwlr_layer_surface_v1 *_layerSurface = nullptr;
+    uint32_t _pendingWidth = 0;
+    uint32_t _pendingHeight = 0;
 
-    static const wl_registry_listener kRegistryListener;
-    static const zwlr_layer_surface_v1_listener kLayerSurfaceListener;
+    static const wl_registry_listener _registryListener;
+    static const zwlr_layer_surface_v1_listener _layerSurfaceListener;
 };
 
-const wl_registry_listener WaylandDockImpl::kRegistryListener = {
+const wl_registry_listener WaylandDockImpl::_registryListener = {
     WaylandDockImpl::HandleGlobal,
     WaylandDockImpl::HandleGlobalRemove,
 };
 
-const zwlr_layer_surface_v1_listener WaylandDockImpl::kLayerSurfaceListener = {
+const zwlr_layer_surface_v1_listener WaylandDockImpl::_layerSurfaceListener = {
     WaylandDockImpl::HandleConfigure,
     WaylandDockImpl::HandleClosed,
 };
