@@ -42,13 +42,14 @@ COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD)
 
 SRC_OBJS := \
-	$(BUILD)/main.o \
-	$(BUILD)/app.o \
 	$(BUILD)/dock.o \
-	$(BUILD)/dock_x11.o \
-	$(BUILD)/dock_wayland.o \
-	$(BUILD)/preferences.o \
-	$(BUILD)/ui.o
+	$(BUILD)/fallback_dock_impl.o \
+	$(BUILD)/imgui_app_impl.o \
+	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/main.o \
+	$(BUILD)/toml_preferences_impl.o \
+	$(BUILD)/wayland_dock_impl.o \
+	$(BUILD)/x11_dock_impl.o
 
 BACKEND_OBJS := \
 	$(BUILD)/imgui_impl_sdl3.o \
