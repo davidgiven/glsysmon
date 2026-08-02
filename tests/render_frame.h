@@ -29,4 +29,8 @@ namespace render_frame
         Components components,
         CliArgs* args);
 
+    // Returns true if the two PNG files are pixel-identical (same dimensions
+    // and bytes). Used to compare a fresh capture against a golden reference.
+    bool ImagesMatch(const char* actual, const char* expected);
+
 } // namespace render_frame
