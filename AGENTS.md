@@ -50,14 +50,19 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/main.cc` — validates CLI args (`--side`, `--size`, `--monitor`, `--help`);
   heap-allocates a `CliArgs` and feeds it into the Fruit `Injector<App>` as a
   component-function argument, then runs the main loop over
-  `App::Setup()`/`Tick()`/`Shutdown()`.
+  `App::Setup()`/`Tick()`/`Shutdown()`; catches `std::exception` from `Setup()`
+  and exits non-zero.
 - `src/components.h` — declares the module `Get*Component()` functions; the
   only header that includes `<fruit/fruit.h>`.
 - `src/app.h` — `App` interface (`Setup()`, `Tick()`, `Shutdown()`).
 - `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, one frame
   per `Tick()`, teardown) receives `DockFactory`, `Ui`, and `ImGuiFrameRenderer`
-  via Fruit constructor injection; `GetAppComponent()` installs the Dock, Ui,
-  and frame-renderer components and binds the injected `CliArgs`.
+  via Fruit constructor injection; `Setup()` throws `std::runtime_error` on
+  failure and SDL resources are owned by local RAII guards (an SDL session, the
+  dock window, and the GPU device), so a partial setup is unwound safely;
+  `Shutdown()` releases the guards and is re-entered by the destructor;
+  `GetAppComponent()` installs the Dock, Ui, and frame-renderer components and
+  binds the injected `CliArgs`.
 - `src/imgui_frame_renderer.h` — `ImGuiFrameRenderer` interface owning the ImGui
   context and backends (`Init()`, `ProcessEvent()`, `BeginFrame()`, `Render()`
   into any target texture, `Shutdown()`); shared by the app (swapchain target)
