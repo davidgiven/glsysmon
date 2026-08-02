@@ -34,8 +34,10 @@ backends. The caller supplies a Fruit component providing `Ui` and the shared
 `tests/render_fake_hostname.cc` installs `GetUiComponent` with only
 `HostnameView` enabled and rebinds `HostnameSensor` to a fake, writing
 `tests/render_fake_hostname.bad.png` (deliberately outside `.obj` for easy
-inspection; gitignored). All test binaries link against
-`.obj/imgui_ui_impl.o` and the renderer impl.
+inspection; gitignored) and comparing it pixel by pixel against the tracked
+golden reference `tests/render_fake_hostname.good.png` (passes when identical;
+regenerate the golden by copying the `.bad.png` over it). All test binaries
+link against `.obj/imgui_ui_impl.o` and the renderer impl.
 
 The build uses pkg-config for `sdl3`, `imgui`, `x11`, and `wayland-client`.
 Fruit ships no `.pc` file, so it is linked as `-lfruit`. ImGui core is linked
