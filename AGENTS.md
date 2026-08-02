@@ -108,6 +108,8 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   `View`s; `GetUiComponent()`.
 - `src/view.h` — `View` interface for a system-monitor widget (`Tick()` redraws
   it into the active ImGui window).
+- `src/sensor.h` — `Sensor` interface for something that fetches system data
+  (no methods yet).
 - `src/hostname_view_impl.cc` — `HostnameViewImpl` prints the static string
   "glrellm"; `GetViewComponent()`, installed by `GetUiComponent()`.
 
