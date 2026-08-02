@@ -36,19 +36,14 @@ public:
 
     using Inject = TomlPreferencesImpl();
 
-    std::string GetSide() const override
+    std::string GetString(const std::string &key, const std::string &fallback) const override
     {
-        return _table["side"].value_or<std::string>("left");
+        return _table[key].value_or(fallback);
     }
 
-    int GetSize() const override
+    int GetInteger(const std::string &key, int fallback) const override
     {
-        return _table["size"].value_or<int>(240);
-    }
-
-    int GetMonitor() const override
-    {
-        return _table["monitor"].value_or<int>(0);
+        return _table[key].value_or(fallback);
     }
 
 private:

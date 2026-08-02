@@ -47,6 +47,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/main.o \
+	$(BUILD)/preferences_fetcher.o \
 	$(BUILD)/toml_preferences_impl.o \
 	$(BUILD)/wayland_dock_impl.o \
 	$(BUILD)/x11_dock_impl.o

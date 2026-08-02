@@ -60,10 +60,14 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   `zwlr_layer_surface_v1` role (anchor, exclusive zone, keyboard interactivity).
 - `src/fallback_dock_impl.cc` — `FallbackDockImpl`, used when no X11/Wayland
   backend is active.
-- `src/preferences.h` — `Preferences` interface.
-- `src/toml_preferences_impl.cc` — `TomlPreferencesImpl` reads the dock
-  placement settings from a TOML file at
-  `$XDG_CONFIG_HOME/glrellm/config.toml`; `GetPreferencesComponent()`.
+- `src/preferences.h` — `Preferences` interface (a generic key/value store:
+  `GetString()`, `GetInteger()`) and `PreferencesFetcher`, which provides typed
+  static accessors (`GetSide()`, `GetSize()`, `GetMonitor()`) over a
+  `Preferences`.
+- `src/preferences_fetcher.cc` — the `PreferencesFetcher` static accessors.
+- `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
+  `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
+  `GetPreferencesComponent()`.
 - `src/ui.h` — `Ui` interface.
 - `src/imgui_ui_impl.cc` — `ImGuiUiImpl` widgets; `GetUiComponent()`.
 
