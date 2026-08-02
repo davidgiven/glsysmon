@@ -36,6 +36,16 @@ TEST_CASE("Fruit resolves the view component")
     CHECK(injector.get<View*>() != nullptr);
 }
 
+TEST_CASE("Hostname sensor returns the current hostname")
+{
+    fruit::Injector<HostnameSensor> injector(GetHostnameSensorComponent);
+    HostnameSensor* sensor = injector.get<HostnameSensor*>();
+
+    const std::string hostname = sensor->GetHostname();
+    CHECK_FALSE(hostname.empty());
+    CHECK(hostname.size() < 256);
+}
+
 TEST_CASE("Fruit resolves the ImGui frame renderer component")
 {
     fruit::Injector<ImGuiFrameRenderer> injector(

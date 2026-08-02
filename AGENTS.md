@@ -110,6 +110,10 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   it into the active ImGui window).
 - `src/sensor.h` — `Sensor` interface for something that fetches system data
   (no methods yet).
+- `src/sensors/hostname_sensor.h` — `HostnameSensor` interface,
+  `GetHostname()` returns the current hostname as a `std::string`.
+- `src/sensors/hostname_sensor_impl.cc` — `HostnameSensorImpl` reads it via
+  `gethostname()`; `GetHostnameSensorComponent()`.
 - `src/hostname_view_impl.cc` — `HostnameViewImpl` prints the static string
   "glrellm"; `GetViewComponent()`, installed by `GetUiComponent()`.
 

@@ -6,6 +6,7 @@
 #include "dock.h"
 #include "imgui_frame_renderer.h"
 #include "preferences.h"
+#include "sensors/hostname_sensor.h"
 #include "ui.h"
 #include "view.h"
 
@@ -16,6 +17,7 @@ extern fruit::Component<fruit::Required<CliArgs>, DockFactory>
 GetDockComponent();
 extern fruit::Component<Ui> GetUiComponent();
 extern fruit::Component<View> GetViewComponent();
+extern fruit::Component<HostnameSensor> GetHostnameSensorComponent();
 extern fruit::Component<ImGuiFrameRenderer> GetImGuiFrameRendererComponent();
 extern fruit::Component<App> GetAppComponent(CliArgs* args);
 extern fruit::Component<fruit::Required<CliArgs>,

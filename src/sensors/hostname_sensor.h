@@ -4,7 +4,8 @@
 
 // Fetches the current system hostname. Implementations live in
 // src/sensors/hostname_sensor_impl.cc.
-class HostnameSensor {
+class HostnameSensor
+{
 public:
     virtual ~HostnameSensor() = default;
 
