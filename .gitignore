@@ -1,4 +1,4 @@
-build/
+.obj/
+.cache/
 glrellm
 compile_commands.json
-tests/out/

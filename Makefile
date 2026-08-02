@@ -2,7 +2,7 @@ CXX      ?= g++
 CC       ?= gcc
 CXXFLAGS ?= -std=c++20 -Wall -Wextra -O2 -g
 
-BUILD := build
+BUILD := .obj
 GEN   := $(BUILD)/wayland
 BIN   := glrellm
 

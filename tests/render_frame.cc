@@ -22,7 +22,7 @@ namespace
     {
         int width = 240;
         std::optional<int> height;
-        std::string output = "tests/out/render_frame.png";
+        std::string output = ".obj/tests/render_frame.png";
     };
 
     std::optional<int> ParseInt(const std::string& text)
