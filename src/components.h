@@ -7,6 +7,7 @@
 #include "imgui_frame_renderer.h"
 #include "preferences.h"
 #include "ui.h"
+#include "view.h"
 
 // Fruit DI wiring. Each module provides its own Get*Component() next to its
 // implementation class; the composition root (main.cpp) builds an Injector
@@ -14,6 +15,7 @@
 extern fruit::Component<fruit::Required<CliArgs>, DockFactory>
 GetDockComponent();
 extern fruit::Component<Ui> GetUiComponent();
+extern fruit::Component<View> GetViewComponent();
 extern fruit::Component<ImGuiFrameRenderer> GetImGuiFrameRendererComponent();
 extern fruit::Component<App> GetAppComponent(CliArgs* args);
 extern fruit::Component<fruit::Required<CliArgs>,

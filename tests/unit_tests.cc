@@ -30,6 +30,12 @@ TEST_CASE("Fruit resolves the UI component")
     CHECK(injector.get<Ui*>() != nullptr);
 }
 
+TEST_CASE("Fruit resolves the view component")
+{
+    fruit::Injector<View> injector(GetViewComponent);
+    CHECK(injector.get<View*>() != nullptr);
+}
+
 TEST_CASE("Fruit resolves the ImGui frame renderer component")
 {
     fruit::Injector<ImGuiFrameRenderer> injector(

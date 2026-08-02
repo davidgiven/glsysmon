@@ -104,7 +104,12 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/combined_preferences_impl.cc` — `CombinedPreferencesImpl`, which merges
   the CLI and TOML sources (CLI wins); `GetPreferencesComponent()`.
 - `src/ui.h` — `Ui` interface.
-- `src/imgui_ui_impl.cc` — `ImGuiUiImpl` widgets; `GetUiComponent()`.
+- `src/imgui_ui_impl.cc` — `ImGuiUiImpl` draws one window with the injected
+  `View`s; `GetUiComponent()`.
+- `src/view.h` — `View` interface for a system-monitor widget (`Tick()` redraws
+  it into the active ImGui window).
+- `src/hostname_view_impl.cc` — `HostnameViewImpl` prints the static string
+  "glrellm"; `GetViewComponent()`, installed by `GetUiComponent()`.
 
 ## Conventions
 

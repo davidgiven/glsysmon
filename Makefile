@@ -51,6 +51,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/hostname_view_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/toml_preferences_impl.o \
 	$(BUILD)/wayland_dock_impl.o \
@@ -117,11 +118,12 @@ $(TEST_BUILD)/%.o: tests/%.cc
 	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/cli_preferences_impl.o $(BACKEND_OBJS)
+	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/cli_preferences_impl.o \
+	$(BUILD)/hostname_view_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o $(BACKEND_OBJS)
+	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/hostname_view_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS) $(STB_LIBS)
 
 run: $(BIN)
