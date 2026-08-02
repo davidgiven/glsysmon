@@ -114,8 +114,11 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   `GetHostname()` returns the current hostname as a `std::string`.
 - `src/sensors/hostname_sensor_impl.cc` — `HostnameSensorImpl` reads it via
   `gethostname()`; `GetHostnameSensorComponent()`.
-- `src/hostname_view_impl.cc` — `HostnameViewImpl` prints the static string
-  "glrellm"; `GetViewComponent()`, installed by `GetUiComponent()`.
+- `src/views/hostname_view_impl.cc` — `HostnameViewImpl` fetches the hostname
+  via an injected `HostnameSensor` and prints it; `GetViewComponent()`,
+  installed by `GetUiComponent()`. Includes from `src/views/`/`src/sensors/`
+  use the `src/`-relative path (e.g. `sensors/hostname_sensor.h`), not a bare
+  filename.
 
 ## Conventions
 

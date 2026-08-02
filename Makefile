@@ -126,7 +126,8 @@ $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/views/hostname_view_impl.o $(BACKEND_OBJS)
+	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS) $(STB_LIBS)
 
 run: $(BIN)
