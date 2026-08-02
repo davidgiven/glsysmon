@@ -61,10 +61,9 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/fallback_dock_impl.cc` — `FallbackDockImpl`, used when no X11/Wayland
   backend is active.
 - `src/preferences.h` — `Preferences` interface (a generic key/value store:
-  `GetString()`, `GetInteger()`) and `PreferencesFetcher`, which provides typed
-  static accessors (`GetSide()`, `GetSize()`, `GetMonitor()`) over a
-  `Preferences`.
-- `src/preferences_fetcher.cc` — the `PreferencesFetcher` static accessors.
+  `GetString()`, `GetInteger()`, returning `std::optional`) and
+  `GlobalPreferencesFetcher`, which provides typed inline static accessors
+  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`.
 - `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
   `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
   `GetPreferencesComponent()`.

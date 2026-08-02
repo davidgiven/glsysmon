@@ -1,22 +1,33 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
 // Saved-preferences backend interface. Implementations live in their own
-// <name>_preferences_impl.cc files.
+// <name>_preferences_impl.cc files. Missing keys return nullopt.
 class Preferences {
 public:
     virtual ~Preferences() = default;
 
-    virtual std::string GetString(const std::string &key,
-                                  const std::string &fallback) const = 0;
-    virtual int GetInteger(const std::string &key, int fallback) const = 0;
+    virtual std::optional<std::string> GetString(const std::string &key) const = 0;
+    virtual std::optional<int> GetInteger(const std::string &key) const = 0;
 };
 
 // Typed accessors for the known preference keys.
-class PreferencesFetcher {
+class GlobalPreferencesFetcher {
 public:
-    static std::string GetSide(const Preferences &prefs);
-    static int GetSize(const Preferences &prefs);
-    static int GetMonitor(const Preferences &prefs);
+    static std::string GetSide(const Preferences &prefs)
+    {
+        return prefs.GetString("side").value_or("left");
+    }
+
+    static int GetSize(const Preferences &prefs)
+    {
+        return prefs.GetInteger("size").value_or(240);
+    }
+
+    static int GetMonitor(const Preferences &prefs)
+    {
+        return prefs.GetInteger("monitor").value_or(0);
+    }
 };

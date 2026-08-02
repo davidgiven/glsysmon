@@ -36,14 +36,14 @@ public:
 
     using Inject = TomlPreferencesImpl();
 
-    std::string GetString(const std::string &key, const std::string &fallback) const override
+    std::optional<std::string> GetString(const std::string &key) const override
     {
-        return _table[key].value_or(fallback);
+        return _table[key].value<std::string>();
     }
 
-    int GetInteger(const std::string &key, int fallback) const override
+    std::optional<int> GetInteger(const std::string &key) const override
     {
-        return _table[key].value_or(fallback);
+        return _table[key].value<int>();
     }
 
 private:
