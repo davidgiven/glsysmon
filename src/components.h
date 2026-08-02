@@ -10,10 +10,10 @@
 // Fruit DI wiring. Each module provides its own Get*Component() next to its
 // implementation class; the composition root (main.cpp) builds an Injector
 // from GetAppComponent(). This is the only header that touches Fruit.
-fruit::Component<fruit::Required<CliArgs>, DockFactory> GetDockComponent();
-fruit::Component<Ui> GetUiComponent();
-fruit::Component<App> GetAppComponent(CliArgs *args);
-fruit::Component<fruit::Required<CliArgs>, fruit::Annotated<CliPreference, Preferences>>
+extern fruit::Component<fruit::Required<CliArgs>, DockFactory> GetDockComponent();
+extern fruit::Component<Ui> GetUiComponent();
+extern fruit::Component<App> GetAppComponent(CliArgs *args);
+extern fruit::Component<fruit::Required<CliArgs>, fruit::Annotated<CliPreference, Preferences>>
 GetCliPreferencesComponent();
-fruit::Component<fruit::Annotated<TomlPreference, Preferences>> GetTomlPreferencesComponent();
-fruit::Component<fruit::Required<CliArgs>, Preferences> GetPreferencesComponent();
+extern fruit::Component<fruit::Annotated<TomlPreference, Preferences>> GetTomlPreferencesComponent();
+extern fruit::Component<fruit::Required<CliArgs>, Preferences> GetPreferencesComponent();

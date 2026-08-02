@@ -97,6 +97,7 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   up in the `std::function`'s signature).
 - Name class data members with a leading underscore (`_name`); local
   variables and function parameters stay bare.
+- Declare non-static free-function prototypes in headers with `extern`.
 - The dock backend must be configured before the first swapchain present.
 - On Wayland, the layer-surface `configure` event must call `ack_configure`
   and then `SDL_SetWindowSize()` so the SDL swapchain matches.
