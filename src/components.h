@@ -2,6 +2,8 @@
 
 #include <fruit/fruit.h>
 
+#include <vector>
+
 #include "app.h"
 #include "dock.h"
 #include "preferences.h"
@@ -13,4 +15,9 @@
 fruit::Component<DockFactory> GetDockComponent();
 fruit::Component<Ui> GetUiComponent();
 fruit::Component<App> GetAppComponent();
-fruit::Component<Preferences> GetPreferencesComponent();
+fruit::Component<fruit::Required<std::vector<std::string>>,
+                 fruit::Annotated<CliPreference, Preferences>>
+GetCliPreferencesComponent();
+fruit::Component<fruit::Annotated<TomlPreference, Preferences>> GetTomlPreferencesComponent();
+fruit::Component<fruit::Required<std::vector<std::string>>, Preferences>
+GetPreferencesComponent();

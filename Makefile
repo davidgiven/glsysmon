@@ -42,6 +42,8 @@ COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD)
 
 SRC_OBJS := \
+	$(BUILD)/cli_preferences_impl.o \
+	$(BUILD)/combined_preferences_impl.o \
 	$(BUILD)/dock.o \
 	$(BUILD)/fallback_dock_impl.o \
 	$(BUILD)/imgui_app_impl.o \

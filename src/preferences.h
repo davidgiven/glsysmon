@@ -31,3 +31,8 @@ public:
         return prefs.GetInteger("monitor").value_or(0);
     }
 };
+
+// Annotation markers identifying the preference sources when both are bound to
+// the Preferences interface (see CombinedPreferencesImpl).
+struct CliPreference {};
+struct TomlPreference {};

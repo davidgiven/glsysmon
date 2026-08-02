@@ -61,12 +61,18 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/fallback_dock_impl.cc` — `FallbackDockImpl`, used when no X11/Wayland
   backend is active.
 - `src/preferences.h` — `Preferences` interface (a generic key/value store:
-  `GetString()`, `GetInteger()`, returning `std::optional`) and
+  `GetString()`, `GetInteger()`, returning `std::optional`),
   `GlobalPreferencesFetcher`, which provides typed inline static accessors
-  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`.
+  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`, and the
+  `CliPreference`/`TomlPreference` Fruit annotation markers.
+- `src/cli_preferences_impl.cc` — `CliPreferencesImpl`, a `Preferences` whose
+  values come from `--side=`/`--size=`/`--monitor=` arguments;
+  `GetCliPreferencesComponent()` (requires `std::vector<std::string>`).
 - `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
   `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
-  `GetPreferencesComponent()`.
+  `GetTomlPreferencesComponent()`.
+- `src/combined_preferences_impl.cc` — `CombinedPreferencesImpl`, which merges
+  the CLI and TOML sources (CLI wins); `GetPreferencesComponent()`.
 - `src/ui.h` — `Ui` interface.
 - `src/imgui_ui_impl.cc` — `ImGuiUiImpl` widgets; `GetUiComponent()`.
 

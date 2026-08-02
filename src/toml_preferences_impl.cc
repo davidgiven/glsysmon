@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <filesystem>
 
+#include "components.h"
+
 namespace {
 
 std::string DefaultConfigPath()
@@ -52,7 +54,8 @@ private:
 
 }  // namespace
 
-fruit::Component<Preferences> GetPreferencesComponent()
+fruit::Component<fruit::Annotated<TomlPreference, Preferences>> GetTomlPreferencesComponent()
 {
-    return fruit::createComponent().bind<Preferences, TomlPreferencesImpl>();
+    return fruit::createComponent()
+        .bind<fruit::Annotated<TomlPreference, Preferences>, TomlPreferencesImpl>();
 }
