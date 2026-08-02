@@ -10,7 +10,6 @@
 #undef namespace
 
 #include <cstring>
-#include <utility>
 
 namespace {
 
@@ -31,18 +30,22 @@ uint32_t AnchorForSide(const std::string &side)
 
 class WaylandDockImpl : public Dock {
 public:
-    explicit WaylandDockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
+    explicit WaylandDockImpl(const Preferences &prefs) : _prefs(&prefs) {}
 
     SDL_Window *CreateWindow() override
     {
         // Create the window as a roleless wl_surface; SDL will not assign a
         // shell role, so we can attach the layer-shell role before any buffer
         // is attached.
+        const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+        const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
+        const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
+
         SDL_PropertiesID props = SDL_CreateProperties();
         SDL_SetBooleanProperty(
             props, SDL_PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN, true);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, _cfg.size);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, _cfg.size);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, size);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, size);
         SDL_Window *window = SDL_CreateWindowWithProperties(props);
         SDL_DestroyProperties(props);
         if (window == nullptr)
@@ -69,7 +72,7 @@ public:
             return nullptr;
         }
 
-        SDL_DisplayID display_id = DockGetDisplay(_cfg.monitor);
+        SDL_DisplayID display_id = DockGetDisplay(monitor);
         wl_output *output = static_cast<wl_output *>(SDL_GetPointerProperty(
             SDL_GetDisplayProperties(display_id), SDL_PROP_DISPLAY_WAYLAND_WL_OUTPUT_POINTER,
             nullptr));
@@ -83,13 +86,12 @@ public:
         }
         zwlr_layer_surface_v1_add_listener(_layerSurface, &_layerSurfaceListener, this);
 
-        const bool vertical = (_cfg.side == "left" || _cfg.side == "right");
-        zwlr_layer_surface_v1_set_anchor(_layerSurface, AnchorForSide(_cfg.side));
+        const bool vertical = (side == "left" || side == "right");
+        zwlr_layer_surface_v1_set_anchor(_layerSurface, AnchorForSide(side));
         // size 0 on the unconstrained axis lets the compositor stretch the dock.
-        zwlr_layer_surface_v1_set_size(_layerSurface,
-                                       vertical ? static_cast<uint32_t>(_cfg.size) : 0,
-                                       vertical ? 0 : static_cast<uint32_t>(_cfg.size));
-        zwlr_layer_surface_v1_set_exclusive_zone(_layerSurface, _cfg.size);
+        zwlr_layer_surface_v1_set_size(_layerSurface, vertical ? static_cast<uint32_t>(size) : 0,
+                                       vertical ? 0 : static_cast<uint32_t>(size));
+        zwlr_layer_surface_v1_set_exclusive_zone(_layerSurface, size);
         // EXCLUSIVE so ImGui receives keyboard input on the layer surface.
         zwlr_layer_surface_v1_set_keyboard_interactivity(
             _layerSurface, ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE);
@@ -138,7 +140,7 @@ private:
 
     static void HandleGlobalRemove(void *, wl_registry *, uint32_t) {}
 
-    DockConfig _cfg;
+    const Preferences *_prefs;
     wl_display *_display = nullptr;
     wl_surface *_surface = nullptr;
     zwlr_layer_shell_v1 *_shell = nullptr;
@@ -162,7 +164,7 @@ const zwlr_layer_surface_v1_listener WaylandDockImpl::_layerSurfaceListener = {
 
 }  // namespace
 
-std::unique_ptr<Dock> DockCreateWayland(const DockConfig &cfg)
+std::unique_ptr<Dock> DockCreateWayland(const Preferences &prefs)
 {
-    return std::make_unique<WaylandDockImpl>(cfg);
+    return std::make_unique<WaylandDockImpl>(prefs);
 }

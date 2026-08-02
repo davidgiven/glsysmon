@@ -4,32 +4,35 @@
 #include <X11/Xlib.h>
 
 #include <unistd.h>
-#include <utility>
 
 namespace {
 
 class X11DockImpl : public Dock {
 public:
-    explicit X11DockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
+    explicit X11DockImpl(const Preferences &prefs) : _prefs(&prefs) {}
 
     SDL_Window *CreateWindow() override
     {
-        SDL_DisplayID display = DockGetDisplay(_cfg.monitor);
+        const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+        const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
+        const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
+
+        SDL_DisplayID display = DockGetDisplay(monitor);
         SDL_Rect bounds;
         if (!SDL_GetDisplayUsableBounds(display, &bounds))
             return nullptr;
 
-        int width = _cfg.size;
-        int height = _cfg.size;
+        int width = size;
+        int height = size;
         int x = bounds.x;
         int y = bounds.y;
-        if (_cfg.side == "left" || _cfg.side == "right") {
+        if (side == "left" || side == "right") {
             height = bounds.h;
-            if (_cfg.side == "right")
+            if (side == "right")
                 x = bounds.x + bounds.w - width;
         } else {
             width = bounds.w;
-            if (_cfg.side == "bottom")
+            if (side == "bottom")
                 y = bounds.y + bounds.h - height;
         }
 
@@ -72,21 +75,21 @@ public:
         // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge extents...]
         long strut[12] = {};
         const long edge_end =
-            (_cfg.side == "left" || _cfg.side == "right") ? bounds.h - 1 : bounds.w - 1;
-        if (_cfg.side == "left") {
-            strut[0] = _cfg.size;
+            (side == "left" || side == "right") ? bounds.h - 1 : bounds.w - 1;
+        if (side == "left") {
+            strut[0] = size;
             strut[4] = 0;
             strut[5] = edge_end;
-        } else if (_cfg.side == "right") {
-            strut[1] = _cfg.size;
+        } else if (side == "right") {
+            strut[1] = size;
             strut[6] = 0;
             strut[7] = edge_end;
-        } else if (_cfg.side == "top") {
-            strut[2] = _cfg.size;
+        } else if (side == "top") {
+            strut[2] = size;
             strut[8] = 0;
             strut[9] = edge_end;
         } else {
-            strut[3] = _cfg.size;
+            strut[3] = size;
             strut[10] = 0;
             strut[11] = edge_end;
         }
@@ -101,12 +104,12 @@ public:
     void PollWindow(SDL_Window *) override {}
 
 private:
-    DockConfig _cfg;
+    const Preferences *_prefs;
 };
 
 }  // namespace
 
-std::unique_ptr<Dock> DockCreateX11(const DockConfig &cfg)
+std::unique_ptr<Dock> DockCreateX11(const Preferences &prefs)
 {
-    return std::make_unique<X11DockImpl>(cfg);
+    return std::make_unique<X11DockImpl>(prefs);
 }

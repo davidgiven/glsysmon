@@ -6,7 +6,6 @@
 #include <map>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "components.h"
 
@@ -14,9 +13,9 @@ namespace {
 
 class CliPreferencesImpl : public Preferences {
 public:
-    explicit CliPreferencesImpl(std::vector<std::string> args)
+    explicit CliPreferencesImpl(CliArgs args)
     {
-        for (const std::string &arg : args) {
+        for (const std::string &arg : args.values) {
             if (arg.rfind("--side=", 0) == 0)
                 _values["side"] = arg.substr(7);
             else if (arg.rfind("--size=", 0) == 0)
@@ -26,7 +25,7 @@ public:
         }
     }
 
-    using Inject = CliPreferencesImpl(std::vector<std::string>);
+    using Inject = CliPreferencesImpl(CliArgs);
 
     std::optional<std::string> GetString(const std::string &key) const override
     {
@@ -56,8 +55,7 @@ private:
 
 }  // namespace
 
-fruit::Component<fruit::Required<std::vector<std::string>>,
-                 fruit::Annotated<CliPreference, Preferences>>
+fruit::Component<fruit::Required<CliArgs>, fruit::Annotated<CliPreference, Preferences>>
 GetCliPreferencesComponent()
 {
     return fruit::createComponent()

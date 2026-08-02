@@ -35,21 +35,24 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 
 ## Architecture
 
-- `src/main.cc` — CLI args (`--side`, `--size`, `--monitor`); the composition
-  root builds a Fruit `Injector<App>` and runs it.
+- `src/main.cc` — validates CLI args (`--side`, `--size`, `--monitor`, `--help`);
+  heap-allocates a `CliArgs` and feeds it into the Fruit `Injector<App>` as a
+  component-function argument, then runs `App::Run()`.
 - `src/components.h` — declares the module `Get*Component()` functions; the
   only header that includes `<fruit/fruit.h>`.
-- `src/app.h` — `App` interface.
+- `src/app.h` — `App` interface (`Run()`).
 - `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, ImGui
   setup, main render loop) receives `DockFactory` and `Ui` via Fruit
   constructor injection; `GetAppComponent()` installs the Dock and Ui
-  components.
+  components and binds the injected `CliArgs`.
 - `src/dock.h` — `Dock` interface (`CreateWindow()`, `PollWindow()`), the
   `DockFactory` alias, and the backend factory entry points
-  `DockCreate{X11,Wayland,Fallback}`.
+  `DockCreate{X11,Wayland,Fallback}`, which take the injected `Preferences`.
 - `src/dock.cc` — `DockGetDisplay()`, `DockCreate()` dispatch on
-  `SDL_GetCurrentVideoDriver()`, and `GetDockComponent()`, which binds
-  `DockFactory` through assisted injection of `DockConfig`.
+  `SDL_GetCurrentVideoDriver()`, and `GetDockComponent()`, which installs the
+  preferences component and binds `DockFactory` via a `registerFactory` whose
+  (non-Assisted) `Preferences *` parameter is injected, so the resulting
+  `std::function` takes no arguments.
 - `src/x11_dock_impl.cc` — `X11DockImpl`; sets `_NET_WM_WINDOW_TYPE`=DOCK,
   `_NET_WM_STRUT_PARTIAL`, `_NET_WM_STATE`=ABOVE|STICKY via Xlib using
   `SDL_PROP_WINDOW_X11_*`.
@@ -63,11 +66,13 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/preferences.h` — `Preferences` interface (a generic key/value store:
   `GetString()`, `GetInteger()`, returning `std::optional`),
   `GlobalPreferencesFetcher`, which provides typed inline static accessors
-  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`, and the
-  `CliPreference`/`TomlPreference` Fruit annotation markers.
+  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`, the
+  `CliPreference`/`TomlPreference` Fruit annotation markers, and `CliArgs`, a
+  hashable wrapper around the argv vector used as the component-function
+  argument.
 - `src/cli_preferences_impl.cc` — `CliPreferencesImpl`, a `Preferences` whose
   values come from `--side=`/`--size=`/`--monitor=` arguments;
-  `GetCliPreferencesComponent()` (requires `std::vector<std::string>`).
+  `GetCliPreferencesComponent()` (requires `CliArgs`).
 - `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
   `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
   `GetTomlPreferencesComponent()`.
@@ -85,9 +90,10 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   (`Get*Component()`) per module, declared in `components.h`. Fruit types must
   not appear in interface headers.
 - Wire components with Fruit dependency injection: interfaces via
-  `.bind<I, Impl>()` (impls expose a `using Inject = Impl(...)` typedef),
-  runtime-config dependencies via assisted injection through a
-  `std::function` factory.
+  `.bind<I, Impl>()` (impls expose a `using Inject = Impl(...)` typedef), and
+  zero-argument `std::function` factories via `registerFactory<T(Deps...)>`
+  whose non-`Assisted` parameters are injected (only `Assisted` parameters show
+  up in the `std::function`'s signature).
 - Name class data members with a leading underscore (`_name`); local
   variables and function parameters stay bare.
 - The dock backend must be configured before the first swapchain present.
@@ -99,6 +105,12 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 
 ## Gotchas
 
+- `fruit::bindInstance()` stores a reference to the passed object — the
+  instance must outlive the component/injector (hence `main.cc` heap-allocates
+  `CliArgs` and passes `CliArgs *` to the component function). Component-function
+  arguments must also be hashable and equality-comparable (why `CliArgs` exists).
+- A `fruit::Required<...>` type must be the first template argument of
+  `fruit::Component`.
 - With `imgui_impl_sdlgpu3`, `ImGui_ImplSDLGPU3_PrepareDrawData()` must be
   called BEFORE beginning the render pass that draws ImGui.
 - SDL3's Wayland backend owns the `wl_display`; do not create a second

@@ -41,8 +41,7 @@ private:
 
 }  // namespace
 
-fruit::Component<fruit::Required<std::vector<std::string>>, Preferences>
-GetPreferencesComponent()
+fruit::Component<fruit::Required<CliArgs>, Preferences> GetPreferencesComponent()
 {
     return fruit::createComponent()
         .install(GetCliPreferencesComponent)

@@ -22,14 +22,14 @@ public:
 
     using Inject = ImGuiAppImpl(DockFactory, Ui *);
 
-    int Run(const DockConfig &cfg) override
+    int Run() override
     {
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD)) {
             SDL_Log("SDL_Init failed: %s", SDL_GetError());
             return 1;
         }
 
-        std::unique_ptr<Dock> dock = _dockFactory(cfg);
+        std::unique_ptr<Dock> dock = _dockFactory();
         SDL_Window *window = dock->CreateWindow();
         if (window == nullptr) {
             SDL_Log("Dock::CreateWindow failed: %s", SDL_GetError());
@@ -139,10 +139,11 @@ private:
 
 }  // namespace
 
-fruit::Component<App> GetAppComponent()
+fruit::Component<App> GetAppComponent(CliArgs *args)
 {
     return fruit::createComponent()
         .install(GetDockComponent)
         .install(GetUiComponent)
+        .bindInstance(*args)
         .bind<App, ImGuiAppImpl>();
 }

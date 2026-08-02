@@ -1,12 +1,10 @@
 #pragma once
 
-#include "dock.h"
-
-// Application entry interface. Implementations live in app.cpp.
+// Application entry interface. Implementations live in imgui_app_impl.cc.
 class App {
 public:
     virtual ~App() = default;
 
     // Bootstraps SDL/ImGui, runs the main loop, returns process exit code.
-    virtual int Run(const DockConfig &cfg) = 0;
+    virtual int Run() = 0;
 };

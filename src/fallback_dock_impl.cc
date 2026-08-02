@@ -4,26 +4,30 @@ namespace {
 
 class FallbackDockImpl : public Dock {
 public:
-    explicit FallbackDockImpl(DockConfig cfg) : _cfg(std::move(cfg)) {}
+    explicit FallbackDockImpl(const Preferences &prefs) : _prefs(&prefs) {}
 
     SDL_Window *CreateWindow() override
     {
-        SDL_DisplayID display = DockGetDisplay(_cfg.monitor);
+        const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+        const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
+        const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
+
+        SDL_DisplayID display = DockGetDisplay(monitor);
         SDL_Rect bounds;
         if (!SDL_GetDisplayUsableBounds(display, &bounds))
             return nullptr;
 
-        int width = _cfg.size;
-        int height = _cfg.size;
+        int width = size;
+        int height = size;
         int x = bounds.x;
         int y = bounds.y;
-        if (_cfg.side == "left" || _cfg.side == "right") {
+        if (side == "left" || side == "right") {
             height = bounds.h;
-            if (_cfg.side == "right")
+            if (side == "right")
                 x = bounds.x + bounds.w - width;
         } else {
             width = bounds.w;
-            if (_cfg.side == "bottom")
+            if (side == "bottom")
                 y = bounds.y + bounds.h - height;
         }
 
@@ -40,12 +44,12 @@ public:
     void PollWindow(SDL_Window *) override {}
 
 private:
-    DockConfig _cfg;
+    const Preferences *_prefs;
 };
 
 }  // namespace
 
-std::unique_ptr<Dock> DockCreateFallback(const DockConfig &cfg)
+std::unique_ptr<Dock> DockCreateFallback(const Preferences &prefs)
 {
-    return std::make_unique<FallbackDockImpl>(cfg);
+    return std::make_unique<FallbackDockImpl>(prefs);
 }
