@@ -37,5 +37,11 @@ int main(int argc, char **argv)
     }
 
     fruit::Injector<App> injector(GetAppComponent, args.get());
-    return injector.get<App &>().Run();
+    App &app = injector.get<App &>();
+    if (const int setup_result = app.Setup(); setup_result != 0)
+        return setup_result;
+    while (app.Tick()) {
+    }
+    app.Shutdown();
+    return 0;
 }

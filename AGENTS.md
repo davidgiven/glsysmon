@@ -38,13 +38,14 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 
 - `src/main.cc` — validates CLI args (`--side`, `--size`, `--monitor`, `--help`);
   heap-allocates a `CliArgs` and feeds it into the Fruit `Injector<App>` as a
-  component-function argument, then runs `App::Run()`.
+  component-function argument, then runs the main loop over
+  `App::Setup()`/`Tick()`/`Shutdown()`.
 - `src/components.h` — declares the module `Get*Component()` functions; the
   only header that includes `<fruit/fruit.h>`.
-- `src/app.h` — `App` interface (`Run()`).
+- `src/app.h` — `App` interface (`Setup()`, `Tick()`, `Shutdown()`).
 - `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, ImGui
-  setup, main render loop) receives `DockFactory` and `Ui` via Fruit
-  constructor injection; `GetAppComponent()` installs the Dock and Ui
+  setup, one frame per `Tick()`, teardown) receives `DockFactory` and `Ui` via
+  Fruit constructor injection; `GetAppComponent()` installs the Dock and Ui
   components and binds the injected `CliArgs`.
 - `src/dock.h` — `Dock` interface (`CreateWindow()`, `PollWindow()`), the
   `DockFactory` alias, and the backend factory entry points
