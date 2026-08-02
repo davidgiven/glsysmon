@@ -41,7 +41,8 @@ XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
-                 $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD)
+                 $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD) \
+                 -I$(CURDIR)/src
 
 SRC_OBJS := \
 	$(BUILD)/cli_preferences_impl.o \
@@ -51,7 +52,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/hostname_view_impl.o \
+	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/toml_preferences_impl.o \
 	$(BUILD)/wayland_dock_impl.o \
@@ -102,7 +103,7 @@ $(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
 	$(CC) -O2 $(WAYLAND_CFLAGS) -c -o $@ $<
 
 $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
-	@mkdir -p $(BUILD)
+	@mkdir -p $(dir $@)
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
@@ -119,11 +120,11 @@ $(TEST_BUILD)/%.o: tests/%.cc
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/cli_preferences_impl.o \
-	$(BUILD)/hostname_view_impl.o $(BACKEND_OBJS)
+	$(BUILD)/views/hostname_view_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/hostname_view_impl.o $(BACKEND_OBJS)
+	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/views/hostname_view_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS) $(STB_LIBS)
 
 run: $(BIN)
@@ -133,14 +134,17 @@ test: $(TEST_UNIT) $(TEST_RENDER)
 	./$(TEST_UNIT)
 	./$(TEST_RENDER)
 
-# Compilation database for clangd; every src/*.cc and tests/*.cc builds with
+# Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.
-compile_commands.json: $(wildcard src/*.cc) $(wildcard tests/*.cc)
+SRC_CC := $(wildcard src/*.cc) $(wildcard src/views/*.cc)
+TEST_CC := $(wildcard tests/*.cc)
+compile_commands.json: $(SRC_CC) $(TEST_CC)
 	@mkdir -p $(BUILD)
-	@{ printf '[\n'; first=1; for f in $(sort $(wildcard src/*.cc) $(wildcard tests/*.cc)); do \
+	@{ printf '[\n'; first=1; for f in $(sort $(SRC_CC) $(TEST_CC)); do \
 		if [ $$first -eq 1 ]; then first=0; else printf ',\n'; fi; \
 		obj_dir="$(CURDIR)/$(BUILD)"; \
-		if [ "$$(dirname "$$f")" = "tests" ]; then obj_dir="$$obj_dir/tests"; fi; \
+		if [ "$$(dirname "$$f")" = "tests" ]; then obj_dir="$$obj_dir/tests"; \
+		elif [ "$$(dirname "$$f")" != "src" ]; then obj_dir="$$obj_dir/$$(basename $$(dirname "$$f"))"; fi; \
 		cmd="$(CXX) $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src -c -o $$obj_dir/$$(basename $$f .cc).o $$f"; \
 		printf '  {"directory": "$(CURDIR)", "file": "$(CURDIR)/%s", "command": "%s"}' "$$f" "$$cmd"; \
 	done; printf '\n]\n'; } > $@
