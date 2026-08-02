@@ -106,7 +106,16 @@ $(BUILD)/imgui_impl_sdlgpu3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdlgpu3.cpp
 run: $(BIN)
 	./$(BIN)
 
+# Compilation database for clangd; every src/*.cc builds with COMMON_CFLAGS.
+compile_commands.json: $(wildcard src/*.cc)
+	@mkdir -p $(BUILD)
+	@{ printf '[\n'; first=1; for f in $(sort $(wildcard src/*.cc)); do \
+		if [ $$first -eq 1 ]; then first=0; else printf ',\n'; fi; \
+		cmd="$(CXX) $(COMMON_CFLAGS) -c -o $(CURDIR)/$(BUILD)/$$(basename $$f .cc).o $$f"; \
+		printf '  {"directory": "$(CURDIR)", "file": "$(CURDIR)/%s", "command": "%s"}' "$$f" "$$cmd"; \
+	done; printf '\n]\n'; } > $@
+
 clean:
-	rm -rf $(BUILD) $(BIN)
+	rm -rf $(BUILD) $(BIN) compile_commands.json
 
 .PHONY: all run clean

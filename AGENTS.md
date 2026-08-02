@@ -19,6 +19,7 @@ Requires (Debian packages): `libsdl3-dev`, `libimgui-dev`, `libstb-dev`,
 ```sh
 make          # build the glrellm binary
 make run      # build and run (defaults: left edge, 240px, primary monitor)
+make compile_commands.json   # clangd compilation database (regenerates on source change)
 make clean
 ```
 
