@@ -18,6 +18,8 @@ WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
 WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
 TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
 TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
+STB_CFLAGS          := $(shell $(PKG_CONFIG) --cflags stb)
+STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb)
 
 # Fruit ships no .pc file; headers are in the default include path.
 FRUIT_LIBS := -lfruit
@@ -47,6 +49,7 @@ SRC_OBJS := \
 	$(BUILD)/dock.o \
 	$(BUILD)/fallback_dock_impl.o \
 	$(BUILD)/imgui_app_impl.o \
+	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/toml_preferences_impl.o \
@@ -62,6 +65,12 @@ WAYLAND_OBJS := \
 	$(GEN)/xdg-shell-client-protocol.o
 
 OBJS := $(SRC_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
+
+TEST_BUILD  := $(BUILD)/tests
+TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
+
+TEST_UNIT   := $(TEST_BUILD)/unit_tests
+TEST_RENDER := $(TEST_BUILD)/render_frame
 
 all: $(BIN)
 
@@ -103,19 +112,38 @@ $(BUILD)/imgui_impl_sdlgpu3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdlgpu3.cpp
 	@mkdir -p $(BUILD)
 	$(CXX) $(COMMON_CFLAGS) $(IMGUI_BACKEND_CFLAGS) -c -o $@ $<
 
+$(TEST_BUILD)/%.o: tests/%.cc
+	@mkdir -p $(TEST_BUILD)
+	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
+
+$(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/cli_preferences_impl.o $(BACKEND_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS)
+
+$(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/imgui_frame_renderer_impl.o $(BACKEND_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS) $(STB_LIBS)
+
 run: $(BIN)
 	./$(BIN)
 
-# Compilation database for clangd; every src/*.cc builds with COMMON_CFLAGS.
-compile_commands.json: $(wildcard src/*.cc)
+test: $(TEST_UNIT) $(TEST_RENDER)
+	./$(TEST_UNIT)
+	./$(TEST_RENDER)
+
+# Compilation database for clangd; every src/*.cc and tests/*.cc builds with
+# their respective flags.
+compile_commands.json: $(wildcard src/*.cc) $(wildcard tests/*.cc)
 	@mkdir -p $(BUILD)
-	@{ printf '[\n'; first=1; for f in $(sort $(wildcard src/*.cc)); do \
+	@{ printf '[\n'; first=1; for f in $(sort $(wildcard src/*.cc) $(wildcard tests/*.cc)); do \
 		if [ $$first -eq 1 ]; then first=0; else printf ',\n'; fi; \
-		cmd="$(CXX) $(COMMON_CFLAGS) -c -o $(CURDIR)/$(BUILD)/$$(basename $$f .cc).o $$f"; \
+		obj_dir="$(CURDIR)/$(BUILD)"; \
+		if [ "$$(dirname "$$f")" = "tests" ]; then obj_dir="$$obj_dir/tests"; fi; \
+		cmd="$(CXX) $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src -c -o $$obj_dir/$$(basename $$f .cc).o $$f"; \
 		printf '  {"directory": "$(CURDIR)", "file": "$(CURDIR)/%s", "command": "%s"}' "$$f" "$$cmd"; \
 	done; printf '\n]\n'; } > $@
 
 clean:
 	rm -rf $(BUILD) $(BIN) compile_commands.json
 
-.PHONY: all run clean
+.PHONY: all run test clean

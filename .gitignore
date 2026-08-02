@@ -1,3 +1,4 @@
 build/
 glrellm
 compile_commands.json
+tests/out/

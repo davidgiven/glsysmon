@@ -14,14 +14,25 @@ skeleton; system monitoring comes later.
 
 Requires (Debian packages): `libsdl3-dev`, `libimgui-dev`, `libstb-dev`,
 `libwayland-dev`, `libx11-dev`, `libvulkan-dev`, `libgoogle-fruit-dev`,
-`pkg-config`.
+`doctest-dev`, `pkg-config`.
 
 ```sh
 make          # build the glrellm binary
 make run      # build and run (defaults: left edge, 240px, primary monitor)
+make test     # build and run unit tests, then write the off-screen render snapshot
 make compile_commands.json   # clangd compilation database (regenerates on source change)
 make clean
 ```
+
+Tests live in `tests/`. `tests/unit_tests.cc` is a doctest runner
+(`DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN`); the header-only framework needs no link
+flags. `tests/render_frame.cc` is a standalone harness that renders one frame of
+the UI into an SDL_GPU off-screen texture and saves it as a PNG
+(`tests/out/render_frame.png`) for visual inspection; it does not exercise the
+dock backends. It injects `Ui` and the shared `ImGuiFrameRenderer` (from
+`GetUiComponent`/`GetImGuiFrameRendererComponent` via a local combined
+component), creating its own hidden window and off-screen target. Both test
+binaries link against `build/imgui_ui_impl.o` and the renderer impl.
 
 The build uses pkg-config for `sdl3`, `imgui`, `x11`, and `wayland-client`.
 Fruit ships no `.pc` file, so it is linked as `-lfruit`. ImGui core is linked
@@ -43,10 +54,17 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/components.h` — declares the module `Get*Component()` functions; the
   only header that includes `<fruit/fruit.h>`.
 - `src/app.h` — `App` interface (`Setup()`, `Tick()`, `Shutdown()`).
-- `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, ImGui
-  setup, one frame per `Tick()`, teardown) receives `DockFactory` and `Ui` via
-  Fruit constructor injection; `GetAppComponent()` installs the Dock and Ui
-  components and binds the injected `CliArgs`.
+- `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, one frame
+  per `Tick()`, teardown) receives `DockFactory`, `Ui`, and `ImGuiFrameRenderer`
+  via Fruit constructor injection; `GetAppComponent()` installs the Dock, Ui,
+  and frame-renderer components and binds the injected `CliArgs`.
+- `src/imgui_frame_renderer.h` — `ImGuiFrameRenderer` interface owning the ImGui
+  context and backends (`Init()`, `ProcessEvent()`, `BeginFrame()`, `Render()`
+  into any target texture, `Shutdown()`); shared by the app (swapchain target)
+  and the off-screen render harness (texture target).
+- `src/imgui_frame_renderer_impl.cc` — `ImGuiFrameRendererImpl` (ImGui context
+  + IO/style/DPI setup, SDL3/SDLGPU3 backend init, `ImGui::Render` and the
+  clear-to-render pass); `GetImGuiFrameRendererComponent()`.
 - `src/dock.h` — `Dock` interface (`CreateWindow()`, `PollWindow()`), the
   `DockFactory` alias, and the backend factory entry points
   `DockCreate{X11,Wayland,Fallback}`, which take the injected `Preferences`.
@@ -99,6 +117,8 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - Name class data members with a leading underscore (`_name`); local
   variables and function parameters stay bare.
 - Declare non-static free-function prototypes in headers with `extern`.
+- Reformat changed sources with `clang-format` (per the repo `.clang-format`)
+  before committing.
 - The dock backend must be configured before the first swapchain present.
 - On Wayland, the layer-surface `configure` event must call `ack_configure`
   and then `SDL_SetWindowSize()` so the SDL swapchain matches.
