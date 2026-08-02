@@ -119,6 +119,9 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   installed by `GetUiComponent()`. Includes from `src/views/`/`src/sensors/`
   use the `src/`-relative path (e.g. `sensors/hostname_sensor.h`), not a bare
   filename.
+- `src/views/catalogue.h`/`src/views/catalogue.cc` — `GetViewCatalogue()`, a
+  static map of view names to their Fruit component functions, used to load the
+  views to display at run time (currently just `HostnameView`).
 
 ## Conventions
 
@@ -127,7 +130,8 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - Headers declare pure-virtual interfaces only; implementations are
   `*Impl` classes defined in `.cc` files, one module component function
   (`Get*Component()`) per module, declared in `components.h`. Fruit types must
-  not appear in interface headers.
+  not appear in interface headers (the exceptions are `components.h` and
+  `views/catalogue.h`, which include `<fruit/fruit.h>`).
 - Wire components with Fruit dependency injection: interfaces via
   `.bind<I, Impl>()` (impls expose a `using Inject = Impl(...)` typedef), and
   zero-argument `std::function` factories via `registerFactory<T(Deps...)>`

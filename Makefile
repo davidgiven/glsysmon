@@ -52,6 +52,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/main.o \
@@ -121,8 +122,8 @@ $(TEST_BUILD)/%.o: tests/%.cc
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/cli_preferences_impl.o \
-	$(BUILD)/views/hostname_view_impl.o $(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BACKEND_OBJS)
+	$(BUILD)/views/catalogue.o $(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o $(BACKEND_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(FRUIT_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \

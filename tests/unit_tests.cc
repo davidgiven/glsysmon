@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "components.h"
+#include "views/catalogue.h"
 
 namespace
 {
@@ -33,6 +34,15 @@ TEST_CASE("Fruit resolves the UI component")
 TEST_CASE("Fruit resolves the view component")
 {
     fruit::Injector<View> injector(GetViewComponent);
+    CHECK(injector.get<View*>() != nullptr);
+}
+
+TEST_CASE("View catalogue exposes HostnameView and resolves it")
+{
+    const auto& catalogue = GetViewCatalogue();
+    REQUIRE(catalogue.find("HostnameView") != catalogue.end());
+
+    fruit::Injector<View> injector(catalogue.at("HostnameView"));
     CHECK(injector.get<View*>() != nullptr);
 }
 
