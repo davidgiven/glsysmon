@@ -15,7 +15,7 @@
 // from GetAppComponent(). This is the only header that touches Fruit.
 extern fruit::Component<fruit::Required<CliArgs>, DockFactory>
 GetDockComponent();
-extern fruit::Component<Ui> GetUiComponent();
+extern fruit::Component<fruit::Required<CliArgs>, Ui> GetUiComponent();
 extern fruit::Component<View> GetViewComponent();
 extern fruit::Component<HostnameSensor> GetHostnameSensorComponent();
 extern fruit::Component<ImGuiFrameRenderer> GetImGuiFrameRendererComponent();

@@ -4,8 +4,12 @@
 #include <fruit/fruit.h>
 #include <imgui.h>
 
+#include <string>
+#include <vector>
+
 #include "components.h"
-#include "view.h"
+#include "preferences.h"
+#include "views/catalogue.h"
 
 namespace
 {
@@ -13,9 +17,20 @@ namespace
     class ImGuiUiImpl : public Ui
     {
     public:
-        using Inject = ImGuiUiImpl(View*);
+        using Inject = ImGuiUiImpl(Preferences*);
 
-        explicit ImGuiUiImpl(View* view): _view(view) {}
+        explicit ImGuiUiImpl(Preferences* prefs): _prefs(prefs)
+        {
+            for (const std::string& name :
+                GlobalPreferencesFetcher::GetViews(*prefs))
+            {
+                const auto& catalogue = GetViewCatalogue();
+                const auto it = catalogue.find(name);
+                if (it == catalogue.end())
+                    continue;
+                _views.push_back(fruit::Injector<View>(it->second));
+            }
+        }
 
         void Draw(SDL_Window* window, const char* backend) override
         {
@@ -29,7 +44,8 @@ namespace
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-            _view->Tick();
+            for (fruit::Injector<View>& injector : _views)
+                injector.get<View*>()->Tick();
             ImGui::Separator();
             int width, height;
             SDL_GetWindowSize(window, &width, &height);
@@ -46,14 +62,15 @@ namespace
         }
 
     private:
-        View* _view;
+        Preferences* _prefs;
+        std::vector<fruit::Injector<View>> _views;
     };
 
 } // namespace
 
-fruit::Component<Ui> GetUiComponent()
+fruit::Component<fruit::Required<CliArgs>, Ui> GetUiComponent()
 {
     return fruit::createComponent()
-        .install(GetViewComponent)
+        .install(GetPreferencesComponent)
         .bind<Ui, ImGuiUiImpl>();
 }

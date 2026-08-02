@@ -12,7 +12,7 @@ namespace
     {
         std::fprintf(stderr,
             "Usage: %s [--side=left|right] [--size=px] "
-            "[--monitor=N] [--help]\n",
+            "[--monitor=N] [--views=View1,View2] [--help]\n",
             prog);
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
             return 0;
         }
         if (arg.rfind("--side=", 0) != 0 && arg.rfind("--size=", 0) != 0 &&
-            arg.rfind("--monitor=", 0) != 0)
+            arg.rfind("--monitor=", 0) != 0 && arg.rfind("--views=", 0) != 0)
         {
             std::fprintf(stderr, "unknown argument: %s\n", arg.c_str());
             PrintUsage(argv[0]);

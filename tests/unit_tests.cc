@@ -12,9 +12,9 @@
 namespace
 {
 
-    // GetCliPreferencesComponent() requires CliArgs but takes no parameters;
-    // wrap it so tests can bind their own args (bindInstance stores a
-    // reference, so args must outlive the Injector).
+    // GetUiComponent() and GetCliPreferencesComponent() require CliArgs but
+    // take no parameters; wrap them so tests can bind their own args
+    // (bindInstance stores a reference, so args must outlive the Injector).
     fruit::Component<fruit::Annotated<CliPreference, Preferences>>
     GetCliPreferencesWithArgs(CliArgs* args)
     {
@@ -23,11 +23,19 @@ namespace
             .bindInstance(*args);
     }
 
+    fruit::Component<Ui> GetUiWithArgs(CliArgs* args)
+    {
+        return fruit::createComponent()
+            .install(GetUiComponent)
+            .bindInstance(*args);
+    }
+
 } // namespace
 
 TEST_CASE("Fruit resolves the UI component")
 {
-    fruit::Injector<Ui> injector(GetUiComponent);
+    CliArgs args;
+    fruit::Injector<Ui> injector(GetUiWithArgs, &args);
     CHECK(injector.get<Ui*>() != nullptr);
 }
 
@@ -74,6 +82,21 @@ TEST_CASE("CLI preferences default to left / 240 / monitor 0")
     CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "left");
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 0);
+    CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
+          std::vector<std::string>{"HostnameView"});
+}
+
+TEST_CASE("CLI --views= parses a comma-separated list")
+{
+    CliArgs args;
+    args.values = {"--views=HostnameView,CpuView"};
+    fruit::Injector<fruit::Annotated<CliPreference, Preferences>> injector(
+        GetCliPreferencesWithArgs, &args);
+    Preferences* prefs =
+        injector.get<fruit::Annotated<CliPreference, Preferences*>>();
+
+    CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
+          std::vector<std::string>{"HostnameView", "CpuView"});
 }
 
 TEST_CASE("CLI preferences parse --side= / --size= / --monitor=")

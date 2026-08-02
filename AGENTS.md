@@ -47,9 +47,9 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 
 ## Architecture
 
-- `src/main.cc` — validates CLI args (`--side`, `--size`, `--monitor`, `--help`);
-  heap-allocates a `CliArgs` and feeds it into the Fruit `Injector<App>` as a
-  component-function argument, then runs the main loop over
+- `src/main.cc` — validates CLI args (`--side`, `--size`, `--monitor`,
+  `--views`, `--help`); heap-allocates a `CliArgs` and feeds it into the Fruit
+  `Injector<App>` as a component-function argument, then runs the main loop over
   `App::Setup()`/`Tick()`/`Shutdown()`; catches `std::exception` from `Setup()`
   and exits non-zero.
 - `src/components.h` — declares the module `Get*Component()` functions; the
@@ -89,23 +89,27 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - `src/fallback_dock_impl.cc` — `FallbackDockImpl`, used when no X11/Wayland
   backend is active.
 - `src/preferences.h` — `Preferences` interface (a generic key/value store:
-  `GetString()`, `GetInteger()`, returning `std::optional`),
-  `GlobalPreferencesFetcher`, which provides typed inline static accessors
-  (`GetSide()`, `GetSize()`, `GetMonitor()`) over a `Preferences`, the
+  `GetString()`, `GetInteger()`, `GetStringList()`, returning
+  `std::optional`), `GlobalPreferencesFetcher`, which provides typed inline
+  static accessors (`GetSide()`, `GetSize()`, `GetMonitor()`, `GetViews()`,
+  defaulting to `{"HostnameView"}`) over a `Preferences`, the
   `CliPreference`/`TomlPreference` Fruit annotation markers, and `CliArgs`, a
   hashable wrapper around the argv vector used as the component-function
   argument.
 - `src/cli_preferences_impl.cc` — `CliPreferencesImpl`, a `Preferences` whose
-  values come from `--side=`/`--size=`/`--monitor=` arguments;
-  `GetCliPreferencesComponent()` (requires `CliArgs`).
+  values come from `--side=`/`--size=`/`--monitor=`/`--views=` arguments
+  (`--views=` is a comma-separated list); `GetCliPreferencesComponent()`
+  (requires `CliArgs`).
 - `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
   `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
   `GetTomlPreferencesComponent()`.
 - `src/combined_preferences_impl.cc` — `CombinedPreferencesImpl`, which merges
   the CLI and TOML sources (CLI wins); `GetPreferencesComponent()`.
 - `src/ui.h` — `Ui` interface.
-- `src/imgui_ui_impl.cc` — `ImGuiUiImpl` draws one window with the injected
-  `View`s; `GetUiComponent()`.
+- `src/imgui_ui_impl.cc` — `ImGuiUiImpl` takes the injected `Preferences`, looks
+  up each configured view name in the view catalogue, builds a `fruit::Injector`
+  per view, and calls `Tick()` on each during `Draw`; `GetUiComponent()`
+  (requires `CliArgs`).
 - `src/view.h` — `View` interface for a system-monitor widget (`Tick()` redraws
   it into the active ImGui window).
 - `src/sensor.h` — `Sensor` interface for something that fetches system data

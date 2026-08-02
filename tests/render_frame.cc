@@ -67,11 +67,12 @@ namespace
         return true;
     }
 
-    fruit::Component<Ui, ImGuiFrameRenderer> GetTestComponents()
+    fruit::Component<Ui, ImGuiFrameRenderer> GetTestComponents(CliArgs* args)
     {
         return fruit::createComponent()
             .install(GetUiComponent)
-            .install(GetImGuiFrameRendererComponent);
+            .install(GetImGuiFrameRendererComponent)
+            .bindInstance(*args);
     }
 
 } // namespace
@@ -126,7 +127,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    fruit::Injector<Ui, ImGuiFrameRenderer> injector(GetTestComponents);
+    CliArgs args;
+    fruit::Injector<Ui, ImGuiFrameRenderer> injector(GetTestComponents, &args);
     Ui* ui = injector.get<Ui*>();
     ImGuiFrameRenderer* frame_renderer = injector.get<ImGuiFrameRenderer*>();
     if (!frame_renderer->Init(
