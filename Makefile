@@ -74,7 +74,19 @@ TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
 
 TEST_UNIT   := $(TEST_BUILD)/unit_tests
-TEST_RENDER := $(TEST_BUILD)/render_frame
+TEST_RENDER := $(TEST_BUILD)/render_fake_hostname
+
+# Objects needed by every test binary: the modules the app's components pull in.
+TEST_OBJS := \
+	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/imgui_frame_renderer_impl.o \
+	$(BUILD)/cli_preferences_impl.o \
+	$(BUILD)/toml_preferences_impl.o \
+	$(BUILD)/combined_preferences_impl.o \
+	$(BUILD)/views/catalogue.o \
+	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BACKEND_OBJS)
 
 all: $(BIN)
 
@@ -120,21 +132,13 @@ $(TEST_BUILD)/%.o: tests/%.cc
 	@mkdir -p $(TEST_BUILD)
 	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
-$(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o \
-	$(BUILD)/cli_preferences_impl.o $(BUILD)/toml_preferences_impl.o \
-	$(BUILD)/combined_preferences_impl.o \
-	$(BUILD)/views/catalogue.o $(BUILD)/views/hostname_view_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o $(BACKEND_OBJS)
+$(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
 
-$(TEST_RENDER): $(TEST_BUILD)/render_frame.o $(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o $(BUILD)/views/catalogue.o \
-	$(BUILD)/views/hostname_view_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/cli_preferences_impl.o $(BUILD)/toml_preferences_impl.o \
-	$(BUILD)/combined_preferences_impl.o $(BACKEND_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS) $(STB_LIBS)
+$(TEST_RENDER): $(TEST_BUILD)/render_fake_hostname.o \
+	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS) \
+		$(STB_LIBS)
 
 run: $(BIN)
 	./$(BIN)

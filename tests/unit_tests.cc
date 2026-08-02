@@ -30,6 +30,27 @@ namespace
             .bindInstance(*args);
     }
 
+    class FakeHostnameSensor : public HostnameSensor
+    {
+    public:
+        using Inject = FakeHostnameSensor();
+
+        std::string GetHostname() override
+        {
+            return "fake-hostname";
+        }
+    };
+
+    // Rebinding HostnameSensor after installing GetUiComponent must override
+    // the real sensor (used by the render_fake_hostname harness).
+    fruit::Component<HostnameSensor> GetUiWithFakeSensor(CliArgs* args)
+    {
+        return fruit::createComponent()
+            .install(GetUiComponent)
+            .bindInstance(*args)
+            .bind<HostnameSensor, FakeHostnameSensor>();
+    }
+
 } // namespace
 
 TEST_CASE("Fruit resolves the UI component")
@@ -37,6 +58,15 @@ TEST_CASE("Fruit resolves the UI component")
     CliArgs args;
     fruit::Injector<Ui> injector(GetUiWithArgs, &args);
     CHECK(injector.get<Ui*>() != nullptr);
+}
+
+TEST_CASE("A sensor bound after GetUiComponent overrides the real one")
+{
+    CliArgs args;
+    args.values = {"--views=HostnameView"};
+    fruit::Injector<HostnameSensor> injector(GetUiWithFakeSensor, &args);
+    HostnameSensor* sensor = injector.get<HostnameSensor*>();
+    CHECK(sensor->GetHostname() == "fake-hostname");
 }
 
 TEST_CASE("Fruit resolves the view component")

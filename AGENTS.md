@@ -26,13 +26,15 @@ make clean
 
 Tests live in `tests/`. `tests/unit_tests.cc` is a doctest runner
 (`DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN`); the header-only framework needs no link
-flags. `tests/render_frame.cc` is a standalone harness that renders one frame of
-the UI into an SDL_GPU off-screen texture and saves it as a PNG
-(`.obj/tests/render_frame.png`) for visual inspection; it does not exercise the
-dock backends. It injects `Ui` and the shared `ImGuiFrameRenderer` (from
-`GetUiComponent`/`GetImGuiFrameRendererComponent` via a local combined
-component), creating its own hidden window and off-screen target. Both test
-binaries link against `.obj/imgui_ui_impl.o` and the renderer impl.
+flags. `tests/render_frame.h`/`tests/render_frame.cc` are a library
+(`render_frame::RenderFrame`) that draws one frame of an injected `Ui` into an
+SDL_GPU off-screen texture and saves it as a PNG; it does not exercise the dock
+backends. The caller supplies a Fruit component providing `Ui` and the shared
+`ImGuiFrameRenderer` (plus `CliArgs`), so harnesses can bind fakes — e.g.
+`tests/render_fake_hostname.cc` installs `GetUiComponent` with only
+`HostnameView` enabled and rebinds `HostnameSensor` to a fake, writing
+`.obj/tests/render_fake_hostname.png`. All test binaries link against
+`.obj/imgui_ui_impl.o` and the renderer impl.
 
 The build uses pkg-config for `sdl3`, `imgui`, `x11`, and `wayland-client`.
 Fruit ships no `.pc` file, so it is linked as `-lfruit`. ImGui core is linked
