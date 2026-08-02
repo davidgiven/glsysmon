@@ -9,7 +9,7 @@ namespace {
 void PrintUsage(const char *prog)
 {
     std::fprintf(stderr,
-                 "Usage: %s [--side=left|right|top|bottom] [--size=px] "
+                 "Usage: %s [--side=left|right] [--size=px] "
                  "[--monitor=N] [--help]\n",
                  prog);
 }

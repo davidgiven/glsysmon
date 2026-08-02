@@ -23,18 +23,11 @@ public:
             return nullptr;
 
         int width = size;
-        int height = size;
+        int height = bounds.h;
         int x = bounds.x;
         int y = bounds.y;
-        if (side == "left" || side == "right") {
-            height = bounds.h;
-            if (side == "right")
-                x = bounds.x + bounds.w - width;
-        } else {
-            width = bounds.w;
-            if (side == "bottom")
-                y = bounds.y + bounds.h - height;
-        }
+        if (side == "right")
+            x = bounds.x + bounds.w - width;
 
         SDL_Window *window = SDL_CreateWindow(
             "glrellm", width, height,
@@ -74,24 +67,15 @@ public:
 
         // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge extents...]
         long strut[12] = {};
-        const long edge_end =
-            (side == "left" || side == "right") ? bounds.h - 1 : bounds.w - 1;
-        if (side == "left") {
-            strut[0] = size;
-            strut[4] = 0;
-            strut[5] = edge_end;
-        } else if (side == "right") {
+        const long edge_end = bounds.h - 1;
+        if (side == "right") {
             strut[1] = size;
             strut[6] = 0;
             strut[7] = edge_end;
-        } else if (side == "top") {
-            strut[2] = size;
-            strut[8] = 0;
-            strut[9] = edge_end;
         } else {
-            strut[3] = size;
-            strut[10] = 0;
-            strut[11] = edge_end;
+            strut[0] = size;
+            strut[4] = 0;
+            strut[5] = edge_end;
         }
         Atom wm_strut_partial = XInternAtom(display_x11, "_NET_WM_STRUT_PARTIAL", False);
         XChangeProperty(display_x11, win, wm_strut_partial, XA_CARDINAL, 32, PropModeReplace,

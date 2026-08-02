@@ -18,18 +18,11 @@ public:
             return nullptr;
 
         int width = size;
-        int height = size;
+        int height = bounds.h;
         int x = bounds.x;
         int y = bounds.y;
-        if (side == "left" || side == "right") {
-            height = bounds.h;
-            if (side == "right")
-                x = bounds.x + bounds.w - width;
-        } else {
-            width = bounds.w;
-            if (side == "bottom")
-                y = bounds.y + bounds.h - height;
-        }
+        if (side == "right")
+            x = bounds.x + bounds.w - width;
 
         SDL_Window *window = SDL_CreateWindow(
             "glrellm", width, height,

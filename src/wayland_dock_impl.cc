@@ -17,15 +17,9 @@ uint32_t AnchorForSide(const std::string &side)
 {
     const uint32_t vertical =
         ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-    const uint32_t horizontal =
-        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
-    if (side == "left")
-        return ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | vertical;
     if (side == "right")
         return ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | vertical;
-    if (side == "top")
-        return ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | horizontal;
-    return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horizontal;
+    return ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | vertical;
 }
 
 class WaylandDockImpl : public Dock {
@@ -86,11 +80,9 @@ public:
         }
         zwlr_layer_surface_v1_add_listener(_layerSurface, &_layerSurfaceListener, this);
 
-        const bool vertical = (side == "left" || side == "right");
         zwlr_layer_surface_v1_set_anchor(_layerSurface, AnchorForSide(side));
         // size 0 on the unconstrained axis lets the compositor stretch the dock.
-        zwlr_layer_surface_v1_set_size(_layerSurface, vertical ? static_cast<uint32_t>(size) : 0,
-                                       vertical ? 0 : static_cast<uint32_t>(size));
+        zwlr_layer_surface_v1_set_size(_layerSurface, static_cast<uint32_t>(size), 0);
         zwlr_layer_surface_v1_set_exclusive_zone(_layerSurface, size);
         // EXCLUSIVE so ImGui receives keyboard input on the layer surface.
         zwlr_layer_surface_v1_set_keyboard_interactivity(
