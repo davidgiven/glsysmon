@@ -42,7 +42,7 @@ int main()
     args.values = {"--views=HostnameView"};
     return render_frame::RenderFrame(240,
         0,
-        ".obj/tests/render_fake_hostname.png",
+        "tests/render_fake_hostname.bad.png",
         GetFakeComponents,
         &args);
 }

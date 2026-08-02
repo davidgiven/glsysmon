@@ -33,7 +33,8 @@ backends. The caller supplies a Fruit component providing `Ui` and the shared
 `ImGuiFrameRenderer` (plus `CliArgs`), so harnesses can bind fakes — e.g.
 `tests/render_fake_hostname.cc` installs `GetUiComponent` with only
 `HostnameView` enabled and rebinds `HostnameSensor` to a fake, writing
-`.obj/tests/render_fake_hostname.png`. All test binaries link against
+`tests/render_fake_hostname.bad.png` (deliberately outside `.obj` for easy
+inspection; gitignored). All test binaries link against
 `.obj/imgui_ui_impl.o` and the renderer impl.
 
 The build uses pkg-config for `sdl3`, `imgui`, `x11`, and `wayland-client`.
