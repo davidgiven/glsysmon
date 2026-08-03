@@ -15,11 +15,11 @@ namespace
     {
         const char* xdg = std::getenv("XDG_CONFIG_HOME");
         if (xdg != nullptr && *xdg != '\0')
-            return std::string(xdg) + "/glrellm/config.toml";
+            return std::string(xdg) + "/glsysmon/config.toml";
         const char* home = std::getenv("HOME");
         if (home != nullptr && *home != '\0')
-            return std::string(home) + "/.config/glrellm/config.toml";
-        return "glrellm.toml";
+            return std::string(home) + "/.config/glsysmon/config.toml";
+        return "glsysmon.toml";
     }
 
     class TomlPreferencesImpl : public Preferences

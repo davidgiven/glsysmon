@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     }
     catch (const std::exception& e)
     {
-        std::fprintf(stderr, "glrellm: %s\n", e.what());
+        std::fprintf(stderr, "glsysmon: %s\n", e.what());
         return 1;
     }
     return 0;

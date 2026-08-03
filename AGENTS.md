@@ -4,7 +4,7 @@ Project-specific instructions for AI coding agents.
 
 ## Overview
 
-glrellm is a C++ desktop widget that docks to a screen edge. It uses SDL3
+glsysmon is a C++ desktop widget that docks to a screen edge. It uses SDL3
 (window, input, and rendering via SDL_GPU) and Dear ImGui for the UI. The window
 is docked to the screen using X11 struts (`_NET_WM_STRUT_PARTIAL`) on X11 and the
 Wayland `wlr-layer-shell` protocol on Wayland. Current scope is an application
@@ -17,7 +17,7 @@ Requires (Debian packages): `libsdl3-dev`, `libimgui-dev`, `libstb-dev`,
 `doctest-dev`, `pkg-config`.
 
 ```sh
-make          # build the glrellm binary
+make          # build the glsysmon binary
 make run      # build and run (defaults: left edge, 240px, primary monitor)
 make test     # build and run unit tests, then write the off-screen render snapshot
 make compile_commands.json   # clangd compilation database (regenerates on source change)
@@ -106,7 +106,7 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   (`--views=` is a comma-separated list); `GetCliPreferencesComponent()`
   (requires `CliArgs`).
 - `src/toml_preferences_impl.cc` — `TomlPreferencesImpl`, a key/value
-  `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glrellm/config.toml`;
+  `Preferences` backed by a TOML file at `$XDG_CONFIG_HOME/glsysmon/config.toml`;
   `GetTomlPreferencesComponent()`.
 - `src/combined_preferences_impl.cc` — `CombinedPreferencesImpl`, which merges
   the CLI and TOML sources (CLI wins); `GetPreferencesComponent()`.

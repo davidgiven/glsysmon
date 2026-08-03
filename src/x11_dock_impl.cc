@@ -5,95 +5,131 @@
 
 #include <unistd.h>
 
-namespace {
+namespace
+{
 
-class X11DockImpl : public Dock {
-public:
-    explicit X11DockImpl(const Preferences &prefs) : _prefs(&prefs) {}
-
-    SDL_Window *CreateWindow() override
+    class X11DockImpl : public Dock
     {
-        const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
-        const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
-        const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
+    public:
+        explicit X11DockImpl(const Preferences& prefs): _prefs(&prefs) {}
 
-        SDL_DisplayID display = DockGetDisplay(monitor);
-        SDL_Rect bounds;
-        if (!SDL_GetDisplayUsableBounds(display, &bounds))
-            return nullptr;
+        SDL_Window* CreateWindow() override
+        {
+            const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+            const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
+            const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
 
-        int width = size;
-        int height = bounds.h;
-        int x = bounds.x;
-        int y = bounds.y;
-        if (side == "right")
-            x = bounds.x + bounds.w - width;
+            SDL_DisplayID display = DockGetDisplay(monitor);
+            SDL_Rect bounds;
+            if (!SDL_GetDisplayUsableBounds(display, &bounds))
+                return nullptr;
 
-        SDL_Window *window = SDL_CreateWindow(
-            "glrellm", width, height,
-            SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
-        if (window == nullptr)
-            return nullptr;
-        SDL_SetWindowPosition(window, x, y);
-        SDL_SetWindowSize(window, width, height);
+            int width = size;
+            int height = bounds.h;
+            int x = bounds.x;
+            int y = bounds.y;
+            if (side == "right")
+                x = bounds.x + bounds.w - width;
 
-        SDL_PropertiesID props = SDL_GetWindowProperties(window);
-        Display *display_x11 = static_cast<Display *>(
-            SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr));
-        Window win = static_cast<Window>(
-            SDL_GetNumberProperty(props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0));
-        if (display_x11 == nullptr || win == 0) {
-            SDL_SetError("X11 window properties unavailable");
-            SDL_DestroyWindow(window);
-            return nullptr;
+            SDL_Window* window = SDL_CreateWindow("glsysmon",
+                width,
+                height,
+                SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
+            if (window == nullptr)
+                return nullptr;
+            SDL_SetWindowPosition(window, x, y);
+            SDL_SetWindowSize(window, width, height);
+
+            SDL_PropertiesID props = SDL_GetWindowProperties(window);
+            Display* display_x11 = static_cast<Display*>(SDL_GetPointerProperty(
+                props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr));
+            Window win = static_cast<Window>(SDL_GetNumberProperty(
+                props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0));
+            if (display_x11 == nullptr || win == 0)
+            {
+                SDL_SetError("X11 window properties unavailable");
+                SDL_DestroyWindow(window);
+                return nullptr;
+            }
+
+            Atom wm_window_type =
+                XInternAtom(display_x11, "_NET_WM_WINDOW_TYPE", False);
+            Atom dock_type =
+                XInternAtom(display_x11, "_NET_WM_WINDOW_TYPE_DOCK", False);
+            XChangeProperty(display_x11,
+                win,
+                wm_window_type,
+                XA_ATOM,
+                32,
+                PropModeReplace,
+                reinterpret_cast<const unsigned char*>(&dock_type),
+                1);
+
+            Atom wm_state = XInternAtom(display_x11, "_NET_WM_STATE", False);
+            Atom sticky =
+                XInternAtom(display_x11, "_NET_WM_STATE_STICKY", False);
+            Atom above = XInternAtom(display_x11, "_NET_WM_STATE_ABOVE", False);
+            Atom states[2] = {sticky, above};
+            XChangeProperty(display_x11,
+                win,
+                wm_state,
+                XA_ATOM,
+                32,
+                PropModeReplace,
+                reinterpret_cast<const unsigned char*>(states),
+                2);
+
+            Atom wm_pid = XInternAtom(display_x11, "_NET_WM_PID", False);
+            unsigned long pid = static_cast<unsigned long>(getpid());
+            XChangeProperty(display_x11,
+                win,
+                wm_pid,
+                XA_CARDINAL,
+                32,
+                PropModeReplace,
+                reinterpret_cast<const unsigned char*>(&pid),
+                1);
+
+            // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge
+            // extents...]
+            long strut[12] = {};
+            const long edge_end = bounds.h - 1;
+            if (side == "right")
+            {
+                strut[1] = size;
+                strut[6] = 0;
+                strut[7] = edge_end;
+            }
+            else
+            {
+                strut[0] = size;
+                strut[4] = 0;
+                strut[5] = edge_end;
+            }
+            Atom wm_strut_partial =
+                XInternAtom(display_x11, "_NET_WM_STRUT_PARTIAL", False);
+            XChangeProperty(display_x11,
+                win,
+                wm_strut_partial,
+                XA_CARDINAL,
+                32,
+                PropModeReplace,
+                reinterpret_cast<const unsigned char*>(strut),
+                12);
+
+            XFlush(display_x11);
+            return window;
         }
 
-        Atom wm_window_type = XInternAtom(display_x11, "_NET_WM_WINDOW_TYPE", False);
-        Atom dock_type = XInternAtom(display_x11, "_NET_WM_WINDOW_TYPE_DOCK", False);
-        XChangeProperty(display_x11, win, wm_window_type, XA_ATOM, 32, PropModeReplace,
-                        reinterpret_cast<const unsigned char *>(&dock_type), 1);
+        void PollWindow(SDL_Window*) override {}
 
-        Atom wm_state = XInternAtom(display_x11, "_NET_WM_STATE", False);
-        Atom sticky = XInternAtom(display_x11, "_NET_WM_STATE_STICKY", False);
-        Atom above = XInternAtom(display_x11, "_NET_WM_STATE_ABOVE", False);
-        Atom states[2] = {sticky, above};
-        XChangeProperty(display_x11, win, wm_state, XA_ATOM, 32, PropModeReplace,
-                        reinterpret_cast<const unsigned char *>(states), 2);
+    private:
+        const Preferences* _prefs;
+    };
 
-        Atom wm_pid = XInternAtom(display_x11, "_NET_WM_PID", False);
-        unsigned long pid = static_cast<unsigned long>(getpid());
-        XChangeProperty(display_x11, win, wm_pid, XA_CARDINAL, 32, PropModeReplace,
-                        reinterpret_cast<const unsigned char *>(&pid), 1);
+} // namespace
 
-        // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge extents...]
-        long strut[12] = {};
-        const long edge_end = bounds.h - 1;
-        if (side == "right") {
-            strut[1] = size;
-            strut[6] = 0;
-            strut[7] = edge_end;
-        } else {
-            strut[0] = size;
-            strut[4] = 0;
-            strut[5] = edge_end;
-        }
-        Atom wm_strut_partial = XInternAtom(display_x11, "_NET_WM_STRUT_PARTIAL", False);
-        XChangeProperty(display_x11, win, wm_strut_partial, XA_CARDINAL, 32, PropModeReplace,
-                        reinterpret_cast<const unsigned char *>(strut), 12);
-
-        XFlush(display_x11);
-        return window;
-    }
-
-    void PollWindow(SDL_Window *) override {}
-
-private:
-    const Preferences *_prefs;
-};
-
-}  // namespace
-
-std::unique_ptr<Dock> DockCreateX11(const Preferences &prefs)
+std::unique_ptr<Dock> DockCreateX11(const Preferences& prefs)
 {
     return std::make_unique<X11DockImpl>(prefs);
 }

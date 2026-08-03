@@ -51,7 +51,7 @@ namespace render_frame
         // The window is only a platform-backend carrier for ImGui; nothing is
         // presented and the GPU never claims it.
         SDL_Window* window = SDL_CreateWindow(
-            "glrellm (offscreen)", width, height, SDL_WINDOW_HIDDEN);
+            "glsysmon (offscreen)", width, height, SDL_WINDOW_HIDDEN);
         if (window == nullptr)
         {
             SDL_Log("SDL_CreateWindow failed: %s", SDL_GetError());

@@ -4,7 +4,7 @@ CXXFLAGS ?= -std=c++20 -Wall -Wextra -O2 -g
 
 BUILD := .obj
 GEN   := $(BUILD)/wayland
-BIN   := glrellm
+BIN   := glsysmon
 
 PKG_CONFIG ?= pkg-config
 
