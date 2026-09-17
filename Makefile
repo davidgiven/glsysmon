@@ -10,25 +10,23 @@ PKG_CONFIG ?= pkg-config
 
 SDL_CFLAGS     := $(shell $(PKG_CONFIG) --cflags sdl3)
 SDL_LIBS       := $(shell $(PKG_CONFIG) --libs sdl3)
-IMGUI_CFLAGS   := $(shell $(PKG_CONFIG) --cflags imgui)
-IMGUI_LIBS     := $(shell $(PKG_CONFIG) --libs imgui)
+IMGUI_DIR      := dep/imgui
+IMGUI_CFLAGS   := -I$(IMGUI_DIR)
 X11_CFLAGS     := $(shell $(PKG_CONFIG) --cflags x11)
 X11_LIBS       := $(shell $(PKG_CONFIG) --libs x11)
 WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
 WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
 TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
 TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
-STB_CFLAGS          := $(shell $(PKG_CONFIG) --cflags stb)
-STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb)
+STB_CFLAGS          := 
+STB_LIBS            :=
 
 # Fruit ships no .pc file; headers are in the default include path.
 FRUIT_LIBS := -lfruit
 
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
-# Dear ImGui platform/render backends shipped by the libimgui-dev package.
-IMGUI_BACKENDS_DIR     ?= /usr/share/doc/libimgui-dev/examples/backends
-IMGUI_BACKEND_CFLAGS   := -I/usr/include/imgui -I/usr/include/imgui/backends
+IMGUI_BACKENDS_DIR := $(IMGUI_DIR)/backends
 
 WAYLAND_XML               := third_party/wayland/wlr-layer-shell-unstable-v1.xml
 WAYLAND_PROTOCOL_HEADER   := $(GEN)/wlr-layer-shell-client-protocol.h
@@ -64,11 +62,17 @@ BACKEND_OBJS := \
 	$(BUILD)/imgui_impl_sdl3.o \
 	$(BUILD)/imgui_impl_sdlgpu3.o
 
+IMGUI_OBJS := \
+	$(BUILD)/imgui.o \
+	$(BUILD)/imgui_draw.o \
+	$(BUILD)/imgui_tables.o \
+	$(BUILD)/imgui_widgets.o
+
 WAYLAND_OBJS := \
 	$(GEN)/wlr-layer-shell-client-protocol.o \
 	$(GEN)/xdg-shell-client-protocol.o
 
-OBJS := $(SRC_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
+OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 
 TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
@@ -86,12 +90,12 @@ TEST_OBJS := \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BACKEND_OBJS)
+	$(IMGUI_OBJS) $(BACKEND_OBJS)
 
 all: $(BIN)
 
 $(BIN): $(OBJS)
-	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(IMGUI_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
+	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
 		$(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
@@ -120,24 +124,40 @@ $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
 	@mkdir -p $(dir $@)
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
+$(BUILD)/imgui.o: $(IMGUI_DIR)/imgui.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(BUILD)/imgui_draw.o: $(IMGUI_DIR)/imgui_draw.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(BUILD)/imgui_tables.o: $(IMGUI_DIR)/imgui_tables.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(BUILD)/imgui_widgets.o: $(IMGUI_DIR)/imgui_widgets.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
 $(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) $(IMGUI_BACKEND_CFLAGS) -c -o $@ $<
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(BUILD)/imgui_impl_sdlgpu3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdlgpu3.cpp
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) $(IMGUI_BACKEND_CFLAGS) -c -o $@ $<
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(TEST_BUILD)/%.o: tests/%.cc
 	@mkdir -p $(TEST_BUILD)
 	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(IMGUI_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS) \
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS) \
 		$(STB_LIBS)
 
 run: $(BIN)
