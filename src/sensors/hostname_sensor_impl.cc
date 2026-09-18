@@ -1,12 +1,10 @@
 #include "hostname_sensor.h"
 
-#include <fruit/fruit.h>
 #include <unistd.h>
 
 #include <array>
+#include <memory>
 #include <string>
-
-#include "components.h"
 
 namespace
 {
@@ -14,8 +12,6 @@ namespace
     class HostnameSensorImpl : public HostnameSensor
     {
     public:
-        using Inject = HostnameSensorImpl();
-
         std::string GetHostname() override
         {
             std::array<char, 256> buffer{};
@@ -27,7 +23,7 @@ namespace
 
 } // namespace
 
-fruit::Component<HostnameSensor> GetHostnameSensorComponent()
+std::unique_ptr<HostnameSensor> CreateHostnameSensor()
 {
-    return fruit::createComponent().bind<HostnameSensor, HostnameSensorImpl>();
+    return std::make_unique<HostnameSensorImpl>();
 }

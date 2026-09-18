@@ -1,6 +1,6 @@
 #include "preferences.h"
 
-#include <fruit/fruit.h>
+#include <memory>
 #include <toml++/toml.h>
 
 #include <cstdlib>
@@ -42,8 +42,6 @@ namespace
             }
         }
 
-        using Inject = TomlPreferencesImpl();
-
         std::optional<std::string> GetString(
             const std::string& key) const override
         {
@@ -77,10 +75,7 @@ namespace
 
 } // namespace
 
-fruit::Component<fruit::Annotated<TomlPreference, Preferences>>
-GetTomlPreferencesComponent()
+std::unique_ptr<Preferences> CreateTomlPreferences()
 {
-    return fruit::createComponent()
-        .bind<fruit::Annotated<TomlPreference, Preferences>,
-            TomlPreferencesImpl>();
+    return std::make_unique<TomlPreferencesImpl>();
 }

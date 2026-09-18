@@ -20,8 +20,6 @@ namespace
 
 int main(int argc, char** argv)
 {
-    // Heap-allocated so the reference Fruit binds (and later reads during
-    // injection) outlives the Injector.
     auto args = std::make_unique<CliArgs>();
     for (int i = 1; i < argc; ++i)
     {
@@ -43,11 +41,10 @@ int main(int argc, char** argv)
 
     try
     {
-        fruit::Injector<App> injector(GetAppComponent, args.get());
-        App& app = injector.get<App&>();
-        app.Setup();
-        while (app.Tick()) {}
-        app.Shutdown();
+        auto app = CreateApp(*args);
+        app->Setup();
+        while (app->Tick()) {}
+        app->Shutdown();
     }
     catch (const std::exception& e)
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fruit/fruit.h>
+#include <memory>
 
 #include "app.h"
 #include "dock.h"
@@ -9,21 +9,22 @@
 #include "sensors/hostname_sensor.h"
 #include "ui.h"
 #include "view.h"
+#include "views/catalogue.h"
 
-// Fruit DI wiring. Each module provides its own Get*Component() next to its
-// implementation class; the composition root (main.cpp) builds an Injector
-// from GetAppComponent(). This is the only header that touches Fruit.
-extern fruit::Component<fruit::Required<CliArgs>, DockFactory>
-GetDockComponent();
-extern fruit::Component<fruit::Required<CliArgs>, Ui> GetUiComponent();
-extern fruit::Component<View> GetViewComponent();
-extern fruit::Component<HostnameSensor> GetHostnameSensorComponent();
-extern fruit::Component<ImGuiFrameRenderer> GetImGuiFrameRendererComponent();
-extern fruit::Component<App> GetAppComponent(CliArgs* args);
-extern fruit::Component<fruit::Required<CliArgs>,
-    fruit::Annotated<CliPreference, Preferences>>
-GetCliPreferencesComponent();
-extern fruit::Component<fruit::Annotated<TomlPreference, Preferences>>
-GetTomlPreferencesComponent();
-extern fruit::Component<fruit::Required<CliArgs>, Preferences>
-GetPreferencesComponent();
+extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
+extern std::unique_ptr<Preferences> CreateTomlPreferences();
+extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
+
+extern std::unique_ptr<Dock> CreateDock(const Preferences& prefs);
+extern DockFactory CreateDockFactory(const Preferences& prefs);
+
+extern std::unique_ptr<HostnameSensor> CreateHostnameSensor();
+extern std::unique_ptr<View> CreateHostnameView();
+extern std::unique_ptr<View> CreateHostnameView(
+    std::unique_ptr<HostnameSensor> sensor);
+
+extern std::unique_ptr<Ui> CreateUi(const Preferences& prefs);
+extern std::unique_ptr<Ui> CreateUiWithFakeHostname(
+    const Preferences& prefs, std::unique_ptr<HostnameSensor> fakeSensor);
+extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
+extern std::unique_ptr<App> CreateApp(const CliArgs& args);

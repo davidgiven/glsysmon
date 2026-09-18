@@ -1,13 +1,11 @@
 // Off-screen UI renderer shared by the visual-snapshot test harnesses: draws
 // one frame of an injected Ui into an SDL_GPU texture and writes it as a PNG.
-//
-// Usage: callers build a Fruit component providing Ui and ImGuiFrameRenderer
-// (see render_frame.h) and pass it along with the CliArgs to RenderFrame().
 
 #include "render_frame.h"
 
 #include <SDL3/SDL.h>
-#include <fruit/fruit.h>
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 #include <stb_image_write.h>
 
@@ -17,7 +15,6 @@
 #include <string>
 
 #include "imgui_frame_renderer.h"
-#include "preferences.h"
 #include "ui.h"
 
 namespace render_frame
@@ -26,8 +23,8 @@ namespace render_frame
     int RenderFrame(int width,
         int height,
         const std::string& output,
-        Components components,
-        CliArgs* args)
+        Ui& ui,
+        ImGuiFrameRenderer& frameRenderer)
     {
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD))
         {
@@ -69,11 +66,7 @@ namespace render_frame
             return 1;
         }
 
-        fruit::Injector<Ui, ImGuiFrameRenderer> injector(components, args);
-        Ui* ui = injector.get<Ui*>();
-        ImGuiFrameRenderer* frame_renderer =
-            injector.get<ImGuiFrameRenderer*>();
-        if (!frame_renderer->Init(
+        if (!frameRenderer.Init(
                 device, window, SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM))
         {
             SDL_Log("ImGuiFrameRenderer::Init failed");
@@ -101,19 +94,19 @@ namespace render_frame
         if (offscreen == nullptr)
         {
             SDL_Log("SDL_CreateGPUTexture failed: %s", SDL_GetError());
-            frame_renderer->Shutdown();
+            frameRenderer.Shutdown();
             SDL_DestroyGPUDevice(device);
             SDL_DestroyWindow(window);
             SDL_Quit();
             return 1;
         }
 
-        frame_renderer->BeginFrame();
-        ui->Draw(window, "offscreen");
+        frameRenderer.BeginFrame();
+        ui.Draw(window, "offscreen");
 
         SDL_GPUCommandBuffer* command_buffer =
             SDL_AcquireGPUCommandBuffer(device);
-        frame_renderer->Render(command_buffer, offscreen);
+        frameRenderer.Render(command_buffer, offscreen);
 
         SDL_GPUTransferBufferCreateInfo transfer_info = {};
         transfer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD;
@@ -151,7 +144,7 @@ namespace render_frame
             SDL_Log("SDL_MapGPUTransferBuffer failed: %s", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
             SDL_ReleaseGPUTexture(device, offscreen);
-            frame_renderer->Shutdown();
+            frameRenderer.Shutdown();
             SDL_DestroyGPUDevice(device);
             SDL_DestroyWindow(window);
             SDL_Quit();
@@ -169,7 +162,7 @@ namespace render_frame
         SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
         SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
         SDL_ReleaseGPUTexture(device, offscreen);
-        frame_renderer->Shutdown();
+        frameRenderer.Shutdown();
         SDL_DestroyGPUDevice(device);
         SDL_DestroyWindow(window);
         SDL_Quit();

@@ -1,10 +1,6 @@
 #include "dock.h"
 
-#include <fruit/fruit.h>
-
 #include <cstring>
-
-#include "components.h"
 
 SDL_DisplayID DockGetDisplay(int index)
 {
@@ -30,10 +26,12 @@ std::unique_ptr<Dock> DockCreate(const Preferences &prefs)
     return DockCreateFallback(prefs);
 }
 
-fruit::Component<fruit::Required<CliArgs>, DockFactory> GetDockComponent()
+std::unique_ptr<Dock> CreateDock(const Preferences& prefs)
 {
-    return fruit::createComponent()
-        .install(GetPreferencesComponent)
-        .registerFactory<std::unique_ptr<Dock>(Preferences *)>(
-            [](Preferences *prefs) { return DockCreate(*prefs); });
+    return DockCreate(prefs);
+}
+
+DockFactory CreateDockFactory(const Preferences& prefs)
+{
+    return [&prefs]() { return DockCreate(prefs); };
 }

@@ -1,7 +1,6 @@
 #include "preferences.h"
 
-#include <fruit/fruit.h>
-
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -13,15 +12,12 @@ namespace
     class CombinedPreferencesImpl : public Preferences
     {
     public:
-        CombinedPreferencesImpl(Preferences* cli, Preferences* toml):
-            _cli(cli),
-            _toml(toml)
+        CombinedPreferencesImpl(std::unique_ptr<Preferences> cli,
+            std::unique_ptr<Preferences> toml):
+            _cli(std::move(cli)),
+            _toml(std::move(toml))
         {
         }
-
-        using Inject = CombinedPreferencesImpl(
-            fruit::Annotated<CliPreference, Preferences*>,
-            fruit::Annotated<TomlPreference, Preferences*>);
 
         std::optional<std::string> GetString(
             const std::string& key) const override
@@ -47,17 +43,16 @@ namespace
         }
 
     private:
-        Preferences* _cli;
-        Preferences* _toml;
+        std::unique_ptr<Preferences> _cli;
+        std::unique_ptr<Preferences> _toml;
     };
 
 } // namespace
 
-fruit::Component<fruit::Required<CliArgs>, Preferences>
-GetPreferencesComponent()
+std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args)
 {
-    return fruit::createComponent()
-        .install(GetCliPreferencesComponent)
-        .install(GetTomlPreferencesComponent)
-        .bind<Preferences, CombinedPreferencesImpl>();
+    auto cli = CreateCliPreferences(args);
+    auto toml = CreateTomlPreferences();
+    return std::make_unique<CombinedPreferencesImpl>(
+        std::move(cli), std::move(toml));
 }

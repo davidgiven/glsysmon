@@ -1,7 +1,8 @@
 #include "view.h"
 
-#include <fruit/fruit.h>
 #include <imgui.h>
+
+#include <memory>
 
 #include "components.h"
 #include "sensors/hostname_sensor.h"
@@ -12,9 +13,10 @@ namespace
     class HostnameViewImpl : public View
     {
     public:
-        using Inject = HostnameViewImpl(HostnameSensor*);
-
-        explicit HostnameViewImpl(HostnameSensor* sensor): _sensor(sensor) {}
+        explicit HostnameViewImpl(std::unique_ptr<HostnameSensor> sensor):
+            _sensor(std::move(sensor))
+        {
+        }
 
         void Tick() override
         {
@@ -23,14 +25,17 @@ namespace
         }
 
     private:
-        HostnameSensor* _sensor;
+        std::unique_ptr<HostnameSensor> _sensor;
     };
 
 } // namespace
 
-fruit::Component<View> GetViewComponent()
+std::unique_ptr<View> CreateHostnameView()
 {
-    return fruit::createComponent()
-        .install(GetHostnameSensorComponent)
-        .bind<View, HostnameViewImpl>();
+    return std::make_unique<HostnameViewImpl>(CreateHostnameSensor());
+}
+
+std::unique_ptr<View> CreateHostnameView(std::unique_ptr<HostnameSensor> sensor)
+{
+    return std::make_unique<HostnameViewImpl>(std::move(sensor));
 }

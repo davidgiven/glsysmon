@@ -3,8 +3,7 @@
 // pixel against a golden reference. The test passes when the two images are
 // identical.
 
-#include <fruit/fruit.h>
-
+#include <memory>
 #include <string>
 
 #include "components.h"
@@ -19,22 +18,11 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
-        using Inject = FakeHostnameSensor();
-
         std::string GetHostname() override
         {
             return "fake-hostname";
         }
     };
-
-    fruit::Component<Ui, ImGuiFrameRenderer> GetFakeComponents(CliArgs* args)
-    {
-        return fruit::createComponent()
-            .install(GetUiComponent)
-            .install(GetImGuiFrameRendererComponent)
-            .bindInstance(*args)
-            .bind<HostnameSensor, FakeHostnameSensor>();
-    }
 
 } // namespace
 
@@ -42,8 +30,12 @@ int main()
 {
     CliArgs args;
     args.values = {"--views=HostnameView"};
+    auto prefs = CreatePreferences(args);
+    auto fakeSensor = std::make_unique<FakeHostnameSensor>();
+    auto ui = CreateUiWithFakeHostname(*prefs, std::move(fakeSensor));
+    auto renderer = CreateImGuiFrameRenderer();
     const int render_result = render_frame::RenderFrame(
-        240, 0, "tests/render_fake_hostname.bad.png", GetFakeComponents, &args);
+        240, 0, "tests/render_fake_hostname.bad.png", *ui, *renderer);
     if (render_result != 0)
         return render_result;
 

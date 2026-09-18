@@ -1,8 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include <fruit/fruit.h>
-
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -12,67 +11,38 @@
 namespace
 {
 
-    // GetUiComponent() and GetCliPreferencesComponent() require CliArgs but
-    // take no parameters; wrap them so tests can bind their own args
-    // (bindInstance stores a reference, so args must outlive the Injector).
-    fruit::Component<fruit::Annotated<CliPreference, Preferences>>
-    GetCliPreferencesWithArgs(CliArgs* args)
-    {
-        return fruit::createComponent()
-            .install(GetCliPreferencesComponent)
-            .bindInstance(*args);
-    }
-
-    fruit::Component<Ui> GetUiWithArgs(CliArgs* args)
-    {
-        return fruit::createComponent()
-            .install(GetUiComponent)
-            .bindInstance(*args);
-    }
-
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
-        using Inject = FakeHostnameSensor();
-
         std::string GetHostname() override
         {
             return "fake-hostname";
         }
     };
 
-    // Rebinding HostnameSensor after installing GetUiComponent must override
-    // the real sensor (used by the render_fake_hostname harness).
-    fruit::Component<HostnameSensor> GetUiWithFakeSensor(CliArgs* args)
-    {
-        return fruit::createComponent()
-            .install(GetUiComponent)
-            .bindInstance(*args)
-            .bind<HostnameSensor, FakeHostnameSensor>();
-    }
-
 } // namespace
 
 TEST_CASE("Fruit resolves the UI component")
 {
     CliArgs args;
-    fruit::Injector<Ui> injector(GetUiWithArgs, &args);
-    CHECK(injector.get<Ui*>() != nullptr);
+    auto prefs = CreatePreferences(args);
+    auto ui = CreateUi(*prefs);
+    CHECK(ui != nullptr);
 }
 
 TEST_CASE("A sensor bound after GetUiComponent overrides the real one")
 {
-    CliArgs args;
-    args.values = {"--views=HostnameView"};
-    fruit::Injector<HostnameSensor> injector(GetUiWithFakeSensor, &args);
-    HostnameSensor* sensor = injector.get<HostnameSensor*>();
-    CHECK(sensor->GetHostname() == "fake-hostname");
+    auto fake = std::make_unique<FakeHostnameSensor>();
+    CHECK(fake->GetHostname() == "fake-hostname");
+
+    auto view = CreateHostnameView(std::move(fake));
+    CHECK(view != nullptr);
 }
 
 TEST_CASE("Fruit resolves the view component")
 {
-    fruit::Injector<View> injector(GetViewComponent);
-    CHECK(injector.get<View*>() != nullptr);
+    auto view = CreateHostnameView();
+    CHECK(view != nullptr);
 }
 
 TEST_CASE("View catalogue exposes HostnameView and resolves it")
@@ -80,14 +50,13 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
     const auto& catalogue = GetViewCatalogue();
     REQUIRE(catalogue.find("HostnameView") != catalogue.end());
 
-    fruit::Injector<View> injector(catalogue.at("HostnameView"));
-    CHECK(injector.get<View*>() != nullptr);
+    auto view = catalogue.at("HostnameView")();
+    CHECK(view != nullptr);
 }
 
 TEST_CASE("Hostname sensor returns the current hostname")
 {
-    fruit::Injector<HostnameSensor> injector(GetHostnameSensorComponent);
-    HostnameSensor* sensor = injector.get<HostnameSensor*>();
+    auto sensor = CreateHostnameSensor();
 
     const std::string hostname = sensor->GetHostname();
     CHECK_FALSE(hostname.empty());
@@ -96,18 +65,14 @@ TEST_CASE("Hostname sensor returns the current hostname")
 
 TEST_CASE("Fruit resolves the ImGui frame renderer component")
 {
-    fruit::Injector<ImGuiFrameRenderer> injector(
-        GetImGuiFrameRendererComponent);
-    CHECK(injector.get<ImGuiFrameRenderer*>() != nullptr);
+    auto renderer = CreateImGuiFrameRenderer();
+    CHECK(renderer != nullptr);
 }
 
 TEST_CASE("CLI preferences default to left / 240 / monitor 0")
 {
     CliArgs args;
-    fruit::Injector<fruit::Annotated<CliPreference, Preferences>> injector(
-        GetCliPreferencesWithArgs, &args);
-    Preferences* prefs =
-        injector.get<fruit::Annotated<CliPreference, Preferences*>>();
+    auto prefs = CreateCliPreferences(args);
 
     CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "left");
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
@@ -120,10 +85,7 @@ TEST_CASE("CLI --views= parses a comma-separated list")
 {
     CliArgs args;
     args.values = {"--views=HostnameView,CpuView"};
-    fruit::Injector<fruit::Annotated<CliPreference, Preferences>> injector(
-        GetCliPreferencesWithArgs, &args);
-    Preferences* prefs =
-        injector.get<fruit::Annotated<CliPreference, Preferences*>>();
+    auto prefs = CreateCliPreferences(args);
 
     CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
           std::vector<std::string>{"HostnameView", "CpuView"});
@@ -133,10 +95,7 @@ TEST_CASE("CLI preferences parse --side= / --size= / --monitor=")
 {
     CliArgs args;
     args.values = {"--side=right", "--size=120", "--monitor=2"};
-    fruit::Injector<fruit::Annotated<CliPreference, Preferences>> injector(
-        GetCliPreferencesWithArgs, &args);
-    Preferences* prefs =
-        injector.get<fruit::Annotated<CliPreference, Preferences*>>();
+    auto prefs = CreateCliPreferences(args);
 
     CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "right");
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 120);
@@ -147,10 +106,7 @@ TEST_CASE("CLI preference values that are not integers fall back to defaults")
 {
     CliArgs args;
     args.values = {"--size=abc"};
-    fruit::Injector<fruit::Annotated<CliPreference, Preferences>> injector(
-        GetCliPreferencesWithArgs, &args);
-    Preferences* prefs =
-        injector.get<fruit::Annotated<CliPreference, Preferences*>>();
+    auto prefs = CreateCliPreferences(args);
 
     CHECK(prefs->GetInteger("size") == std::nullopt);
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);

@@ -1,8 +1,7 @@
 #include "preferences.h"
 
-#include <fruit/fruit.h>
-
 #include <charconv>
+#include <memory>
 #include <map>
 #include <optional>
 #include <string>
@@ -15,7 +14,7 @@ namespace
     class CliPreferencesImpl : public Preferences
     {
     public:
-        explicit CliPreferencesImpl(CliArgs args)
+        explicit CliPreferencesImpl(const CliArgs& args)
         {
             for (const std::string& arg : args.values)
             {
@@ -29,8 +28,6 @@ namespace
                     _values["views"] = arg.substr(8);
             }
         }
-
-        using Inject = CliPreferencesImpl(CliArgs);
 
         std::optional<std::string> GetString(
             const std::string& key) const override
@@ -82,11 +79,7 @@ namespace
 
 } // namespace
 
-fruit::Component<fruit::Required<CliArgs>,
-    fruit::Annotated<CliPreference, Preferences>>
-GetCliPreferencesComponent()
+std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args)
 {
-    return fruit::createComponent()
-        .bind<fruit::Annotated<CliPreference, Preferences>,
-            CliPreferencesImpl>();
+    return std::make_unique<CliPreferencesImpl>(args);
 }

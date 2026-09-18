@@ -1,7 +1,6 @@
 #include "app.h"
 
 #include <SDL3/SDL.h>
-#include <fruit/fruit.h>
 
 #include <memory>
 #include <stdexcept>
@@ -10,6 +9,7 @@
 
 #include "components.h"
 #include "imgui_frame_renderer.h"
+#include "preferences.h"
 
 namespace
 {
@@ -116,15 +116,16 @@ namespace
     class ImGuiAppImpl : public App
     {
     public:
-        ImGuiAppImpl(
-            DockFactory dockFactory, Ui* ui, ImGuiFrameRenderer* frameRenderer):
+        ImGuiAppImpl(DockFactory dockFactory,
+            std::unique_ptr<Ui> ui,
+            std::unique_ptr<ImGuiFrameRenderer> frameRenderer,
+            std::unique_ptr<Preferences> prefs):
+            _prefs(std::move(prefs)),
             _dockFactory(std::move(dockFactory)),
-            _ui(ui),
-            _frameRenderer(frameRenderer)
+            _ui(std::move(ui)),
+            _frameRenderer(std::move(frameRenderer))
         {
         }
-
-        using Inject = ImGuiAppImpl(DockFactory, Ui*, ImGuiFrameRenderer*);
 
         ~ImGuiAppImpl() override
         {
@@ -199,9 +200,10 @@ namespace
         }
 
     private:
+        std::unique_ptr<Preferences> _prefs;
         DockFactory _dockFactory;
-        Ui* _ui;
-        ImGuiFrameRenderer* _frameRenderer;
+        std::unique_ptr<Ui> _ui;
+        std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
         std::unique_ptr<Dock> _dock;
         std::unique_ptr<SdlSession> _sdl;
         std::unique_ptr<DockWindow> _window;
@@ -212,12 +214,12 @@ namespace
 
 } // namespace
 
-fruit::Component<App> GetAppComponent(CliArgs* args)
+std::unique_ptr<App> CreateApp(const CliArgs& args)
 {
-    return fruit::createComponent()
-        .install(GetDockComponent)
-        .install(GetUiComponent)
-        .install(GetImGuiFrameRendererComponent)
-        .bindInstance(*args)
-        .bind<App, ImGuiAppImpl>();
+    auto prefs = CreatePreferences(args);
+    auto dockFactory = CreateDockFactory(*prefs);
+    auto ui = CreateUi(*prefs);
+    auto renderer = CreateImGuiFrameRenderer();
+    return std::make_unique<ImGuiAppImpl>(
+        std::move(dockFactory), std::move(ui), std::move(renderer), std::move(prefs));
 }

@@ -31,7 +31,7 @@ using DockFactory = std::function<std::unique_ptr<Dock>()>;
 // Resolves a display index to an SDL_DisplayID, falling back to primary.
 extern SDL_DisplayID DockGetDisplay(int index);
 
-// Backend entry points; used by GetDockComponent() so app.cc stays
+// Backend entry points; used by CreateDockFactory() so app.cc stays
 // platform-agnostic.
 extern std::unique_ptr<Dock> DockCreate(const Preferences &prefs);
 extern std::unique_ptr<Dock> DockCreateX11(const Preferences &prefs);

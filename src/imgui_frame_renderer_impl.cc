@@ -1,12 +1,11 @@
 #include "imgui_frame_renderer.h"
 
-#include <fruit/fruit.h>
 #include <imgui.h>
 
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlgpu3.h>
 
-#include "components.h"
+#include <memory>
 
 namespace
 {
@@ -16,8 +15,6 @@ namespace
     class ImGuiFrameRendererImpl : public ImGuiFrameRenderer
     {
     public:
-        using Inject = ImGuiFrameRendererImpl();
-
         bool Init(SDL_GPUDevice* device,
             SDL_Window* window,
             SDL_GPUTextureFormat color_format) override
@@ -93,8 +90,7 @@ namespace
 
 } // namespace
 
-fruit::Component<ImGuiFrameRenderer> GetImGuiFrameRendererComponent()
+std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer()
 {
-    return fruit::createComponent()
-        .bind<ImGuiFrameRenderer, ImGuiFrameRendererImpl>();
+    return std::make_unique<ImGuiFrameRendererImpl>();
 }

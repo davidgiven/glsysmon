@@ -18,11 +18,8 @@ WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
 WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
 TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
 TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
-STB_CFLAGS          := 
-STB_LIBS            :=
-
-# Fruit ships no .pc file; headers are in the default include path.
-FRUIT_LIBS := -lfruit
+STB_CFLAGS          := $(shell $(PKG_CONFIG) --cflags stb 2>/dev/null)
+STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb 2>/dev/null)
 
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
@@ -34,7 +31,7 @@ WAYLAND_PROTOCOL_CODE     := $(GEN)/wlr-layer-shell-client-protocol.c
 
 # xdg-shell is referenced by the layer-shell get_popup request; Debian ships the
 # XML in wayland-protocols. Only its interface tables (for xdg_popup) are needed.
-XDG_SHELL_XML               := /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml) $(wildcard /usr/share/qt6/wayland/protocols/xdg-shell/xdg-shell.xml))
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
@@ -96,7 +93,7 @@ all: $(BIN)
 
 $(BIN): $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
-		$(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
+		$(TOMLPLUSPLUS_LIBS)
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
 	@mkdir -p $(GEN)
@@ -153,11 +150,11 @@ $(TEST_BUILD)/%.o: tests/%.cc
 	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_RENDER): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(FRUIT_LIBS) \
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 run: $(BIN)
