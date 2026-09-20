@@ -12,6 +12,8 @@ SDL_CFLAGS     := $(shell $(PKG_CONFIG) --cflags sdl3)
 SDL_LIBS       := $(shell $(PKG_CONFIG) --libs sdl3)
 IMGUI_DIR      := dep/imgui
 IMGUI_CFLAGS   := -I$(IMGUI_DIR)
+IMPLOT_DIR     := dep/implot
+IMPLOT_CFLAGS  := -I$(IMPLOT_DIR)
 X11_CFLAGS     := $(shell $(PKG_CONFIG) --cflags x11)
 X11_LIBS       := $(shell $(PKG_CONFIG) --libs x11)
 WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
@@ -35,7 +37,7 @@ XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protoco
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
-COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
+COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(X11_CFLAGS) \
                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD) \
                  -I$(CURDIR)/src -MMD -MP
 
@@ -70,11 +72,15 @@ IMGUI_OBJS := \
 	$(BUILD)/imgui_tables.o \
 	$(BUILD)/imgui_widgets.o
 
+IMPLOT_OBJS := \
+	$(BUILD)/implot.o \
+	$(BUILD)/implot_items.o
+
 WAYLAND_OBJS := \
 	$(GEN)/wlr-layer-shell-client-protocol.o \
 	$(GEN)/xdg-shell-client-protocol.o
 
-OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
+OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 
 TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
@@ -100,7 +106,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(IMGUI_OBJS) $(BACKEND_OBJS)
+	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/render_frame.d \
         $(TEST_BUILD)/render_fake_hostname.d $(TEST_BUILD)/render_fake_clock.d \
@@ -151,6 +157,14 @@ $(BUILD)/imgui_tables.o: $(IMGUI_DIR)/imgui_tables.cpp
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(BUILD)/imgui_widgets.o: $(IMGUI_DIR)/imgui_widgets.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(BUILD)/implot.o: $(IMPLOT_DIR)/implot.cpp
+	@mkdir -p $(BUILD)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(BUILD)/implot_items.o: $(IMPLOT_DIR)/implot_items.cpp
 	@mkdir -p $(BUILD)
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
