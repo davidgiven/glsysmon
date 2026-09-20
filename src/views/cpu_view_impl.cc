@@ -1,6 +1,7 @@
 #include "view.h"
 
 #include <imgui.h>
+#include <implot.h>
 
 #include <cstdio>
 #include <memory>
@@ -44,19 +45,50 @@ namespace
                 const CpuSample* samples = sensor.GetSamples(cpu);
                 if (samples == nullptr)
                     continue;
-                char label[32];
-                std::snprintf(label, sizeof(label), "##cpu%zu", cpu);
+                const int n = static_cast<int>(sampleCount);
+                std::vector<float> values;
+                values.resize(static_cast<std::size_t>(3) * n);
+                for (int i = 0; i < n; ++i)
+                {
+                    values[static_cast<std::size_t>(0) * n + i] =
+                        samples[i].user;
+                    values[static_cast<std::size_t>(1) * n + i] =
+                        samples[i].system;
+                    values[static_cast<std::size_t>(2) * n + i] =
+                        samples[i].nice;
+                }
+                const char* labels[] = {"user", "system", "nice"};
+                char title[32];
+                std::snprintf(title, sizeof(title), "##cpu%zu", cpu);
                 ImGui::PushStyleVar(
                     ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-                ImGui::PlotHistogram(label,
-                    &samples[0].user,
-                    static_cast<int>(sampleCount),
-                    0,
-                    nullptr,
-                    0.0f,
-                    1.0f,
-                    ImVec2(ImGui::GetContentRegionAvail().x, 40),
-                    sizeof(CpuSample));
+                ImPlot::PushStyleVar(
+                    ImPlotStyleVar_PlotPadding, ImVec2(0.0f, 0.0f));
+                const float width = ImGui::GetContentRegionAvail().x;
+                if (ImPlot::BeginPlot(title,
+                        ImVec2(width, 40),
+                        ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
+                            ImPlotFlags_NoMouseText | ImPlotFlags_NoInputs |
+                            ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
+                            ImPlotFlags_NoFrame))
+                {
+                    ImPlot::SetupAxes(nullptr,
+                        nullptr,
+                        ImPlotAxisFlags_NoDecorations,
+                        ImPlotAxisFlags_NoDecorations);
+                    ImPlot::SetupAxesLimits(0, n, 0, 1, ImPlotCond_Always);
+                    ImPlot::SetupFinish();
+                    ImPlot::PlotBarGroups(labels,
+                        values.data(),
+                        3,
+                        n,
+                        1.0,
+                        0.5,
+                        ImPlotSpec(
+                            ImPlotProp_Flags, ImPlotBarGroupsFlags_Stacked));
+                    ImPlot::EndPlot();
+                }
+                ImPlot::PopStyleVar();
                 ImGui::PopStyleVar();
             }
         }

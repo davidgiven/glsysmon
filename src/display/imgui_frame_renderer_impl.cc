@@ -1,6 +1,7 @@
 #include "imgui_frame_renderer.h"
 
 #include <imgui.h>
+#include <implot.h>
 
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlgpu3.h>
@@ -21,6 +22,7 @@ namespace
         {
             IMGUI_CHECKVERSION();
             ImGui::CreateContext();
+            ImPlot::CreateContext();
             ImGuiIO& io = ImGui::GetIO();
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
             io.IniFilename =
@@ -82,6 +84,7 @@ namespace
 
         void Shutdown() override
         {
+            ImPlot::DestroyContext();
             ImGui_ImplSDL3_Shutdown();
             ImGui_ImplSDLGPU3_Shutdown();
             ImGui::DestroyContext();
