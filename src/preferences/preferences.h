@@ -50,6 +50,11 @@ public:
 
     static int GetFps(const Preferences& prefs)
     {
-        return prefs.GetInteger("fps").value_or(30);
+        return prefs.GetInteger("fps").value_or(10);
+    }
+
+    static int GetRedrawFps(const Preferences& prefs)
+    {
+        return prefs.GetInteger("redraw_fps").value_or(30);
     }
 };

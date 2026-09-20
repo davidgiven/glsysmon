@@ -42,6 +42,12 @@ namespace
             }
         }
 
+        void Tick() override
+        {
+            for (auto& view : _views)
+                view->Tick();
+        }
+
         void Draw(SDL_Window* window, const char* backend) override
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -57,7 +63,7 @@ namespace
                     ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             for (auto& view : _views)
-                view->Tick();
+                view->Draw();
             ImGui::Separator();
             int width, height;
             SDL_GetWindowSize(window, &width, &height);

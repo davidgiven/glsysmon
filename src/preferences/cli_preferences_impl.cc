@@ -28,6 +28,8 @@ namespace
                     _values["views"] = arg.substr(8);
                 else if (arg.rfind("--fps=", 0) == 0)
                     _values["fps"] = arg.substr(6);
+                else if (arg.rfind("--redraw-fps=", 0) == 0)
+                    _values["redraw_fps"] = arg.substr(13);
             }
         }
 

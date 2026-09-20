@@ -134,6 +134,16 @@ namespace
 
         void Setup() override
         {
+            const int updateFps = GlobalPreferencesFetcher::GetFps(*_prefs);
+            const int redrawFps =
+                GlobalPreferencesFetcher::GetRedrawFps(*_prefs);
+            if (updateFps <= 0)
+                throw AppError("fps must be > 0");
+            if (redrawFps <= 0)
+                throw AppError("redraw_fps must be > 0");
+            _updateNs = 1000000000ULL / static_cast<Uint64>(updateFps);
+            _drawNs = 1000000000ULL / static_cast<Uint64>(redrawFps);
+
             _sdl = std::make_unique<SdlSession>();
             _dock = _dockFactory();
             _window = std::make_unique<DockWindow>(_dock->CreateWindow());
@@ -157,9 +167,6 @@ namespace
         bool Tick() override
         {
             const Uint64 frame_start = SDL_GetTicksNS();
-            const int fps = GlobalPreferencesFetcher::GetFps(*_prefs);
-            const Uint64 kFrameNs =
-                fps > 0 ? 1000000000ULL / static_cast<Uint64>(fps) : 0ULL;
             bool running = true;
             SDL_Event event;
             while (SDL_PollEvent(&event))
@@ -172,6 +179,15 @@ namespace
                     running = false;
             }
             _dock->PollWindow(_window->get());
+
+            const Uint64 now = SDL_GetTicksNS();
+            if (_lastUpdateNs == 0)
+                _lastUpdateNs = now;
+            if (now - _lastUpdateNs >= _updateNs)
+            {
+                _ui->Tick();
+                _lastUpdateNs = now;
+            }
 
             _frameRenderer->BeginFrame();
             _ui->Draw(_window->get(), _backend);
@@ -187,8 +203,8 @@ namespace
             _frameRenderer->Render(command_buffer, swapchain_texture);
             SDL_SubmitGPUCommandBuffer(command_buffer);
             const Uint64 elapsed = SDL_GetTicksNS() - frame_start;
-            if (elapsed < kFrameNs)
-                SDL_DelayNS(kFrameNs - elapsed);
+            if (elapsed < _drawNs)
+                SDL_DelayNS(_drawNs - elapsed);
             return running;
         }
 
@@ -217,6 +233,9 @@ namespace
         std::unique_ptr<GpuDevice> _device;
         const char* _backend = nullptr;
         bool _rendererInited = false;
+        Uint64 _updateNs = 0;
+        Uint64 _drawNs = 0;
+        Uint64 _lastUpdateNs = 0;
     };
 
 } // namespace
