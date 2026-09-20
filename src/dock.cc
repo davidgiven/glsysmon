@@ -5,7 +5,7 @@
 SDL_DisplayID DockGetDisplay(int index)
 {
     int count = 0;
-    SDL_DisplayID *displays = SDL_GetDisplays(&count);
+    SDL_DisplayID* displays = SDL_GetDisplays(&count);
     if (displays == nullptr)
         return SDL_GetPrimaryDisplay();
     const SDL_DisplayID result =
@@ -14,9 +14,9 @@ SDL_DisplayID DockGetDisplay(int index)
     return result;
 }
 
-std::unique_ptr<Dock> DockCreate(const Preferences &prefs)
+std::unique_ptr<Dock> DockCreate(const Preferences& prefs)
 {
-    const char *driver = SDL_GetCurrentVideoDriver();
+    const char* driver = SDL_GetCurrentVideoDriver();
     if (driver == nullptr)
         return DockCreateFallback(prefs);
     if (std::strcmp(driver, "wayland") == 0)
@@ -33,5 +33,8 @@ std::unique_ptr<Dock> CreateDock(const Preferences& prefs)
 
 DockFactory CreateDockFactory(const Preferences& prefs)
 {
-    return [&prefs]() { return DockCreate(prefs); };
+    return [&prefs]()
+    {
+        return DockCreate(prefs);
+    };
 }

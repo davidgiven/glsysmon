@@ -1,5 +1,5 @@
 // Off-screen UI renderer shared by the visual-snapshot test harnesses: draws
-// one frame of an injected Ui into an SDL_GPU texture and writes it as a PNG.
+// one frame of a Ui into an SDL_GPU texture and writes it as a PNG.
 
 #pragma once
 

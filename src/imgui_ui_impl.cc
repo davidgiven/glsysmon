@@ -9,8 +9,7 @@
 
 #include "components.h"
 #include "preferences.h"
-#include "sensors/clock_sensor.h"
-#include "sensors/hostname_sensor.h"
+#include "sensors/sensors.h"
 #include "views/catalogue.h"
 
 namespace
@@ -24,26 +23,18 @@ namespace
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr):
             _prefs(&prefs)
         {
+            if (fakeHostnameSensor != nullptr)
+                _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
+            if (fakeClockSensor != nullptr)
+                _sensors.SetClockSensor(std::move(fakeClockSensor));
+            const auto& catalogue = GetViewCatalogue();
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
             {
-                if (name == "HostnameView" && fakeHostnameSensor != nullptr)
-                {
-                    _views.push_back(
-                        CreateHostnameView(std::move(fakeHostnameSensor)));
-                    continue;
-                }
-                if (name == "ClockView" && fakeClockSensor != nullptr)
-                {
-                    _views.push_back(
-                        CreateClockView(std::move(fakeClockSensor)));
-                    continue;
-                }
-                const auto& catalogue = GetViewCatalogue();
                 const auto it = catalogue.find(name);
                 if (it == catalogue.end())
                     continue;
-                _views.push_back(it->second());
+                _views.push_back(it->second(_sensors));
             }
         }
 
@@ -78,6 +69,7 @@ namespace
 
     private:
         const Preferences* _prefs;
+        Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
     };
 

@@ -4,21 +4,15 @@
 #include <string>
 
 #include "components.h"
+#include "sensors/sensors.h"
 #include "view.h"
 
 const std::map<std::string, ViewFactory>& GetViewCatalogue()
 {
+    using FactoryFn = std::unique_ptr<View> (*)(Sensors&);
     static const std::map<std::string, ViewFactory> catalogue = {
-        {"ClockView",
-         []() -> std::unique_ptr<View>
-            {
-                return CreateClockView();
-            }},
-        {"HostnameView",
-         []() -> std::unique_ptr<View>
-            {
-                return CreateHostnameView();
-            }},
+        {"ClockView",    static_cast<FactoryFn>(CreateClockView)   },
+        {"HostnameView", static_cast<FactoryFn>(CreateHostnameView)},
     };
     return catalogue;
 }

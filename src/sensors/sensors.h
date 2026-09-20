@@ -8,6 +8,8 @@
 class Sensors
 {
 public:
+    Sensors() = default;
+
     static Sensors& Instance();
 
     Sensors(const Sensors&) = delete;
@@ -16,11 +18,12 @@ public:
     ClockSensor& GetClockSensor();
     HostnameSensor& GetHostnameSensor();
 
+    void SetClockSensor(std::unique_ptr<ClockSensor> sensor);
+    void SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor);
+
     void Reset();
 
 private:
-    Sensors() = default;
-
     std::unique_ptr<ClockSensor> _clockSensor;
     std::unique_ptr<HostnameSensor> _hostnameSensor;
 };

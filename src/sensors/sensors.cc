@@ -22,6 +22,16 @@ HostnameSensor& Sensors::GetHostnameSensor()
     return *_hostnameSensor;
 }
 
+void Sensors::SetClockSensor(std::unique_ptr<ClockSensor> sensor)
+{
+    _clockSensor = std::move(sensor);
+}
+
+void Sensors::SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor)
+{
+    _hostnameSensor = std::move(sensor);
+}
+
 void Sensors::Reset()
 {
     _clockSensor.reset();

@@ -8,6 +8,7 @@
 #include "preferences.h"
 #include "sensors/clock_sensor.h"
 #include "sensors/hostname_sensor.h"
+#include "sensors/sensors.h"
 #include "ui.h"
 #include "view.h"
 #include "views/catalogue.h"
@@ -21,9 +22,11 @@ extern DockFactory CreateDockFactory(const Preferences& prefs);
 
 extern std::unique_ptr<ClockSensor> CreateClockSensor();
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor();
+extern std::unique_ptr<View> CreateClockView(Sensors& sensors);
 extern std::unique_ptr<View> CreateClockView();
 extern std::unique_ptr<View> CreateClockView(
     std::unique_ptr<ClockSensor> sensor);
+extern std::unique_ptr<View> CreateHostnameView(Sensors& sensors);
 extern std::unique_ptr<View> CreateHostnameView();
 extern std::unique_ptr<View> CreateHostnameView(
     std::unique_ptr<HostnameSensor> sensor);

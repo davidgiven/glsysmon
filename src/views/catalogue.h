@@ -7,7 +7,9 @@
 
 #include "view.h"
 
-using ViewFactory = std::function<std::unique_ptr<View>()>;
+class Sensors;
+
+using ViewFactory = std::function<std::unique_ptr<View>(Sensors&)>;
 
 // Name-to-module registry of available system-monitor views; used to load the
 // views to display at run time.

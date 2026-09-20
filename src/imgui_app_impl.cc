@@ -220,6 +220,8 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
     auto dockFactory = CreateDockFactory(*prefs);
     auto ui = CreateUi(*prefs);
     auto renderer = CreateImGuiFrameRenderer();
-    return std::make_unique<ImGuiAppImpl>(
-        std::move(dockFactory), std::move(ui), std::move(renderer), std::move(prefs));
+    return std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
+        std::move(ui),
+        std::move(renderer),
+        std::move(prefs));
 }

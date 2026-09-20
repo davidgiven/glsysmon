@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "components.h"
-#include "sensors/clock_sensor.h"
+#include "sensors/sensors.h"
 
 namespace
 {
@@ -14,6 +14,8 @@ namespace
     class ClockViewImpl : public View
     {
     public:
+        explicit ClockViewImpl(Sensors& sensors): _sensors(&sensors) {}
+
         explicit ClockViewImpl(std::unique_ptr<ClockSensor> sensor):
             _sensor(std::move(sensor))
         {
@@ -21,7 +23,9 @@ namespace
 
         void Tick() override
         {
-            const std::tm tm = _sensor->GetLocalTime();
+            ClockSensor& sensor =
+                _sensor ? *_sensor : _sensors->GetClockSensor();
+            const std::tm tm = sensor.GetLocalTime();
             char date[64];
             char time[64];
             std::strftime(date, sizeof(date), "%Y-%m-%d", &tm);
@@ -32,13 +36,19 @@ namespace
 
     private:
         std::unique_ptr<ClockSensor> _sensor;
+        Sensors* _sensors = nullptr;
     };
 
 } // namespace
 
+std::unique_ptr<View> CreateClockView(Sensors& sensors)
+{
+    return std::make_unique<ClockViewImpl>(sensors);
+}
+
 std::unique_ptr<View> CreateClockView()
 {
-    return std::make_unique<ClockViewImpl>(CreateClockSensor());
+    return CreateClockView(Sensors::Instance());
 }
 
 std::unique_ptr<View> CreateClockView(std::unique_ptr<ClockSensor> sensor)

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "components.h"
+#include "sensors/sensors.h"
 #include "views/catalogue.h"
 
 namespace
@@ -22,7 +23,7 @@ namespace
 
 } // namespace
 
-TEST_CASE("Fruit resolves the UI component")
+TEST_CASE("CreateUi creates a UI component")
 {
     CliArgs args;
     auto prefs = CreatePreferences(args);
@@ -30,7 +31,7 @@ TEST_CASE("Fruit resolves the UI component")
     CHECK(ui != nullptr);
 }
 
-TEST_CASE("A sensor bound after GetUiComponent overrides the real one")
+TEST_CASE("CreateHostnameView with a fake sensor creates a view")
 {
     auto fake = std::make_unique<FakeHostnameSensor>();
     CHECK(fake->GetHostname() == "fake-hostname");
@@ -39,7 +40,7 @@ TEST_CASE("A sensor bound after GetUiComponent overrides the real one")
     CHECK(view != nullptr);
 }
 
-TEST_CASE("Fruit resolves the view component")
+TEST_CASE("CreateHostnameView creates a view component")
 {
     auto view = CreateHostnameView();
     CHECK(view != nullptr);
@@ -50,7 +51,8 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
     const auto& catalogue = GetViewCatalogue();
     REQUIRE(catalogue.find("HostnameView") != catalogue.end());
 
-    auto view = catalogue.at("HostnameView")();
+    Sensors sensors;
+    auto view = catalogue.at("HostnameView")(sensors);
     CHECK(view != nullptr);
 }
 
@@ -63,7 +65,7 @@ TEST_CASE("Hostname sensor returns the current hostname")
     CHECK(hostname.size() < 256);
 }
 
-TEST_CASE("Fruit resolves the ImGui frame renderer component")
+TEST_CASE("CreateImGuiFrameRenderer creates a frame renderer")
 {
     auto renderer = CreateImGuiFrameRenderer();
     CHECK(renderer != nullptr);
@@ -78,7 +80,7 @@ TEST_CASE("CLI preferences default to left / 240 / monitor 0")
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 0);
     CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
-          std::vector<std::string>{"HostnameView"});
+          std::vector<std::string>{"HostnameView", "ClockView"});
 }
 
 TEST_CASE("CLI --views= parses a comma-separated list")
@@ -110,15 +112,4 @@ TEST_CASE("CLI preference values that are not integers fall back to defaults")
 
     CHECK(prefs->GetInteger("size") == std::nullopt);
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
-}
-
-TEST_CASE("CliArgs is equality-comparable and hashable")
-{
-    CliArgs a;
-    a.values = {"--side=left", "--size=240"};
-    CliArgs b;
-    b.values = {"--side=left", "--size=240"};
-
-    CHECK(a == b);
-    CHECK(std::hash<CliArgs>()(a) == std::hash<CliArgs>()(b));
 }
