@@ -157,7 +157,9 @@ namespace
         bool Tick() override
         {
             const Uint64 frame_start = SDL_GetTicksNS();
-            constexpr Uint64 kFrameNs = 1000000000ULL / 30ULL;
+            const int fps = GlobalPreferencesFetcher::GetFps(*_prefs);
+            const Uint64 kFrameNs =
+                fps > 0 ? 1000000000ULL / static_cast<Uint64>(fps) : 0ULL;
             bool running = true;
             SDL_Event event;
             while (SDL_PollEvent(&event))

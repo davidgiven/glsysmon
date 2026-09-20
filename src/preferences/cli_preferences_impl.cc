@@ -26,6 +26,8 @@ namespace
                     _values["monitor"] = arg.substr(10);
                 else if (arg.rfind("--views=", 0) == 0)
                     _values["views"] = arg.substr(8);
+                else if (arg.rfind("--fps=", 0) == 0)
+                    _values["fps"] = arg.substr(6);
             }
         }
 

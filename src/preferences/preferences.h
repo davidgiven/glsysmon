@@ -47,4 +47,9 @@ public:
         return prefs.GetStringList("views").value_or(
             std::vector<std::string>{"HostnameView", "ClockView", "CpuView"});
     }
+
+    static int GetFps(const Preferences& prefs)
+    {
+        return prefs.GetInteger("fps").value_or(30);
+    }
 };
