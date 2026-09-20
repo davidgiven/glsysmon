@@ -47,6 +47,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
@@ -88,6 +89,7 @@ TEST_OBJS := \
 	$(BUILD)/cli_preferences_impl.o \
 	$(BUILD)/toml_preferences_impl.o \
 	$(BUILD)/combined_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
