@@ -141,15 +141,28 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     auto sensor = CreateCpuSensor(*prefs, path);
     REQUIRE(sensor != nullptr);
     CHECK(sensor->GetCpuCount() == 2);
-    CHECK(sensor->GetSampleCount() == 0);
+    const std::size_t expectedSamples =
+        static_cast<std::size_t>(GlobalPreferencesFetcher::GetSize(*prefs));
+    CHECK(sensor->GetSampleCount() == expectedSamples);
+    // Initially all samples are zeros (fixed-size buffer)
+    {
+        const CpuSample* s0_init = sensor->GetSamples(0);
+        REQUIRE(s0_init != nullptr);
+        for (std::size_t i = 0; i < expectedSamples; ++i)
+        {
+            CHECK(s0_init[i].user == doctest::Approx(0.0f));
+            CHECK(s0_init[i].system == doctest::Approx(0.0f));
+            CHECK(s0_init[i].nice == doctest::Approx(0.0f));
+        }
+    }
 
     sensor->Tick();
-    REQUIRE(sensor->GetSampleCount() == 1);
+    REQUIRE(sensor->GetSampleCount() == expectedSamples);
     const CpuSample* s0 = sensor->GetSamples(0);
     REQUIRE(s0 != nullptr);
-    CHECK(s0[0].user == doctest::Approx(0.0f));
-    CHECK(s0[0].system == doctest::Approx(0.0f));
-    CHECK(s0[0].nice == doctest::Approx(0.0f));
+    CHECK(s0[expectedSamples - 1].user == doctest::Approx(0.0f));
+    CHECK(s0[expectedSamples - 1].system == doctest::Approx(0.0f));
+    CHECK(s0[expectedSamples - 1].nice == doctest::Approx(0.0f));
 
     {
         std::ofstream out(path);
@@ -159,23 +172,25 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     sensor->Tick();
-    REQUIRE(sensor->GetSampleCount() == 2);
+    REQUIRE(sensor->GetSampleCount() == expectedSamples);
     s0 = sensor->GetSamples(0);
     REQUIRE(s0 != nullptr);
-    CHECK(s0[1].user == doctest::Approx(0.25f));
-    CHECK(s0[1].system == doctest::Approx(0.25f));
-    CHECK(s0[1].nice == doctest::Approx(0.0f));
+    CHECK(s0[expectedSamples - 1].user == doctest::Approx(0.25f));
+    CHECK(s0[expectedSamples - 1].system == doctest::Approx(0.25f));
+    CHECK(s0[expectedSamples - 1].nice == doctest::Approx(0.0f));
+    // Previous sample was zero (shifted)
+    CHECK(s0[expectedSamples - 2].user == doctest::Approx(0.0f));
 
     // Verify const overloads and span accessor
     const CpuSensor& cs = *sensor;
     CHECK(cs.GetCpuCount() == 2);
-    CHECK(cs.GetSampleCount() == 2);
+    CHECK(cs.GetSampleCount() == expectedSamples);
     const CpuSample* cs0 = cs.GetSamples(0);
     REQUIRE(cs0 != nullptr);
-    CHECK(cs0[1].user == doctest::Approx(0.25f));
+    CHECK(cs0[expectedSamples - 1].user == doctest::Approx(0.25f));
     auto span = cs.GetSamplesSpan(0);
-    REQUIRE(span.size() == 2);
-    CHECK(span[1].user == doctest::Approx(0.25f));
+    REQUIRE(span.size() == expectedSamples);
+    CHECK(span[expectedSamples - 1].user == doctest::Approx(0.25f));
 
     // Values in [0,1]
     for (std::size_t cpu = 0; cpu < sensor->GetCpuCount(); ++cpu)

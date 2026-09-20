@@ -1,5 +1,6 @@
 #include "cpu_sensor.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <fstream>
@@ -32,9 +33,13 @@ namespace
     public:
         explicit CpuSensorImpl(
             const Preferences& prefs, const std::string& procStatPath):
-            _prefs(prefs),
             _procStatPath(procStatPath)
         {
+            int size = GlobalPreferencesFetcher::GetSize(prefs);
+            if (size <= 0)
+                size = 1;
+            _sampleCount = static_cast<std::size_t>(size);
+
             std::ifstream file(_procStatPath);
             std::string line;
             std::size_t count = 0;
@@ -47,10 +52,10 @@ namespace
                     count++;
             }
             _cpuCount = count;
-            _samples.resize(_cpuCount);
+            _samples.assign(_cpuCount,
+                std::vector<CpuSample>(
+                    _sampleCount, CpuSample{0.0f, 0.0f, 0.0f}));
             _prev.resize(_cpuCount);
-            for (auto& v : _samples)
-                v.reserve(_maxHistory);
         }
 
         std::size_t GetCpuCount() override
@@ -153,9 +158,12 @@ namespace
 
                 CpuSample s{user, system, nice};
                 auto& vec = _samples[i];
-                if (vec.size() >= _maxHistory)
-                    vec.erase(vec.begin());
-                vec.push_back(s);
+                if (!vec.empty())
+                {
+                    if (vec.size() > 1)
+                        std::copy(vec.begin() + 1, vec.end(), vec.begin());
+                    vec.back() = s;
+                }
             }
 
             _prev = cur;
@@ -167,15 +175,15 @@ namespace
             CpuSample zero{0.0f, 0.0f, 0.0f};
             for (auto& vec : _samples)
             {
-                if (vec.size() >= _maxHistory)
-                    vec.erase(vec.begin());
-                vec.push_back(zero);
+                if (vec.empty())
+                    continue;
+                if (vec.size() > 1)
+                    std::copy(vec.begin() + 1, vec.end(), vec.begin());
+                vec.back() = zero;
             }
         }
-
-        static constexpr std::size_t _maxHistory = 120;
-        const Preferences& _prefs;
         std::string _procStatPath;
+        std::size_t _sampleCount = 0;
         std::size_t _cpuCount = 0;
         std::vector<std::vector<CpuSample>> _samples;
         std::vector<RawTimes> _prev;
