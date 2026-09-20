@@ -1,11 +1,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+#include <cstdio>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "components.h"
+#include "sensors/cpu_sensor.h"
 #include "sensors/sensors.h"
 #include "views/catalogue.h"
 
@@ -112,4 +115,89 @@ TEST_CASE("CLI preference values that are not integers fall back to defaults")
 
     CHECK(prefs->GetInteger("size") == std::nullopt);
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
+}
+
+TEST_CASE("CpuSensorImpl reads dummy proc file")
+{
+    const std::string path = ".obj/test_cpu_stat_dummy";
+    {
+        std::ofstream out(path);
+        out << "cpu  100 0 100 1000 0 0 0 0 0 0\n";
+        out << "cpu0 50 0 50 500 0 0 0 0 0 0\n";
+        out << "cpu1 50 0 50 500 0 0 0 0 0 0\n";
+    }
+
+    auto sensor = CreateCpuSensor(path);
+    REQUIRE(sensor != nullptr);
+    CHECK(sensor->GetCpuCount() == 2);
+    CHECK(sensor->GetSampleCount() == 0);
+
+    sensor->Tick();
+    REQUIRE(sensor->GetSampleCount() == 1);
+    const CpuSample* s0 = sensor->GetSamples(0);
+    REQUIRE(s0 != nullptr);
+    CHECK(s0[0].user == doctest::Approx(0.0f));
+    CHECK(s0[0].system == doctest::Approx(0.0f));
+    CHECK(s0[0].nice == doctest::Approx(0.0f));
+
+    {
+        std::ofstream out(path);
+        out << "cpu  200 0 200 1200 0 0 0 0 0 0\n";
+        out << "cpu0 100 0 100 600 0 0 0 0 0 0\n";
+        out << "cpu1 100 0 100 600 0 0 0 0 0 0\n";
+    }
+
+    sensor->Tick();
+    REQUIRE(sensor->GetSampleCount() == 2);
+    s0 = sensor->GetSamples(0);
+    REQUIRE(s0 != nullptr);
+    CHECK(s0[1].user == doctest::Approx(0.25f));
+    CHECK(s0[1].system == doctest::Approx(0.25f));
+    CHECK(s0[1].nice == doctest::Approx(0.0f));
+
+    // Verify const overloads and span accessor
+    const CpuSensor& cs = *sensor;
+    CHECK(cs.GetCpuCount() == 2);
+    CHECK(cs.GetSampleCount() == 2);
+    const CpuSample* cs0 = cs.GetSamples(0);
+    REQUIRE(cs0 != nullptr);
+    CHECK(cs0[1].user == doctest::Approx(0.25f));
+    auto span = cs.GetSamplesSpan(0);
+    REQUIRE(span.size() == 2);
+    CHECK(span[1].user == doctest::Approx(0.25f));
+
+    // Values in [0,1]
+    for (std::size_t cpu = 0; cpu < sensor->GetCpuCount(); ++cpu)
+    {
+        const CpuSample* s = sensor->GetSamples(cpu);
+        REQUIRE(s != nullptr);
+        for (std::size_t i = 0; i < sensor->GetSampleCount(); ++i)
+        {
+            CHECK(s[i].user >= 0.0f);
+            CHECK(s[i].user <= 1.0f);
+            CHECK(s[i].system >= 0.0f);
+            CHECK(s[i].system <= 1.0f);
+            CHECK(s[i].nice >= 0.0f);
+            CHECK(s[i].nice <= 1.0f);
+        }
+    }
+
+    // Via Sensors registry
+    Sensors sensors;
+    sensors.SetCpuSensor(CreateCpuSensor(path));
+    CHECK(sensors.GetCpuSensor().GetCpuCount() == 2);
+
+    std::remove(path.c_str());
+}
+
+TEST_CASE("CpuSensorImpl handles missing file gracefully")
+{
+    const std::string missing = ".obj/nonexistent_cpu_stat";
+    std::remove(missing.c_str());
+    auto sensor = CreateCpuSensor(missing);
+    CHECK(sensor->GetCpuCount() == 0);
+    CHECK(sensor->GetSampleCount() == 0);
+    sensor->Tick();
+    CHECK(sensor->GetSampleCount() == 0);
+    CHECK(sensor->GetSamples(0) == nullptr);
 }
