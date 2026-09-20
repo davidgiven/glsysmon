@@ -156,6 +156,8 @@ namespace
 
         bool Tick() override
         {
+            const Uint64 frame_start = SDL_GetTicksNS();
+            constexpr Uint64 kFrameNs = 1000000000ULL / 30ULL;
             bool running = true;
             SDL_Event event;
             while (SDL_PollEvent(&event))
@@ -182,6 +184,9 @@ namespace
                 nullptr);
             _frameRenderer->Render(command_buffer, swapchain_texture);
             SDL_SubmitGPUCommandBuffer(command_buffer);
+            const Uint64 elapsed = SDL_GetTicksNS() - frame_start;
+            if (elapsed < kFrameNs)
+                SDL_DelayNS(kFrameNs - elapsed);
             return running;
         }
 
