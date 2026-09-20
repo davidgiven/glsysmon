@@ -48,7 +48,9 @@ SRC_OBJS := \
 	$(BUILD)/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/views/catalogue.o \
+	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/toml_preferences_impl.o \
@@ -75,7 +77,9 @@ TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
 
 TEST_UNIT   := $(TEST_BUILD)/unit_tests
-TEST_RENDER := $(TEST_BUILD)/render_fake_hostname
+TEST_RENDER_HOSTNAME := $(TEST_BUILD)/render_fake_hostname
+TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
+TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK)
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
@@ -85,7 +89,9 @@ TEST_OBJS := \
 	$(BUILD)/toml_preferences_impl.o \
 	$(BUILD)/combined_preferences_impl.o \
 	$(BUILD)/views/catalogue.o \
+	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(IMGUI_OBJS) $(BACKEND_OBJS)
 
@@ -152,7 +158,12 @@ $(TEST_BUILD)/%.o: tests/%.cc
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_RENDER): $(TEST_BUILD)/render_fake_hostname.o \
+$(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
+	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
+		$(STB_LIBS)
+
+$(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
 	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
@@ -162,7 +173,8 @@ run: $(BIN)
 
 test: $(TEST_UNIT) $(TEST_RENDER)
 	./$(TEST_UNIT)
-	./$(TEST_RENDER)
+	./$(TEST_RENDER_HOSTNAME)
+	./$(TEST_RENDER_CLOCK)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.

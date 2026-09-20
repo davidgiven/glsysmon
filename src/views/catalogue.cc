@@ -9,8 +9,16 @@
 const std::map<std::string, ViewFactory>& GetViewCatalogue()
 {
     static const std::map<std::string, ViewFactory> catalogue = {
+        {"ClockView",
+         []() -> std::unique_ptr<View>
+            {
+                return CreateClockView();
+            }},
         {"HostnameView",
-            []() -> std::unique_ptr<View> { return CreateHostnameView(); }},
+         []() -> std::unique_ptr<View>
+            {
+                return CreateHostnameView();
+            }},
     };
     return catalogue;
 }
