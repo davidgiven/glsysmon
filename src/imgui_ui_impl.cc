@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "components.h"
-#include "preferences.h"
+#include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/catalogue.h"
 

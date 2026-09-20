@@ -3,9 +3,9 @@
 #include <memory>
 
 #include "app.h"
-#include "dock.h"
-#include "imgui_frame_renderer.h"
-#include "preferences.h"
+#include "display/dock.h"
+#include "display/imgui_frame_renderer.h"
+#include "preferences/preferences.h"
 #include "sensors/clock_sensor.h"
 #include "sensors/hostname_sensor.h"
 #include "sensors/sensors.h"

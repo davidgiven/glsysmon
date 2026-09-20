@@ -14,7 +14,7 @@
 #include <filesystem>
 #include <string>
 
-#include "imgui_frame_renderer.h"
+#include "display/imgui_frame_renderer.h"
 #include "ui.h"
 
 namespace render_frame

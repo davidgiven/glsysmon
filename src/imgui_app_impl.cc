@@ -8,8 +8,8 @@
 #include <utility>
 
 #include "components.h"
-#include "imgui_frame_renderer.h"
-#include "preferences.h"
+#include "display/imgui_frame_renderer.h"
+#include "preferences/preferences.h"
 
 namespace
 {

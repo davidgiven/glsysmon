@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 
-#include "preferences.h"
+#include "preferences/preferences.h"
 
 // Dock backend interface. Implementations live in x11_dock_impl.cc /
 // wayland_dock_impl.cc / fallback_dock_impl.cc and are selected via

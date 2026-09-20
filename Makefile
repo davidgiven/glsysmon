@@ -40,12 +40,12 @@ COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
                  -I$(CURDIR)/src
 
 SRC_OBJS := \
-	$(BUILD)/cli_preferences_impl.o \
-	$(BUILD)/combined_preferences_impl.o \
-	$(BUILD)/dock.o \
-	$(BUILD)/fallback_dock_impl.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/display/dock.o \
+	$(BUILD)/display/fallback_dock_impl.o \
 	$(BUILD)/imgui_app_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o \
+	$(BUILD)/display/imgui_frame_renderer_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
@@ -54,9 +54,9 @@ SRC_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/main.o \
-	$(BUILD)/toml_preferences_impl.o \
-	$(BUILD)/wayland_dock_impl.o \
-	$(BUILD)/x11_dock_impl.o
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/display/wayland_dock_impl.o \
+	$(BUILD)/display/x11_dock_impl.o
 
 BACKEND_OBJS := \
 	$(BUILD)/imgui_impl_sdl3.o \
@@ -85,10 +85,10 @@ TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK)
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
 	$(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/imgui_frame_renderer_impl.o \
-	$(BUILD)/cli_preferences_impl.o \
-	$(BUILD)/toml_preferences_impl.o \
-	$(BUILD)/combined_preferences_impl.o \
+	$(BUILD)/display/imgui_frame_renderer_impl.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/clock_view_impl.o \
@@ -180,8 +180,9 @@ test: $(TEST_UNIT) $(TEST_RENDER)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.
-SRC_CC := $(wildcard src/*.cc) $(wildcard src/views/*.cc) \
-          $(wildcard src/sensors/*.cc)
+SRC_CC := $(wildcard src/*.cc) $(wildcard src/preferences/*.cc) \
+           $(wildcard src/display/*.cc) $(wildcard src/views/*.cc) \
+           $(wildcard src/sensors/*.cc)
 TEST_CC := $(wildcard tests/*.cc)
 compile_commands.json: $(SRC_CC) $(TEST_CC)
 	@mkdir -p $(BUILD)

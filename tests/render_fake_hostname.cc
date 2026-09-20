@@ -7,7 +7,7 @@
 #include <string>
 
 #include "components.h"
-#include "imgui_frame_renderer.h"
+#include "display/imgui_frame_renderer.h"
 #include "render_frame.h"
 #include "sensors/hostname_sensor.h"
 #include "ui.h"
