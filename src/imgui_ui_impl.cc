@@ -47,6 +47,8 @@ namespace
             ImGuiViewport* viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(viewport->Pos);
             ImGui::SetNextWindowSize(viewport->Size);
+            ImGui::PushStyleVar(
+                ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
             ImGui::Begin("glsysmon",
                 nullptr,
                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
@@ -69,6 +71,7 @@ namespace
                 1000.0f / ImGui::GetIO().Framerate);
 
             ImGui::End();
+            ImGui::PopStyleVar();
         }
 
     private:

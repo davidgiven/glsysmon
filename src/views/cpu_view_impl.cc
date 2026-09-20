@@ -46,7 +46,9 @@ namespace
                     continue;
                 char label[32];
                 std::snprintf(label, sizeof(label), "##cpu%zu", cpu);
-                ImGui::PlotLines(label,
+                ImGui::PushStyleVar(
+                    ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+                ImGui::PlotHistogram(label,
                     &samples[0].user,
                     static_cast<int>(sampleCount),
                     0,
@@ -55,6 +57,7 @@ namespace
                     1.0f,
                     ImVec2(ImGui::GetContentRegionAvail().x, 40),
                     sizeof(CpuSample));
+                ImGui::PopStyleVar();
             }
         }
 
