@@ -183,10 +183,10 @@ namespace
             const Uint64 now = SDL_GetTicksNS();
             if (_lastUpdateNs == 0)
                 _lastUpdateNs = now;
-            if (now - _lastUpdateNs >= _updateNs)
+            while (now - _lastUpdateNs >= _updateNs)
             {
                 _ui->Tick();
-                _lastUpdateNs = now;
+                _lastUpdateNs += _updateNs;
             }
 
             _frameRenderer->BeginFrame();
