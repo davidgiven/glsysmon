@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <memory>
 #include <span>
+#include <string>
 
 // Sample for a single tick. Each field is in [0, 1] representing the
 // proportion of time spent in that usage type during the tick.
@@ -45,6 +46,10 @@ public:
     // valid until the next sample update and is owned by the sensor.
     virtual const CpuSample* GetSamples(std::size_t cpu) = 0;
 
+    // Advances the history by one tick: opens /proc/stat, reads each
+    // numbered cpu line and appends a CpuSample for each CPU.
+    virtual void Tick() = 0;
+
     // Const overloads for callers that hold a const sensor. They forward
     // to the non-const versions via const_cast, so a sensor only needs to
     // implement the non-const versions.
@@ -65,6 +70,14 @@ public:
 
     // Span-based accessor — also suitable for plotting via
     // PlotLine(..., span.data()->user, ..., sizeof(CpuSample)).
+    std::span<const CpuSample> GetSamplesSpan(std::size_t cpu)
+    {
+        const CpuSample* data = GetSamples(cpu);
+        if (data == nullptr)
+            return {};
+        return {data, GetSampleCount()};
+    }
+
     std::span<const CpuSample> GetSamplesSpan(std::size_t cpu) const
     {
         const CpuSample* data = GetSamples(cpu);
@@ -74,4 +87,5 @@ public:
     }
 };
 
-extern std::unique_ptr<CpuSensor> CreateCpuSensor();
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const std::string& procStatPath = "/proc/stat");

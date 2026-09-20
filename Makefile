@@ -52,6 +52,7 @@ SRC_OBJS := \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
@@ -94,6 +95,7 @@ TEST_OBJS := \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(IMGUI_OBJS) $(BACKEND_OBJS)
 
