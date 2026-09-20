@@ -109,8 +109,11 @@ TEST_OBJS := \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/render_frame.d \
-        $(TEST_BUILD)/render_fake_hostname.d $(TEST_BUILD)/render_fake_clock.d \
-        $(TEST_BUILD)/render_fake_cpu.d
+        $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
+        $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d
+
+TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
+	$(TEST_BUILD)/render_lib.o
 
 all: $(BIN)
 
@@ -184,17 +187,17 @@ $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
-	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
-	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CPU): $(TEST_BUILD)/render_fake_cpu.o \
-	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 

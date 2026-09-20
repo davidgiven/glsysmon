@@ -7,10 +7,8 @@
 #include <memory>
 
 #include "components.h"
-#include "display/imgui_frame_renderer.h"
-#include "render_frame.h"
+#include "render_lib.h"
 #include "sensors/clock_sensor.h"
-#include "ui.h"
 
 namespace
 {
@@ -41,17 +39,5 @@ int main()
     auto fakeSensor = std::make_unique<FakeClockSensor>();
     auto ui = CreateUiWithFakeClock(*prefs, std::move(fakeSensor));
     auto renderer = CreateImGuiFrameRenderer();
-    const int render_result = render_frame::RenderFrame(
-        240, 0, "tests/render_fake_clock.bad.png", *ui, *renderer);
-    if (render_result != 0)
-        return render_result;
-
-    if (!render_frame::ImagesMatch("tests/render_fake_clock.bad.png",
-            "tests/render_fake_clock.good.png"))
-    {
-        SDL_Log("render_fake_clock: image differs from golden reference");
-        return 1;
-    }
-    SDL_Log("render_fake_clock: image matches golden reference");
-    return 0;
+    return render_lib::Run("render_fake_clock", *ui, *renderer);
 }
