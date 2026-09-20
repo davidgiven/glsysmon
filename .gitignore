@@ -3,3 +3,6 @@
 glsysmon
 compile_commands.json
 tests/render_fake_hostname.bad.png
+.idea/
+glsysmon.iml
+
