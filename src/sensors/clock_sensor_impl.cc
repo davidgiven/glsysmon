@@ -4,12 +4,16 @@
 #include <ctime>
 #include <memory>
 
+#include "preferences/preferences.h"
+
 namespace
 {
 
     class ClockSensorImpl : public ClockSensor
     {
     public:
+        explicit ClockSensorImpl(const Preferences& prefs): _prefs(prefs) {}
+
         std::tm GetLocalTime() override
         {
             const auto now = std::chrono::system_clock::now();
@@ -19,11 +23,14 @@ namespace
                 return {};
             return local;
         }
+
+    private:
+        const Preferences& _prefs;
     };
 
 } // namespace
 
-std::unique_ptr<ClockSensor> CreateClockSensor()
+std::unique_ptr<ClockSensor> CreateClockSensor(const Preferences& prefs)
 {
-    return std::make_unique<ClockSensorImpl>();
+    return std::make_unique<ClockSensorImpl>(prefs);
 }

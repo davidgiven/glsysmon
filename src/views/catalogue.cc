@@ -9,7 +9,7 @@
 
 const std::map<std::string, ViewFactory>& GetViewCatalogue()
 {
-    using FactoryFn = std::unique_ptr<View> (*)(Sensors&);
+    using FactoryFn = std::unique_ptr<View> (*)(const Preferences&, Sensors&);
     static const std::map<std::string, ViewFactory> catalogue = {
         {"ClockView",    static_cast<FactoryFn>(CreateClockView)   },
         {"CpuView",      static_cast<FactoryFn>(CreateCpuView)     },

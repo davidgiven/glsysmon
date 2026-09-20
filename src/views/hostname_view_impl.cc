@@ -3,8 +3,12 @@
 #include <imgui.h>
 
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "components.h"
+#include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
 namespace
@@ -13,9 +17,15 @@ namespace
     class HostnameViewImpl : public View
     {
     public:
-        explicit HostnameViewImpl(Sensors& sensors): _sensors(&sensors) {}
+        explicit HostnameViewImpl(const Preferences& prefs, Sensors& sensors):
+            _prefs(prefs),
+            _sensors(&sensors)
+        {
+        }
 
-        explicit HostnameViewImpl(std::unique_ptr<HostnameSensor> sensor):
+        explicit HostnameViewImpl(
+            const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor):
+            _prefs(prefs),
             _sensor(std::move(sensor))
         {
         }
@@ -29,23 +39,21 @@ namespace
         }
 
     private:
+        const Preferences& _prefs;
         std::unique_ptr<HostnameSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateHostnameView(Sensors& sensors)
+std::unique_ptr<View> CreateHostnameView(
+    const Preferences& prefs, Sensors& sensors)
 {
-    return std::make_unique<HostnameViewImpl>(sensors);
+    return std::make_unique<HostnameViewImpl>(prefs, sensors);
 }
 
-std::unique_ptr<View> CreateHostnameView()
+std::unique_ptr<View> CreateHostnameView(
+    const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor)
 {
-    return CreateHostnameView(Sensors::Instance());
-}
-
-std::unique_ptr<View> CreateHostnameView(std::unique_ptr<HostnameSensor> sensor)
-{
-    return std::make_unique<HostnameViewImpl>(std::move(sensor));
+    return std::make_unique<HostnameViewImpl>(prefs, std::move(sensor));
 }

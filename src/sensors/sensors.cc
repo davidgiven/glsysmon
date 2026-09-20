@@ -1,31 +1,32 @@
 #include "sensors.h"
 
-#include "components.h"
+#include <optional>
+#include <string>
+#include <vector>
 
-Sensors& Sensors::Instance()
-{
-    static Sensors instance;
-    return instance;
-}
+#include "components.h"
+#include "preferences/preferences.h"
+
+Sensors::Sensors(const Preferences& prefs): _prefs(prefs) {}
 
 ClockSensor& Sensors::GetClockSensor()
 {
     if (_clockSensor == nullptr)
-        _clockSensor = CreateClockSensor();
+        _clockSensor = CreateClockSensor(_prefs);
     return *_clockSensor;
 }
 
 CpuSensor& Sensors::GetCpuSensor()
 {
     if (_cpuSensor == nullptr)
-        _cpuSensor = CreateCpuSensor();
+        _cpuSensor = CreateCpuSensor(_prefs);
     return *_cpuSensor;
 }
 
 HostnameSensor& Sensors::GetHostnameSensor()
 {
     if (_hostnameSensor == nullptr)
-        _hostnameSensor = CreateHostnameSensor();
+        _hostnameSensor = CreateHostnameSensor(_prefs);
     return *_hostnameSensor;
 }
 

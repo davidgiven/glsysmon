@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "preferences/preferences.h"
+
 namespace
 {
 
@@ -28,7 +30,9 @@ namespace
     class CpuSensorImpl : public CpuSensor
     {
     public:
-        explicit CpuSensorImpl(const std::string& procStatPath):
+        explicit CpuSensorImpl(
+            const Preferences& prefs, const std::string& procStatPath):
+            _prefs(prefs),
             _procStatPath(procStatPath)
         {
             std::ifstream file(_procStatPath);
@@ -170,6 +174,7 @@ namespace
         }
 
         static constexpr std::size_t _maxHistory = 120;
+        const Preferences& _prefs;
         std::string _procStatPath;
         std::size_t _cpuCount = 0;
         std::vector<std::vector<CpuSample>> _samples;
@@ -179,7 +184,13 @@ namespace
 
 } // namespace
 
-std::unique_ptr<CpuSensor> CreateCpuSensor(const std::string& procStatPath)
+std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const Preferences& prefs, const std::string& procStatPath)
 {
-    return std::make_unique<CpuSensorImpl>(procStatPath);
+    return std::make_unique<CpuSensorImpl>(prefs, procStatPath);
+}
+
+std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs)
+{
+    return CreateCpuSensor(prefs, "/proc/stat");
 }

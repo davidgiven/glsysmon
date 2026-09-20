@@ -22,21 +22,24 @@ extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 extern std::unique_ptr<Dock> CreateDock(const Preferences& prefs);
 extern DockFactory CreateDockFactory(const Preferences& prefs);
 
-extern std::unique_ptr<ClockSensor> CreateClockSensor();
+extern std::unique_ptr<ClockSensor> CreateClockSensor(const Preferences& prefs);
 extern std::unique_ptr<CpuSensor> CreateCpuSensor(
-    const std::string& procStatPath);
-extern std::unique_ptr<HostnameSensor> CreateHostnameSensor();
-extern std::unique_ptr<View> CreateClockView(Sensors& sensors);
-extern std::unique_ptr<View> CreateClockView();
+    const Preferences& prefs, const std::string& procStatPath);
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs);
+extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+    const Preferences& prefs);
 extern std::unique_ptr<View> CreateClockView(
-    std::unique_ptr<ClockSensor> sensor);
-extern std::unique_ptr<View> CreateCpuView(Sensors& sensors);
-extern std::unique_ptr<View> CreateCpuView();
-extern std::unique_ptr<View> CreateCpuView(std::unique_ptr<CpuSensor> sensor);
-extern std::unique_ptr<View> CreateHostnameView(Sensors& sensors);
-extern std::unique_ptr<View> CreateHostnameView();
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateClockView(
+    const Preferences& prefs, std::unique_ptr<ClockSensor> sensor);
+extern std::unique_ptr<View> CreateCpuView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateCpuView(
+    const Preferences& prefs, std::unique_ptr<CpuSensor> sensor);
 extern std::unique_ptr<View> CreateHostnameView(
-    std::unique_ptr<HostnameSensor> sensor);
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateHostnameView(
+    const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor);
 
 extern std::unique_ptr<Ui> CreateUi(const Preferences& prefs);
 extern std::unique_ptr<Ui> CreateUiWithFakeHostname(

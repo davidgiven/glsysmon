@@ -6,12 +6,12 @@
 #include "cpu_sensor.h"
 #include "hostname_sensor.h"
 
+class Preferences;
+
 class Sensors
 {
 public:
-    Sensors() = default;
-
-    static Sensors& Instance();
+    explicit Sensors(const Preferences& prefs);
 
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
@@ -27,6 +27,7 @@ public:
     void Reset();
 
 private:
+    const Preferences& _prefs;
     std::unique_ptr<ClockSensor> _clockSensor;
     std::unique_ptr<CpuSensor> _cpuSensor;
     std::unique_ptr<HostnameSensor> _hostnameSensor;

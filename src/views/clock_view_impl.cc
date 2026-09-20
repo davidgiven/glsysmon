@@ -4,8 +4,12 @@
 
 #include <ctime>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "components.h"
+#include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
 namespace
@@ -14,9 +18,15 @@ namespace
     class ClockViewImpl : public View
     {
     public:
-        explicit ClockViewImpl(Sensors& sensors): _sensors(&sensors) {}
+        explicit ClockViewImpl(const Preferences& prefs, Sensors& sensors):
+            _prefs(prefs),
+            _sensors(&sensors)
+        {
+        }
 
-        explicit ClockViewImpl(std::unique_ptr<ClockSensor> sensor):
+        explicit ClockViewImpl(
+            const Preferences& prefs, std::unique_ptr<ClockSensor> sensor):
+            _prefs(prefs),
             _sensor(std::move(sensor))
         {
         }
@@ -35,23 +45,21 @@ namespace
         }
 
     private:
+        const Preferences& _prefs;
         std::unique_ptr<ClockSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateClockView(Sensors& sensors)
+std::unique_ptr<View> CreateClockView(
+    const Preferences& prefs, Sensors& sensors)
 {
-    return std::make_unique<ClockViewImpl>(sensors);
+    return std::make_unique<ClockViewImpl>(prefs, sensors);
 }
 
-std::unique_ptr<View> CreateClockView()
+std::unique_ptr<View> CreateClockView(
+    const Preferences& prefs, std::unique_ptr<ClockSensor> sensor)
 {
-    return CreateClockView(Sensors::Instance());
-}
-
-std::unique_ptr<View> CreateClockView(std::unique_ptr<ClockSensor> sensor)
-{
-    return std::make_unique<ClockViewImpl>(std::move(sensor));
+    return std::make_unique<ClockViewImpl>(prefs, std::move(sensor));
 }

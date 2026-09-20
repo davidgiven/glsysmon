@@ -7,9 +7,11 @@
 
 #include "view.h"
 
+class Preferences;
 class Sensors;
 
-using ViewFactory = std::function<std::unique_ptr<View>(Sensors&)>;
+using ViewFactory =
+    std::function<std::unique_ptr<View>(const Preferences&, Sensors&)>;
 
 // Name-to-module registry of available system-monitor views; used to load the
 // views to display at run time.

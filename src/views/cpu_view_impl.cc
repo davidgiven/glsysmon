@@ -4,8 +4,12 @@
 
 #include <cstdio>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "components.h"
+#include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
 namespace
@@ -14,9 +18,15 @@ namespace
     class CpuViewImpl : public View
     {
     public:
-        explicit CpuViewImpl(Sensors& sensors): _sensors(&sensors) {}
+        explicit CpuViewImpl(const Preferences& prefs, Sensors& sensors):
+            _prefs(prefs),
+            _sensors(&sensors)
+        {
+        }
 
-        explicit CpuViewImpl(std::unique_ptr<CpuSensor> sensor):
+        explicit CpuViewImpl(
+            const Preferences& prefs, std::unique_ptr<CpuSensor> sensor):
+            _prefs(prefs),
             _sensor(std::move(sensor))
         {
         }
@@ -49,23 +59,20 @@ namespace
         }
 
     private:
+        const Preferences& _prefs;
         std::unique_ptr<CpuSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateCpuView(Sensors& sensors)
+std::unique_ptr<View> CreateCpuView(const Preferences& prefs, Sensors& sensors)
 {
-    return std::make_unique<CpuViewImpl>(sensors);
+    return std::make_unique<CpuViewImpl>(prefs, sensors);
 }
 
-std::unique_ptr<View> CreateCpuView()
+std::unique_ptr<View> CreateCpuView(
+    const Preferences& prefs, std::unique_ptr<CpuSensor> sensor)
 {
-    return CreateCpuView(Sensors::Instance());
-}
-
-std::unique_ptr<View> CreateCpuView(std::unique_ptr<CpuSensor> sensor)
-{
-    return std::make_unique<CpuViewImpl>(std::move(sensor));
+    return std::make_unique<CpuViewImpl>(prefs, std::move(sensor));
 }

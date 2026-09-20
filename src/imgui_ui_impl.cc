@@ -22,7 +22,8 @@ namespace
             std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr):
-            _prefs(&prefs)
+            _prefs(prefs),
+            _sensors(prefs)
         {
             if (fakeHostnameSensor != nullptr)
                 _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
@@ -37,7 +38,7 @@ namespace
                 const auto it = catalogue.find(name);
                 if (it == catalogue.end())
                     continue;
-                _views.push_back(it->second(_sensors));
+                _views.push_back(it->second(prefs, _sensors));
             }
         }
 
@@ -71,7 +72,7 @@ namespace
         }
 
     private:
-        const Preferences* _prefs;
+        const Preferences& _prefs;
         Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
     };
