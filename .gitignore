@@ -2,8 +2,7 @@
 .cache/
 glsysmon
 compile_commands.json
-tests/render_fake_hostname.bad.png
-tests/render_fake_clock.bad.png
+tests/*.bad.png
 .idea/
 glsysmon.iml
 

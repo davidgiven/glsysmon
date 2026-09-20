@@ -83,7 +83,7 @@ TEST_CASE("CLI preferences default to left / 240 / monitor 0")
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 0);
     CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
-          std::vector<std::string>{"HostnameView", "ClockView"});
+          std::vector<std::string>{"HostnameView", "ClockView", "CpuView"});
 }
 
 TEST_CASE("CLI --views= parses a comma-separated list")

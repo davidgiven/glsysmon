@@ -50,6 +50,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/clock_view_impl.o \
+	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
@@ -81,7 +82,8 @@ TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
 TEST_UNIT   := $(TEST_BUILD)/unit_tests
 TEST_RENDER_HOSTNAME := $(TEST_BUILD)/render_fake_hostname
 TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
-TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK)
+TEST_RENDER_CPU      := $(TEST_BUILD)/render_fake_cpu
+TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU)
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
@@ -93,6 +95,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/catalogue.o \
 	$(BUILD)/views/clock_view_impl.o \
+	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
@@ -172,6 +175,11 @@ $(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
+$(TEST_RENDER_CPU): $(TEST_BUILD)/render_fake_cpu.o \
+	$(TEST_BUILD)/render_frame.o $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
+		$(STB_LIBS)
+
 run: $(BIN)
 	./$(BIN)
 
@@ -179,6 +187,7 @@ test: $(TEST_UNIT) $(TEST_RENDER)
 	./$(TEST_UNIT)
 	./$(TEST_RENDER_HOSTNAME)
 	./$(TEST_RENDER_CLOCK)
+	./$(TEST_RENDER_CPU)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.

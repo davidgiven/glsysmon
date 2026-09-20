@@ -45,6 +45,6 @@ public:
     static std::vector<std::string> GetViews(const Preferences& prefs)
     {
         return prefs.GetStringList("views").value_or(
-            std::vector<std::string>{"HostnameView", "ClockView"});
+            std::vector<std::string>{"HostnameView", "ClockView", "CpuView"});
     }
 };
