@@ -37,7 +37,7 @@ XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(X11_CFLAGS) \
                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD) \
-                 -I$(CURDIR)/src
+                 -I$(CURDIR)/src -MMD -MP
 
 SRC_OBJS := \
 	$(BUILD)/preferences/cli_preferences_impl.o \
@@ -102,6 +102,10 @@ TEST_OBJS := \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(IMGUI_OBJS) $(BACKEND_OBJS)
 
+DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/render_frame.d \
+        $(TEST_BUILD)/render_fake_hostname.d $(TEST_BUILD)/render_fake_clock.d \
+        $(TEST_BUILD)/render_fake_cpu.d
+
 all: $(BIN)
 
 $(BIN): $(OBJS)
@@ -117,7 +121,7 @@ $(GEN)/wlr-layer-shell-client-protocol.c: $(WAYLAND_XML)
 	$(WAYLAND_SCANNER) private-code < $< > $@
 
 $(GEN)/wlr-layer-shell-client-protocol.o: $(GEN)/wlr-layer-shell-client-protocol.c
-	$(CC) -O2 $(WAYLAND_CFLAGS) -c -o $@ $<
+	$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
 
 $(GEN)/xdg-shell-client-protocol.h: $(XDG_SHELL_XML)
 	@mkdir -p $(GEN)
@@ -128,7 +132,7 @@ $(GEN)/xdg-shell-client-protocol.c: $(XDG_SHELL_XML)
 	$(WAYLAND_SCANNER) private-code < $< > $@
 
 $(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
-	$(CC) -O2 $(WAYLAND_CFLAGS) -c -o $@ $<
+	$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
 
 $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
 	@mkdir -p $(dir $@)
@@ -208,5 +212,7 @@ compile_commands.json: $(SRC_CC) $(TEST_CC)
 
 clean:
 	rm -rf $(BUILD) $(BIN) compile_commands.json
+
+-include $(DEPS)
 
 .PHONY: all run test clean
