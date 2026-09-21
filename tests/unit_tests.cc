@@ -10,6 +10,7 @@
 #include "components.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/sensors.h"
+#include "timer.h"
 #include "views/catalogue.h"
 
 namespace
@@ -18,8 +19,6 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
-        void Tick() override {}
-
         std::string GetHostname() override
         {
             return "fake-hostname";
@@ -32,7 +31,8 @@ TEST_CASE("CreateUi creates a UI component")
 {
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    auto ui = CreateUi(*prefs);
+    auto timer = CreateTimer();
+    auto ui = CreateUi(*prefs, *timer);
     CHECK(ui != nullptr);
 }
 
@@ -51,7 +51,8 @@ TEST_CASE("CreateHostnameView creates a view component")
 {
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    Sensors sensors(*prefs);
+    auto timer = CreateTimer();
+    Sensors sensors(*prefs, *timer);
     auto view = CreateHostnameView(*prefs, sensors);
     CHECK(view != nullptr);
 }
@@ -63,7 +64,8 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
 
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    Sensors sensors(*prefs);
+    auto timer = CreateTimer();
+    Sensors sensors(*prefs, *timer);
     auto view = catalogue.at("HostnameView")(*prefs, sensors);
     CHECK(view != nullptr);
 }
@@ -72,7 +74,8 @@ TEST_CASE("Hostname sensor returns the current hostname")
 {
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    auto sensor = CreateHostnameSensor(*prefs);
+    auto timer = CreateTimer();
+    auto sensor = CreateHostnameSensor(*prefs, *timer);
 
     const std::string hostname = sensor->GetHostname();
     CHECK_FALSE(hostname.empty());
@@ -140,7 +143,13 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
         out << "cpu1 50 0 50 500 0 0 0 0 0 0\n";
     }
 
-    auto sensor = CreateCpuSensor(*prefs, path);
+    auto timer = CreateTimer();
+    auto sensor = CreateCpuSensor(*prefs, *timer, path);
+    uint64_t delta =
+        1'000'000'000ULL /
+        static_cast<uint64_t>(GlobalPreferencesFetcher::GetFps(*prefs));
+    if (delta == 0)
+        delta = 100'000'000ULL;
     REQUIRE(sensor != nullptr);
     CHECK(sensor->GetCpuCount() == 2);
     const std::size_t expectedSamples =
@@ -158,7 +167,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
         }
     }
 
-    sensor->Tick();
+    timer->Tick(timer->Now() + delta);
     REQUIRE(sensor->GetSampleCount() == expectedSamples);
     const CpuSample* s0 = sensor->GetSamples(0);
     REQUIRE(s0 != nullptr);
@@ -173,7 +182,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
         out << "cpu1 100 0 100 600 0 0 0 0 0 0\n";
     }
 
-    sensor->Tick();
+    timer->Tick(timer->Now() + delta);
     REQUIRE(sensor->GetSampleCount() == expectedSamples);
     s0 = sensor->GetSamples(0);
     REQUIRE(s0 != nullptr);
@@ -211,8 +220,8 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     // Via Sensors registry
-    Sensors sensors(*prefs);
-    sensors.SetCpuSensor(CreateCpuSensor(*prefs, path));
+    Sensors sensors(*prefs, *timer);
+    sensors.SetCpuSensor(CreateCpuSensor(*prefs, *timer, path));
     CHECK(sensors.GetCpuSensor().GetCpuCount() == 2);
 
     std::remove(path.c_str());
@@ -224,10 +233,16 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     auto prefs = CreatePreferences(args);
     const std::string missing = ".obj/nonexistent_cpu_stat";
     std::remove(missing.c_str());
-    auto sensor = CreateCpuSensor(*prefs, missing);
+    auto timer = CreateTimer();
+    auto sensor = CreateCpuSensor(*prefs, *timer, missing);
     CHECK(sensor->GetCpuCount() == 0);
     CHECK(sensor->GetSampleCount() == 0);
-    sensor->Tick();
+    uint64_t delta =
+        1'000'000'000ULL /
+        static_cast<uint64_t>(GlobalPreferencesFetcher::GetFps(*prefs));
+    if (delta == 0)
+        delta = 100'000'000ULL;
+    timer->Tick(timer->Now() + delta);
     CHECK(sensor->GetSampleCount() == 0);
     CHECK(sensor->GetSamples(0) == nullptr);
 }

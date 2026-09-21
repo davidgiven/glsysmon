@@ -16,8 +16,6 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
-        void Tick() override {}
-
         std::string GetHostname() override
         {
             return "fake-hostname";
@@ -31,8 +29,9 @@ int main()
     CliArgs args;
     args.values = {"--views=HostnameView"};
     auto prefs = CreatePreferences(args);
+    auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeHostnameSensor>();
-    auto ui = CreateUiWithFakeHostname(*prefs, std::move(fakeSensor));
+    auto ui = CreateUiWithFakeHostname(*prefs, *timer, std::move(fakeSensor));
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_hostname", *ui, *renderer);
 }

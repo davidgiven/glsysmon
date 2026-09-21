@@ -137,15 +137,11 @@ namespace
 
         void Setup() override
         {
-            const int updateFps = GlobalPreferencesFetcher::GetFps(*_prefs);
             const int redrawFps =
                 GlobalPreferencesFetcher::GetRedrawFps(*_prefs);
-            if (updateFps <= 0)
-                throw AppError("fps must be > 0");
             if (redrawFps <= 0)
                 throw AppError("redraw_fps must be > 0");
-            _updateNs = 1000000000ULL / static_cast<Uint64>(updateFps);
-            _drawNs = 1000000000ULL / static_cast<Uint64>(redrawFps);
+            _drawNs = 1'000'000'000ULL / static_cast<Uint64>(redrawFps);
 
             _sdl = std::make_unique<SdlSession>();
             _dock = _dockFactory();
@@ -184,15 +180,7 @@ namespace
             _dock->PollWindow(_window->get());
 
             const Uint64 now = SDL_GetTicksNS();
-            if (_timer != nullptr)
-                _timer->Tick(now);
-            if (_lastUpdateNs == 0)
-                _lastUpdateNs = now;
-            while (now - _lastUpdateNs >= _updateNs)
-            {
-                _ui->Tick();
-                _lastUpdateNs += _updateNs;
-            }
+            _timer->Tick(now);
 
             _frameRenderer->BeginFrame();
             _ui->Draw(_window->get(), _backend);
@@ -239,9 +227,7 @@ namespace
         std::unique_ptr<GpuDevice> _device;
         const char* _backend = nullptr;
         bool _rendererInited = false;
-        Uint64 _updateNs = 0;
         Uint64 _drawNs = 0;
-        Uint64 _lastUpdateNs = 0;
     };
 
 } // namespace
@@ -251,7 +237,7 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
     auto prefs = CreatePreferences(args);
     auto dockFactory = CreateDockFactory(*prefs);
     auto timer = CreateTimer();
-    auto ui = CreateUi(*prefs, timer.get());
+    auto ui = CreateUi(*prefs, *timer);
     auto renderer = CreateImGuiFrameRenderer();
     return std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
         std::move(ui),

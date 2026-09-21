@@ -48,10 +48,6 @@ public:
     // valid until the next sample update and is owned by the sensor.
     virtual const CpuSample* GetSamples(std::size_t cpu) = 0;
 
-    // Advances the history by one tick: opens /proc/stat, reads each
-    // numbered cpu line and appends a CpuSample for each CPU.
-    virtual void Tick() = 0;
-
     // Const overloads for callers that hold a const sensor. They forward
     // to the non-const versions via const_cast, so a sensor only needs to
     // implement the non-const versions.

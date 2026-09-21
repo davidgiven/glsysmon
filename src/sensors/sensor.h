@@ -5,7 +5,4 @@ class Sensor
 {
 public:
     virtual ~Sensor() = default;
-
-    // Updates the sensor's cached data.
-    virtual void Tick() = 0;
 };

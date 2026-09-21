@@ -16,8 +16,6 @@ namespace
     class FakeClockSensor : public ClockSensor
     {
     public:
-        void Tick() override {}
-
         std::tm GetLocalTime() override
         {
             std::tm tm{};
@@ -38,8 +36,9 @@ int main()
     CliArgs args;
     args.values = {"--views=ClockView"};
     auto prefs = CreatePreferences(args);
+    auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeClockSensor>();
-    auto ui = CreateUiWithFakeClock(*prefs, std::move(fakeSensor));
+    auto ui = CreateUiWithFakeClock(*prefs, *timer, std::move(fakeSensor));
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_clock", *ui, *renderer);
 }

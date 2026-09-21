@@ -20,7 +20,7 @@ namespace
     {
     public:
         explicit ImGuiUiImpl(const Preferences& prefs,
-            Timer* timer,
+            Timer& timer,
             std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr):
@@ -42,11 +42,6 @@ namespace
                     continue;
                 _views.push_back(it->second(prefs, _sensors));
             }
-        }
-
-        void Tick() override
-        {
-            _sensors.Tick();
         }
 
         void Draw(SDL_Window* window, const char* backend) override
@@ -89,28 +84,31 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer* timer)
+std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer)
 {
     return std::make_unique<ImGuiUiImpl>(prefs, timer);
 }
 
-std::unique_ptr<Ui> CreateUiWithFakeHostname(
-    const Preferences& prefs, std::unique_ptr<HostnameSensor> fakeSensor)
+std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<HostnameSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, nullptr, std::move(fakeSensor), nullptr, nullptr);
+        prefs, timer, std::move(fakeSensor), nullptr, nullptr);
 }
 
-std::unique_ptr<Ui> CreateUiWithFakeClock(
-    const Preferences& prefs, std::unique_ptr<ClockSensor> fakeSensor)
+std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<ClockSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, nullptr, nullptr, std::move(fakeSensor), nullptr);
+        prefs, timer, nullptr, std::move(fakeSensor), nullptr);
 }
 
-std::unique_ptr<Ui> CreateUiWithFakeCpu(
-    const Preferences& prefs, std::unique_ptr<CpuSensor> fakeSensor)
+std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<CpuSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, nullptr, nullptr, nullptr, std::move(fakeSensor));
+        prefs, timer, nullptr, nullptr, std::move(fakeSensor));
 }

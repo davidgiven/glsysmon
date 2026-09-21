@@ -329,7 +329,7 @@ TEST_CASE("Schedule after Cancel reuses time")
 TEST_CASE("Schedule returns Time and preserves uint64 nanoseconds")
 {
     auto timer = CreateTimer();
-    Timer::Time large = 1000000000ULL * 5;
+    Timer::Time large = 1'000'000'000ULL * 5;
     Timer::Time h = timer->Schedule(large,
         [](Timer::Time)
         {

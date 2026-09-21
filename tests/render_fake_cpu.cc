@@ -47,8 +47,6 @@ namespace
             return _samples[cpu].data();
         }
 
-        void Tick() override {}
-
     private:
         std::vector<std::vector<CpuSample>> _samples;
     };
@@ -60,8 +58,9 @@ int main()
     CliArgs args;
     args.values = {"--views=CpuView"};
     auto prefs = CreatePreferences(args);
+    auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeCpuSensor>();
-    auto ui = CreateUiWithFakeCpu(*prefs, std::move(fakeSensor));
+    auto ui = CreateUiWithFakeCpu(*prefs, *timer, std::move(fakeSensor));
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_cpu", *ui, *renderer);
 }

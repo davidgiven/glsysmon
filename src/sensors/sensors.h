@@ -12,7 +12,7 @@ class Timer;
 class Sensors
 {
 public:
-    explicit Sensors(const Preferences& prefs, Timer* timer = nullptr);
+    explicit Sensors(const Preferences& prefs, Timer& timer);
 
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
@@ -25,13 +25,11 @@ public:
     void SetCpuSensor(std::unique_ptr<CpuSensor> sensor);
     void SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor);
 
-    void Tick();
-
     void Reset();
 
 private:
     const Preferences& _prefs;
-    Timer* _timer;
+    Timer& _timer;
     std::unique_ptr<ClockSensor> _clockSensor;
     std::unique_ptr<CpuSensor> _cpuSensor;
     std::unique_ptr<HostnameSensor> _hostnameSensor;

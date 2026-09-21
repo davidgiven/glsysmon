@@ -7,7 +7,7 @@
 #include "components.h"
 #include "preferences/preferences.h"
 
-Sensors::Sensors(const Preferences& prefs, Timer* timer):
+Sensors::Sensors(const Preferences& prefs, Timer& timer):
     _prefs(prefs),
     _timer(timer)
 {
@@ -47,16 +47,6 @@ void Sensors::SetCpuSensor(std::unique_ptr<CpuSensor> sensor)
 void Sensors::SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor)
 {
     _hostnameSensor = std::move(sensor);
-}
-
-void Sensors::Tick()
-{
-    if (_clockSensor != nullptr)
-        _clockSensor->Tick();
-    if (_cpuSensor != nullptr)
-        _cpuSensor->Tick();
-    if (_hostnameSensor != nullptr)
-        _hostnameSensor->Tick();
 }
 
 void Sensors::Reset()
