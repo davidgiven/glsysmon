@@ -23,7 +23,8 @@ namespace
             Timer& timer,
             std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
-            std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr):
+            std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr,
+            std::unique_ptr<TemperatureSensor> fakeTemperatureSensor = nullptr):
             _prefs(prefs),
             _sensors(prefs, timer)
         {
@@ -33,6 +34,8 @@ namespace
                 _sensors.SetClockSensor(std::move(fakeClockSensor));
             if (fakeCpuSensor != nullptr)
                 _sensors.SetCpuSensor(std::move(fakeCpuSensor));
+            if (fakeTemperatureSensor != nullptr)
+                _sensors.SetTemperatureSensor(std::move(fakeTemperatureSensor));
             const auto& catalogue = GetViewCatalogue();
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
@@ -94,7 +97,7 @@ std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
     std::unique_ptr<HostnameSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, std::move(fakeSensor), nullptr, nullptr);
+        prefs, timer, std::move(fakeSensor), nullptr, nullptr, nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
@@ -102,7 +105,7 @@ std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
     std::unique_ptr<ClockSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, nullptr, std::move(fakeSensor), nullptr);
+        prefs, timer, nullptr, std::move(fakeSensor), nullptr, nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
@@ -110,5 +113,13 @@ std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
     std::unique_ptr<CpuSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, nullptr, nullptr, std::move(fakeSensor));
+        prefs, timer, nullptr, nullptr, std::move(fakeSensor), nullptr);
+}
+
+std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<TemperatureSensor> fakeSensor)
+{
+    return std::make_unique<ImGuiUiImpl>(
+        prefs, timer, nullptr, nullptr, nullptr, std::move(fakeSensor));
 }

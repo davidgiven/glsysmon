@@ -49,6 +49,10 @@ extern std::unique_ptr<View> CreateHostnameView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateHostnameView(
     const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor);
+extern std::unique_ptr<View> CreateTemperatureView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateTemperatureView(
+    const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor);
 
 extern std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer);
 extern std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
@@ -60,6 +64,9 @@ extern std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
 extern std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
     Timer& timer,
     std::unique_ptr<CpuSensor> fakeSensor);
+extern std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<TemperatureSensor> fakeSensor);
 extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
 extern std::unique_ptr<Timer> CreateTimer();
 extern std::unique_ptr<App> CreateApp(const CliArgs& args);
