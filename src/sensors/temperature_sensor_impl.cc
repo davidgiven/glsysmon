@@ -72,11 +72,11 @@ namespace
             if (size <= 0)
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
-            int interval =
+            double interval =
                 prefs.GetInteger("temperature.update_interval").value_or(1);
             if (interval <= 0)
                 interval = 1;
-            _delta = 1'000'000'000ULL / static_cast<uint64_t>(interval);
+            _delta = 1'000'000'000ULL / interval;
 
             _inputPaths = DiscoverInputs(_hwmonRoot);
             _names.reserve(_inputPaths.size());

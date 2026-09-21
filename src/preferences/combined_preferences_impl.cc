@@ -45,6 +45,16 @@ namespace
             return std::nullopt;
         }
 
+        std::optional<double> GetDouble(const std::string& key) const override
+        {
+            for (const auto& source : _sources)
+            {
+                if (auto value = source->GetDouble(key))
+                    return value;
+            }
+            return std::nullopt;
+        }
+
         std::optional<std::vector<std::string>> GetStringList(
             const std::string& key) const override
         {

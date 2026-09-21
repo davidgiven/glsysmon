@@ -45,10 +45,10 @@ namespace
             if (size <= 0)
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
-            int interval = prefs.GetInteger("cpu.update_interval").value_or(5);
+            double interval = prefs.GetDouble("cpu.update_interval").value_or(5);
             if (interval <= 0)
                 interval = 5;
-            _delta = 1'000'000'000ULL / static_cast<uint64_t>(interval);
+            _delta = 1'000'000'000ULL / interval;
 
             std::ifstream file(_procStatPath);
             std::string line;

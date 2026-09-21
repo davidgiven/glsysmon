@@ -140,10 +140,10 @@ namespace
 
         void Setup() override
         {
-            const int fps = GlobalPreferencesFetcher::GetFps(*_prefs);
-            if (fps <= 0)
+            const double fps = GlobalPreferencesFetcher::GetFps(*_prefs);
+            if (fps <= 0.0)
                 throw AppError("fps must be > 0");
-            _drawNs = 1'000'000'000ULL / static_cast<Uint64>(fps);
+            _drawNs = static_cast<Uint64>(1'000'000'000.0 / fps);
 
             _sdl = std::make_unique<SdlSession>();
             _dock = _dockFactory();

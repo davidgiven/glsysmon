@@ -53,6 +53,15 @@ namespace
             return _table.at_path(key).value<int>();
         }
 
+        std::optional<double> GetDouble(const std::string& key) const override
+        {
+            if (auto value = _table.at_path(key).value<double>())
+                return *value;
+            if (auto value = _table.at_path(key).value<int>())
+                return static_cast<double>(*value);
+            return std::nullopt;
+        }
+
         std::optional<std::vector<std::string>> GetStringList(
             const std::string& key) const override
         {

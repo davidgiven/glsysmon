@@ -19,9 +19,10 @@ public:
 
     virtual std::optional<std::string> GetString(
         const std::string& key) const = 0;
-    virtual std::optional<int> GetInteger(const std::string& key) const = 0;
+    virtual std::optional<int> GetInteger(const std::string& key) const;
+    virtual std::optional<double> GetDouble(const std::string& key) const;
     virtual std::optional<std::vector<std::string>> GetStringList(
-        const std::string& key) const = 0;
+        const std::string& key) const;
 };
 
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
@@ -58,10 +59,10 @@ public:
         return CreateDefaultPreferences()->GetStringList("views").value();
     }
 
-    static int GetFps(const Preferences& prefs)
+    static double GetFps(const Preferences& prefs)
     {
-        if (auto value = prefs.GetInteger("fps"))
+        if (auto value = prefs.GetDouble("fps"))
             return *value;
-        return CreateDefaultPreferences()->GetInteger("fps").value();
+        return CreateDefaultPreferences()->GetDouble("fps").value();
     }
 };
