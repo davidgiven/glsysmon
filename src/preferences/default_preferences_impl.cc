@@ -37,6 +37,7 @@ namespace
         {"temperature.update_interval", "1"                                             },
         {"temperature.minimum",         "0"                                             },
         {"temperature.maximum",         "100"                                           },
+        {"temperature.sensors",         "CPU"},
     };
 
 } // namespace

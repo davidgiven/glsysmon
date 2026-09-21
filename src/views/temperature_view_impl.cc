@@ -5,6 +5,8 @@
 
 #include <cstdio>
 #include <memory>
+#include <optional>
+#include <set>
 #include <string>
 
 #include "components.h"
@@ -45,8 +47,14 @@ namespace
                 _prefs.GetInteger("temperature.maximum").value_or(100);
             const double yMin = static_cast<double>(minimum);
             const double yMax = static_cast<double>(maximum);
+            const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
+
             for (std::size_t ch = 0; ch < count; ++ch)
             {
+                const std::string channelName = sensor.GetChannelName(ch);
+                if (allowedSet &&
+                    allowedSet->find(channelName) == allowedSet->end())
+                    continue;
                 const double* samples = sensor.GetSamples(ch);
                 if (samples == nullptr)
                     continue;
@@ -72,13 +80,12 @@ namespace
                     ImPlot::SetupAxesLimits(
                         0, n, yMin, yMax, ImPlotCond_Always);
                     ImPlot::SetupFinish();
-                    ImPlot::PlotLine(
-                        sensor.GetChannelName(ch).c_str(), samples, n);
+                    ImPlot::PlotLine(channelName.c_str(), samples, n);
                     ImPlot::EndPlot();
                 }
                 ImPlot::PopStyleVar();
                 ImGui::PopStyleVar();
-                ImGui::Text("%s", sensor.GetChannelName(ch).c_str());
+                ImGui::Text("%s", channelName.c_str());
             }
         }
 

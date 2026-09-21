@@ -27,6 +27,16 @@ namespace
                     _values["views"] = arg.substr(8);
                 else if (arg.rfind("--fps=", 0) == 0)
                     _values["fps"] = arg.substr(6);
+                else if (arg.rfind("--", 0) == 0)
+                {
+                    const std::size_t eq = arg.find('=');
+                    if (eq != std::string::npos)
+                    {
+                        const std::string key = arg.substr(2, eq - 2);
+                        const std::string value = arg.substr(eq + 1);
+                        _values[key] = value;
+                    }
+                }
             }
         }
 

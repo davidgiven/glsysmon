@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -51,5 +52,17 @@ std::optional<std::vector<std::string>> Preferences::GetStringList(
             break;
         start = comma + 1;
     }
+    return result;
+}
+
+std::optional<std::set<std::string>> Preferences::GetStringSet(
+    const std::string& key) const
+{
+    auto list = GetStringList(key);
+    if (!list)
+        return std::nullopt;
+    std::set<std::string> result;
+    for (const auto& item : *list)
+        result.insert(item);
     return result;
 }

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,8 @@ public:
     virtual std::optional<int> GetInteger(const std::string& key) const;
     virtual std::optional<double> GetDouble(const std::string& key) const;
     virtual std::optional<std::vector<std::string>> GetStringList(
+        const std::string& key) const;
+    virtual std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
 };
 

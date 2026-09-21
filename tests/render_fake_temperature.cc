@@ -66,7 +66,8 @@ namespace
 int main()
 {
     CliArgs args;
-    args.values = {"--views=TemperatureView"};
+    args.values = {
+        "--views=TemperatureView", "--temperature.sensors=Tctl,temp1"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeTemperatureSensor>();
