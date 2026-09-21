@@ -25,6 +25,7 @@ namespace
 
         void Tick(Time now) override
         {
+            _now = now;
             while (!_queue.empty())
             {
                 const auto it = _queue.begin();
@@ -37,7 +38,13 @@ namespace
             }
         }
 
+        Time Now() const override
+        {
+            return _now;
+        }
+
     private:
+        Time _now = 0;
         std::map<Time, Callback> _queue;
     };
 

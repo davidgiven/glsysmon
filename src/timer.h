@@ -15,6 +15,7 @@ public:
     virtual Time Schedule(Time time, Callback callback) = 0;
     virtual void Cancel(Time time) = 0;
     virtual void Tick(Time now) = 0;
+    virtual Time Now() const = 0;
 };
 
 extern std::unique_ptr<Timer> CreateTimer();
