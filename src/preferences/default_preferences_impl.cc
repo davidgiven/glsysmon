@@ -71,6 +71,8 @@ namespace
         {"fps",                         "30"                                            },
         {"cpu.update_interval",         "5"                                             },
         {"temperature.update_interval", "1"                                             },
+        {"temperature.minimum",         "0"                                             },
+        {"temperature.maximum",         "100"                                           },
     };
 
 } // namespace

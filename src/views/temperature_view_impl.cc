@@ -39,6 +39,12 @@ namespace
             const std::size_t sampleCount = sensor.GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
+            const int minimum =
+                _prefs.GetInteger("temperature.minimum").value_or(0);
+            const int maximum =
+                _prefs.GetInteger("temperature.maximum").value_or(100);
+            const double yMin = static_cast<double>(minimum);
+            const double yMax = static_cast<double>(maximum);
             for (std::size_t ch = 0; ch < count; ++ch)
             {
                 const double* samples = sensor.GetSamples(ch);
@@ -63,7 +69,8 @@ namespace
                         nullptr,
                         ImPlotAxisFlags_NoDecorations,
                         ImPlotAxisFlags_NoDecorations);
-                    ImPlot::SetupAxesLimits(0, n, 0, 100, ImPlotCond_Always);
+                    ImPlot::SetupAxesLimits(
+                        0, n, yMin, yMax, ImPlotCond_Always);
                     ImPlot::SetupFinish();
                     ImPlot::PlotLine(
                         sensor.GetChannelName(ch).c_str(), samples, n);
