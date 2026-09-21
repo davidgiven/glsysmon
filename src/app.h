@@ -13,8 +13,8 @@ public:
     virtual void Setup() = 0;
 
     // Processes SDL events until the app should shut down and triggers redraws
-    // via a dedicated Redraw method, which is fired either from an SDL event
-    // indicating that redraw is needed or from a periodic timer.
+    // via a dedicated Redraw method, which is fired either when a timer fires
+    // or when required by the windowing system, capped by the fps preference.
     virtual void MainLoop() = 0;
 
     // Releases all resources acquired by Setup(). Safe to call multiple times;

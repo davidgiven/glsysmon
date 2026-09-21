@@ -23,9 +23,10 @@ namespace
             _queue.erase(time);
         }
 
-        void Tick(Time now) override
+        std::size_t Tick(Time now) override
         {
             _now = now;
+            std::size_t fired = 0;
             while (!_queue.empty())
             {
                 const auto it = _queue.begin();
@@ -35,7 +36,9 @@ namespace
                 Callback cb = std::move(it->second);
                 _queue.erase(it);
                 cb(scheduled);
+                ++fired;
             }
+            return fired;
         }
 
         Time Now() const override

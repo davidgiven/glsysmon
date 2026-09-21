@@ -102,7 +102,7 @@ namespace render_frame
         }
 
         frameRenderer.BeginFrame();
-        ui.Draw(window, "offscreen");
+        ui.Draw();
 
         SDL_GPUCommandBuffer* command_buffer =
             SDL_AcquireGPUCommandBuffer(device);

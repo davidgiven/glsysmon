@@ -15,7 +15,7 @@ public:
 
     virtual Time Schedule(Time time, Callback callback) = 0;
     virtual void Cancel(Time time) = 0;
-    virtual void Tick(Time now) = 0;
+    virtual std::size_t Tick(Time now) = 0;
     virtual Time Now() const = 0;
     virtual std::optional<Time> GetTimeUntilNextEvent(Time now) const = 0;
 

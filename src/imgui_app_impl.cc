@@ -148,7 +148,6 @@ namespace
             _sdl = std::make_unique<SdlSession>();
             _dock = _dockFactory();
             _window = std::make_unique<DockWindow>(_dock->CreateWindow());
-            _backend = SDL_GetCurrentVideoDriver();
 
             _device = std::make_unique<GpuDevice>();
             _device->ClaimWindow(_window->get());
@@ -163,13 +162,14 @@ namespace
                         _device->get(), _window->get())))
                 throw AppError("ImGuiFrameRenderer::Init failed");
             _rendererInited = true;
-            ScheduleRedraw(_timer->Now());
         }
 
         void MainLoop() override
         {
             bool running = true;
             Redraw();
+            _lastRedrawNs = SDL_GetTicksNS();
+            bool pendingRedraw = false;
             while (running)
             {
                 const Uint64 nowForWait = SDL_GetTicksNS();
@@ -186,6 +186,22 @@ namespace
                     else
                         timeoutMs = static_cast<Sint32>(waitNs / 1'000'000ULL);
                 }
+                if (pendingRedraw)
+                {
+                    Uint64 earliest = _lastRedrawNs + _drawNs;
+                    Uint64 untilFrame =
+                        (earliest <= nowForWait) ? 0 : earliest - nowForWait;
+                    Sint32 frameMs;
+                    if (untilFrame > static_cast<Uint64>(
+                                         std::numeric_limits<Sint32>::max()) *
+                                         1'000'000ULL)
+                        frameMs = std::numeric_limits<Sint32>::max();
+                    else
+                        frameMs =
+                            static_cast<Sint32>(untilFrame / 1'000'000ULL);
+                    if (timeoutMs < 0 || frameMs < timeoutMs)
+                        timeoutMs = frameMs;
+                }
 
                 SDL_Event event;
                 bool hasEvent = false;
@@ -194,7 +210,7 @@ namespace
                 else
                     hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
 
-                bool needsRedraw = false;
+                bool windowNeedsRedraw = false;
                 if (hasEvent)
                 {
                     do
@@ -210,10 +226,8 @@ namespace
                             event.type == SDL_EVENT_WINDOW_RESIZED ||
                             event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
                             event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
-                            needsRedraw = true;
+                            windowNeedsRedraw = true;
                     } while (SDL_PollEvent(&event));
-                    if (running)
-                        needsRedraw = true;
                 }
                 else
                 {
@@ -231,14 +245,22 @@ namespace
                 _dock->PollWindow(_window->get());
 
                 const Uint64 now = SDL_GetTicksNS();
-                _timer->Tick(now);
-                if (_needsRedraw)
+                std::size_t fired = _timer->Tick(now);
+                if (fired > 0)
+                    pendingRedraw = true;
+                if (windowNeedsRedraw)
+                    pendingRedraw = true;
+
+                if (pendingRedraw && running)
                 {
-                    needsRedraw = true;
-                    _needsRedraw = false;
+                    Uint64 earliest = _lastRedrawNs + _drawNs;
+                    if (now >= earliest)
+                    {
+                        Redraw();
+                        _lastRedrawNs = now;
+                        pendingRedraw = false;
+                    }
                 }
-                if (needsRedraw && running)
-                    Redraw();
             }
         }
 
@@ -254,16 +276,6 @@ namespace
             _window.reset();
             _sdl.reset();
             _dock.reset();
-        }
-
-        void ScheduleRedraw(Timer::Time t)
-        {
-            _timer->Schedule(t + _drawNs,
-                [this](Timer::Time nt)
-                {
-                    _needsRedraw = true;
-                    ScheduleRedraw(nt);
-                });
         }
 
         void Redraw()
@@ -293,10 +305,9 @@ namespace
         std::unique_ptr<SdlSession> _sdl;
         std::unique_ptr<DockWindow> _window;
         std::unique_ptr<GpuDevice> _device;
-        const char* _backend = nullptr;
         bool _rendererInited = false;
         Uint64 _drawNs = 0;
-        bool _needsRedraw = false;
+        Uint64 _lastRedrawNs = 0;
     };
 
 } // namespace
