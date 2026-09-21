@@ -32,7 +32,7 @@ namespace
         std::uint64_t guest_nice = 0;
     };
 
-    class CpuSensorImpl : public CpuSensor, public GraphMixin<CpuSample>
+    class CpuSensorImpl : public CpuSensor
     {
     public:
         explicit CpuSensorImpl(const Preferences& prefs,
@@ -66,21 +66,11 @@ namespace
             Tick(_timer.Now());
         }
 
-        std::size_t GetCpuCount() override
-        {
-            return GetChannels();
-        }
-
-        std::size_t GetSampleCount() override
-        {
-            return GraphMixin<CpuSample>::GetSampleCount();
-        }
-
-        const CpuSample* GetSamples(std::size_t cpu) override
+        const CpuSample* GetSamples(std::size_t cpu) const override
         {
             if (cpu >= GetChannels())
                 return nullptr;
-            return GraphMixin<CpuSample>::GetSamples(cpu);
+            return this->GraphMixin<CpuSample>::GetSamples(cpu);
         }
 
         std::string GetChannelName(std::size_t channel) const override

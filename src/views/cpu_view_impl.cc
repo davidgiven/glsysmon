@@ -35,7 +35,7 @@ namespace
         void Draw() override
         {
             CpuSensor& sensor = _sensor ? *_sensor : _sensors->GetCpuSensor();
-            const std::size_t cpuCount = sensor.GetCpuCount();
+            const std::size_t cpuCount = sensor.GetChannels();
             const std::size_t sampleCount = sensor.GetSampleCount();
             if (cpuCount == 0 || sampleCount == 0)
                 return;

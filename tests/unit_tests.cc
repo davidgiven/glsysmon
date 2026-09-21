@@ -151,7 +151,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     if (delta == 0)
         delta = 100'000'000ULL;
     REQUIRE(sensor != nullptr);
-    CHECK(sensor->GetCpuCount() == 2);
+    CHECK(sensor->GetChannels() == 2);
     const std::size_t expectedSamples =
         static_cast<std::size_t>(GlobalPreferencesFetcher::GetSize(*prefs));
     CHECK(sensor->GetSampleCount() == expectedSamples);
@@ -194,7 +194,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
 
     // Verify const overloads and span accessor
     const CpuSensor& cs = *sensor;
-    CHECK(cs.GetCpuCount() == 2);
+    CHECK(cs.GetChannels() == 2);
     CHECK(cs.GetSampleCount() == expectedSamples);
     const CpuSample* cs0 = cs.GetSamples(0);
     REQUIRE(cs0 != nullptr);
@@ -204,7 +204,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     CHECK(span[expectedSamples - 1].user == doctest::Approx(0.25f));
 
     // Values in [0,1]
-    for (std::size_t cpu = 0; cpu < sensor->GetCpuCount(); ++cpu)
+    for (std::size_t cpu = 0; cpu < sensor->GetChannels(); ++cpu)
     {
         const CpuSample* s = sensor->GetSamples(cpu);
         REQUIRE(s != nullptr);
@@ -222,7 +222,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     // Via Sensors registry
     Sensors sensors(*prefs, *timer);
     sensors.SetCpuSensor(CreateCpuSensor(*prefs, *timer, path));
-    CHECK(sensors.GetCpuSensor().GetCpuCount() == 2);
+    CHECK(sensors.GetCpuSensor().GetChannels() == 2);
 
     std::remove(path.c_str());
 }
@@ -235,7 +235,7 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     std::remove(missing.c_str());
     auto timer = CreateTimer();
     auto sensor = CreateCpuSensor(*prefs, *timer, missing);
-    CHECK(sensor->GetCpuCount() == 0);
+    CHECK(sensor->GetChannels() == 0);
     CHECK(sensor->GetSampleCount() == 0);
     const int cpuInterval =
         prefs->GetInteger("cpu.update_interval").value_or(5);

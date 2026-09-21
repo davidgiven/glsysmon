@@ -28,23 +28,28 @@ namespace
             }
         }
 
-        std::size_t GetCpuCount() override
+        std::size_t GetChannels() const override
         {
             return _samples.size();
         }
 
-        std::size_t GetSampleCount() override
+        std::size_t GetSampleCount() const override
         {
             if (_samples.empty())
                 return 0;
             return _samples[0].size();
         }
 
-        const CpuSample* GetSamples(std::size_t cpu) override
+        const CpuSample* GetSamples(std::size_t cpu) const override
         {
             if (cpu >= _samples.size())
                 return nullptr;
             return _samples[cpu].data();
+        }
+
+        std::string GetChannelName(std::size_t channel) const override
+        {
+            return "CPU" + std::to_string(channel);
         }
 
     private:
