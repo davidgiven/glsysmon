@@ -2,6 +2,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <imgui.h>
+
 #include <algorithm>
 #include <limits>
 #include <memory>
@@ -211,6 +213,7 @@ namespace
                     hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
 
                 bool windowNeedsRedraw = false;
+                bool mouseNeedsRedraw = false;
                 if (hasEvent)
                 {
                     do
@@ -227,6 +230,11 @@ namespace
                             event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
                             event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
                             windowNeedsRedraw = true;
+                        if (event.type == SDL_EVENT_MOUSE_MOTION ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_UP ||
+                            event.type == SDL_EVENT_MOUSE_WHEEL)
+                            mouseNeedsRedraw = true;
                     } while (SDL_PollEvent(&event));
                 }
                 else
@@ -240,6 +248,10 @@ namespace
                             event.window.windowID ==
                                 SDL_GetWindowID(_window->get()))
                             running = false;
+                        if (event.type == SDL_EVENT_MOUSE_MOTION ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+                            mouseNeedsRedraw = true;
                     }
                 }
                 _dock->PollWindow(_window->get());
@@ -249,6 +261,8 @@ namespace
                 if (fired > 0)
                     pendingRedraw = true;
                 if (windowNeedsRedraw)
+                    pendingRedraw = true;
+                if (mouseNeedsRedraw)
                     pendingRedraw = true;
 
                 if (pendingRedraw && running)
@@ -293,6 +307,12 @@ namespace
                 nullptr);
             _frameRenderer->Render(command_buffer, swapchain_texture);
             SDL_SubmitGPUCommandBuffer(command_buffer);
+
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
         }
 
     private:

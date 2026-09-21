@@ -21,10 +21,12 @@ namespace
             SDL_GPUTextureFormat color_format) override
         {
             IMGUI_CHECKVERSION();
-            ImGui::CreateContext();
-            ImPlot::CreateContext();
+            _context = ImGui::CreateContext();
+            ImGui::SetCurrentContext(_context);
+            _plotContext = ImPlot::CreateContext();
             ImGuiIO& io = ImGui::GetIO();
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+            io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
             io.IniFilename =
                 nullptr; // do not persist window layout to imgui.ini
             ImGui::StyleColorsDark();
@@ -46,11 +48,15 @@ namespace
 
         void ProcessEvent(const SDL_Event* event) override
         {
+            ImGui::SetCurrentContext(_context);
+            ImPlot::SetCurrentContext(_plotContext);
             ImGui_ImplSDL3_ProcessEvent(event);
         }
 
         void BeginFrame() override
         {
+            ImGui::SetCurrentContext(_context);
+            ImPlot::SetCurrentContext(_plotContext);
             ImGui_ImplSDLGPU3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
             ImGui::NewFrame();
@@ -59,6 +65,8 @@ namespace
         void Render(SDL_GPUCommandBuffer* command_buffer,
             SDL_GPUTexture* target) override
         {
+            ImGui::SetCurrentContext(_context);
+            ImPlot::SetCurrentContext(_plotContext);
             ImGui::Render();
             ImDrawData* draw_data = ImGui::GetDrawData();
             if (target == nullptr || draw_data->DisplaySize.x <= 0.0f ||
@@ -84,11 +92,19 @@ namespace
 
         void Shutdown() override
         {
-            ImPlot::DestroyContext();
+            ImGui::SetCurrentContext(_context);
+            ImPlot::SetCurrentContext(_plotContext);
+            ImPlot::DestroyContext(_plotContext);
             ImGui_ImplSDL3_Shutdown();
             ImGui_ImplSDLGPU3_Shutdown();
-            ImGui::DestroyContext();
+            ImGui::DestroyContext(_context);
+            _context = nullptr;
+            _plotContext = nullptr;
         }
+
+    private:
+        ImGuiContext* _context = nullptr;
+        ImPlotContext* _plotContext = nullptr;
     };
 
 } // namespace
