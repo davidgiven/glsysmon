@@ -43,6 +43,16 @@ namespace
             return _now;
         }
 
+        std::optional<Time> GetTimeUntilNextEvent(Time now) const override
+        {
+            if (_queue.empty())
+                return std::nullopt;
+            const Time next = _queue.begin()->first;
+            if (next <= now)
+                return Time{0};
+            return next - now;
+        }
+
     private:
         Time _now = 0;
         std::map<Time, Callback> _queue;

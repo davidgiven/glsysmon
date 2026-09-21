@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     {
         auto app = CreateApp(*args);
         app->Setup();
-        while (app->Tick()) {}
+        app->MainLoop();
         app->Shutdown();
     }
     catch (const std::exception& e)

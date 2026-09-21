@@ -2,7 +2,10 @@
 
 #include <SDL3/SDL.h>
 
+#include <algorithm>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -161,44 +164,83 @@ namespace
                         _device->get(), _window->get())))
                 throw AppError("ImGuiFrameRenderer::Init failed");
             _rendererInited = true;
+            ScheduleRedraw(_timer->Now());
         }
 
-        bool Tick() override
+        void MainLoop() override
         {
-            const Uint64 frame_start = SDL_GetTicksNS();
             bool running = true;
-            SDL_Event event;
-            while (SDL_PollEvent(&event))
+            Redraw();
+            while (running)
             {
-                _frameRenderer->ProcessEvent(&event);
-                if (event.type == SDL_EVENT_QUIT)
-                    running = false;
-                if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                    event.window.windowID == SDL_GetWindowID(_window->get()))
-                    running = false;
+                const Uint64 nowForWait = SDL_GetTicksNS();
+                std::optional<Timer::Time> wait =
+                    _timer->GetTimeUntilNextEvent(nowForWait);
+                Sint32 timeoutMs = -1;
+                if (wait.has_value())
+                {
+                    Timer::Time waitNs = *wait;
+                    if (waitNs > static_cast<Timer::Time>(
+                                     std::numeric_limits<Sint32>::max()) *
+                                     1'000'000ULL)
+                        timeoutMs = std::numeric_limits<Sint32>::max();
+                    else
+                        timeoutMs = static_cast<Sint32>(waitNs / 1'000'000ULL);
+                }
+
+                SDL_Event event;
+                bool hasEvent = false;
+                if (timeoutMs < 0)
+                    hasEvent = SDL_WaitEvent(&event);
+                else
+                    hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
+
+                bool needsRedraw = false;
+                if (hasEvent)
+                {
+                    do
+                    {
+                        _frameRenderer->ProcessEvent(&event);
+                        if (event.type == SDL_EVENT_QUIT)
+                            running = false;
+                        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+                            event.window.windowID ==
+                                SDL_GetWindowID(_window->get()))
+                            running = false;
+                        if (event.type == SDL_EVENT_WINDOW_EXPOSED ||
+                            event.type == SDL_EVENT_WINDOW_RESIZED ||
+                            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
+                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
+                            needsRedraw = true;
+                    } while (SDL_PollEvent(&event));
+                    if (running)
+                        needsRedraw = true;
+                }
+                else
+                {
+                    while (SDL_PollEvent(&event))
+                    {
+                        _frameRenderer->ProcessEvent(&event);
+                        if (event.type == SDL_EVENT_QUIT)
+                            running = false;
+                        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+                            event.window.windowID ==
+                                SDL_GetWindowID(_window->get()))
+                            running = false;
+                    }
+                }
+                _dock->PollWindow(_window->get());
+
+                const Uint64 now = SDL_GetTicksNS();
+                _timer->Tick(now);
+                if (_needsRedraw)
+                {
+                    needsRedraw = true;
+                    _needsRedraw = false;
+                }
+                if (needsRedraw && running)
+                    Redraw();
             }
-            _dock->PollWindow(_window->get());
-
-            const Uint64 now = SDL_GetTicksNS();
-            _timer->Tick(now);
-
-            _frameRenderer->BeginFrame();
-            _ui->Draw(_window->get(), _backend);
-
-            SDL_GPUCommandBuffer* command_buffer =
-                SDL_AcquireGPUCommandBuffer(_device->get());
-            SDL_GPUTexture* swapchain_texture = nullptr;
-            SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer,
-                _window->get(),
-                &swapchain_texture,
-                nullptr,
-                nullptr);
-            _frameRenderer->Render(command_buffer, swapchain_texture);
-            SDL_SubmitGPUCommandBuffer(command_buffer);
-            const Uint64 elapsed = SDL_GetTicksNS() - frame_start;
-            if (elapsed < _drawNs)
-                SDL_DelayNS(_drawNs - elapsed);
-            return running;
         }
 
         void Shutdown() override
@@ -215,6 +257,33 @@ namespace
             _dock.reset();
         }
 
+        void ScheduleRedraw(Timer::Time t)
+        {
+            _timer->Schedule(t + _drawNs,
+                [this](Timer::Time nt)
+                {
+                    _needsRedraw = true;
+                    ScheduleRedraw(nt);
+                });
+        }
+
+        void Redraw()
+        {
+            _frameRenderer->BeginFrame();
+            _ui->Draw(_window->get(), _backend);
+
+            SDL_GPUCommandBuffer* command_buffer =
+                SDL_AcquireGPUCommandBuffer(_device->get());
+            SDL_GPUTexture* swapchain_texture = nullptr;
+            SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer,
+                _window->get(),
+                &swapchain_texture,
+                nullptr,
+                nullptr);
+            _frameRenderer->Render(command_buffer, swapchain_texture);
+            SDL_SubmitGPUCommandBuffer(command_buffer);
+        }
+
     private:
         std::unique_ptr<Preferences> _prefs;
         DockFactory _dockFactory;
@@ -228,6 +297,7 @@ namespace
         const char* _backend = nullptr;
         bool _rendererInited = false;
         Uint64 _drawNs = 0;
+        bool _needsRedraw = false;
     };
 
 } // namespace
