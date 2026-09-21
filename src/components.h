@@ -11,6 +11,7 @@
 #include "sensors/cpu_sensor.h"
 #include "sensors/hostname_sensor.h"
 #include "sensors/sensors.h"
+#include "timer.h"
 #include "ui.h"
 #include "view.h"
 #include "views/catalogue.h"
@@ -49,4 +50,5 @@ extern std::unique_ptr<Ui> CreateUiWithFakeClock(
 extern std::unique_ptr<Ui> CreateUiWithFakeCpu(
     const Preferences& prefs, std::unique_ptr<CpuSensor> fakeSensor);
 extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
+extern std::unique_ptr<Timer> CreateTimer();
 extern std::unique_ptr<App> CreateApp(const CliArgs& args);
