@@ -70,6 +70,7 @@ namespace
         {"views",      "HostnameView,ClockView,CpuView"},
         {"fps",        "10"                            },
         {"redraw_fps", "30"                            },
+        {"cpu.update_interval", "1"},
     };
 
 } // namespace

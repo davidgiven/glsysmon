@@ -45,18 +45,18 @@ namespace
         std::optional<std::string> GetString(
             const std::string& key) const override
         {
-            return _table[key].value<std::string>();
+            return _table.at_path(key).value<std::string>();
         }
 
         std::optional<int> GetInteger(const std::string& key) const override
         {
-            return _table[key].value<int>();
+            return _table.at_path(key).value<int>();
         }
 
         std::optional<std::vector<std::string>> GetStringList(
             const std::string& key) const override
         {
-            const toml::array* array = _table[key].as_array();
+            const toml::array* array = _table.at_path(key).as_array();
             if (array == nullptr)
                 return std::nullopt;
             std::vector<std::string> result;
