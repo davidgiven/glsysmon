@@ -45,6 +45,16 @@ void Sensors::SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor)
     _hostnameSensor = std::move(sensor);
 }
 
+void Sensors::Tick()
+{
+    if (_clockSensor != nullptr)
+        _clockSensor->Tick();
+    if (_cpuSensor != nullptr)
+        _cpuSensor->Tick();
+    if (_hostnameSensor != nullptr)
+        _hostnameSensor->Tick();
+}
+
 void Sensors::Reset()
 {
     _clockSensor.reset();

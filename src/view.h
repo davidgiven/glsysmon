@@ -7,11 +7,7 @@ class View
 public:
     virtual ~View() = default;
 
-    // Polls sensors and caches data for the next Draw(). Called at the
-    // update rate.
-    virtual void Tick() = 0;
-
-    // Redraws the view into the active ImGui window using cached data.
-    // Called at the redraw rate.
+    // Redraws the view into the active ImGui window by fetching data from
+    // its sensor. Called at the redraw rate.
     virtual void Draw() = 0;
 };

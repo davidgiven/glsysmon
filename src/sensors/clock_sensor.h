@@ -2,9 +2,11 @@
 
 #include <ctime>
 
+#include "sensor.h"
+
 // Fetches the current local time. Implementations live in
 // src/sensors/clock_sensor_impl.cc.
-class ClockSensor
+class ClockSensor : public Sensor
 {
 public:
     virtual ~ClockSensor() = default;

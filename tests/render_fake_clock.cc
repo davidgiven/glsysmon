@@ -16,6 +16,8 @@ namespace
     class FakeClockSensor : public ClockSensor
     {
     public:
+        void Tick() override {}
+
         std::tm GetLocalTime() override
         {
             std::tm tm{};

@@ -24,6 +24,8 @@ public:
     void SetCpuSensor(std::unique_ptr<CpuSensor> sensor);
     void SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor);
 
+    void Tick();
+
     void Reset();
 
 private:

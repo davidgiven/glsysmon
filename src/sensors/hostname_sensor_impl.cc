@@ -14,18 +14,28 @@ namespace
     class HostnameSensorImpl : public HostnameSensor
     {
     public:
-        explicit HostnameSensorImpl(const Preferences& prefs): _prefs(prefs) {}
+        explicit HostnameSensorImpl(const Preferences& prefs): _prefs(prefs)
+        {
+            Tick();
+        }
 
-        std::string GetHostname() override
+        void Tick() override
         {
             std::array<char, 256> buffer{};
             if (gethostname(buffer.data(), buffer.size()) != 0)
-                return {};
-            return buffer.data();
+                _hostname.clear();
+            else
+                _hostname = buffer.data();
+        }
+
+        std::string GetHostname() override
+        {
+            return _hostname;
         }
 
     private:
         const Preferences& _prefs;
+        std::string _hostname;
     };
 
 } // namespace

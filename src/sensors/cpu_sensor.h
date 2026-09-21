@@ -5,6 +5,8 @@
 #include <span>
 #include <string>
 
+#include "sensor.h"
+
 // Sample for a single tick. Each field is in [0, 1] representing the
 // proportion of time spent in that usage type during the tick.
 struct CpuSample
@@ -16,7 +18,7 @@ struct CpuSample
 
 // Fetches CPU usage history for each CPU. Implementations live in
 // src/sensors/cpu_sensor_impl.cc.
-class CpuSensor
+class CpuSensor : public Sensor
 {
 public:
     virtual ~CpuSensor() = default;

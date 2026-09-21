@@ -21,7 +21,6 @@ namespace
             _prefs(prefs),
             _sensors(&sensors)
         {
-            Tick();
         }
 
         explicit HostnameViewImpl(
@@ -29,26 +28,19 @@ namespace
             _prefs(prefs),
             _sensor(std::move(sensor))
         {
-            Tick();
-        }
-
-        void Tick() override
-        {
-            HostnameSensor& sensor =
-                _sensor ? *_sensor : _sensors->GetHostnameSensor();
-            _hostname = sensor.GetHostname();
         }
 
         void Draw() override
         {
-            ImGui::Text("%s", _hostname.c_str());
+            HostnameSensor& sensor =
+                _sensor ? *_sensor : _sensors->GetHostnameSensor();
+            ImGui::Text("%s", sensor.GetHostname().c_str());
         }
 
     private:
         const Preferences& _prefs;
         std::unique_ptr<HostnameSensor> _sensor;
         Sensors* _sensors = nullptr;
-        std::string _hostname;
     };
 
 } // namespace

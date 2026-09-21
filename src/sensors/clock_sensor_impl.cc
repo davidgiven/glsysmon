@@ -12,20 +12,30 @@ namespace
     class ClockSensorImpl : public ClockSensor
     {
     public:
-        explicit ClockSensorImpl(const Preferences& prefs): _prefs(prefs) {}
+        explicit ClockSensorImpl(const Preferences& prefs): _prefs(prefs)
+        {
+            Tick();
+        }
 
-        std::tm GetLocalTime() override
+        void Tick() override
         {
             const auto now = std::chrono::system_clock::now();
             const std::time_t time = std::chrono::system_clock::to_time_t(now);
             std::tm local{};
             if (localtime_r(&time, &local) == nullptr)
-                return {};
-            return local;
+                _tm = {};
+            else
+                _tm = local;
+        }
+
+        std::tm GetLocalTime() override
+        {
+            return _tm;
         }
 
     private:
         const Preferences& _prefs;
+        std::tm _tm{};
     };
 
 } // namespace

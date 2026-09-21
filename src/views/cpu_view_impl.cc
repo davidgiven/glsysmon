@@ -23,7 +23,6 @@ namespace
             _prefs(prefs),
             _sensors(&sensors)
         {
-            Tick();
         }
 
         explicit CpuViewImpl(
@@ -31,35 +30,21 @@ namespace
             _prefs(prefs),
             _sensor(std::move(sensor))
         {
-            Tick();
-        }
-
-        void Tick() override
-        {
-            CpuSensor& sensor = _sensor ? *_sensor : _sensors->GetCpuSensor();
-            sensor.Tick();
-            _cpuCount = sensor.GetCpuCount();
-            _sampleCount = sensor.GetSampleCount();
-            if (_cpuCount == 0 || _sampleCount == 0)
-            {
-                _samples.clear();
-                return;
-            }
-            _samples.resize(_cpuCount);
-            for (std::size_t cpu = 0; cpu < _cpuCount; ++cpu)
-                _samples[cpu] = sensor.GetSamples(cpu);
         }
 
         void Draw() override
         {
-            if (_cpuCount == 0 || _sampleCount == 0)
+            CpuSensor& sensor = _sensor ? *_sensor : _sensors->GetCpuSensor();
+            const std::size_t cpuCount = sensor.GetCpuCount();
+            const std::size_t sampleCount = sensor.GetSampleCount();
+            if (cpuCount == 0 || sampleCount == 0)
                 return;
-            for (std::size_t cpu = 0; cpu < _cpuCount; ++cpu)
+            for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
             {
-                const CpuSample* samples = _samples[cpu];
+                const CpuSample* samples = sensor.GetSamples(cpu);
                 if (samples == nullptr)
                     continue;
-                const int n = static_cast<int>(_sampleCount);
+                const int n = static_cast<int>(sampleCount);
                 std::vector<float> values;
                 values.resize(static_cast<std::size_t>(3) * n);
                 for (int i = 0; i < n; ++i)
@@ -111,9 +96,6 @@ namespace
         const Preferences& _prefs;
         std::unique_ptr<CpuSensor> _sensor;
         Sensors* _sensors = nullptr;
-        std::size_t _cpuCount = 0;
-        std::size_t _sampleCount = 0;
-        std::vector<const CpuSample*> _samples;
     };
 
 } // namespace

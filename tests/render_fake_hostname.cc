@@ -16,6 +16,8 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
+        void Tick() override {}
+
         std::string GetHostname() override
         {
             return "fake-hostname";

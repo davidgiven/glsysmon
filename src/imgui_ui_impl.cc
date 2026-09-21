@@ -44,8 +44,7 @@ namespace
 
         void Tick() override
         {
-            for (auto& view : _views)
-                view->Tick();
+            _sensors.Tick();
         }
 
         void Draw(SDL_Window* window, const char* backend) override
