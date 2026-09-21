@@ -1,8 +1,10 @@
 #include "preferences.h"
 
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "components.h"
 
@@ -12,57 +14,59 @@ namespace
     class CombinedPreferencesImpl : public Preferences
     {
     public:
-        CombinedPreferencesImpl(std::unique_ptr<Preferences> cli,
-            std::unique_ptr<Preferences> toml,
-            std::unique_ptr<Preferences> defaults):
-            _cli(std::move(cli)),
-            _toml(std::move(toml)),
-            _defaults(std::move(defaults))
+        explicit CombinedPreferencesImpl(
+            std::initializer_list<std::unique_ptr<Preferences>> sources)
         {
+            for (auto& source : sources)
+            {
+                _sources.push_back(std::move(
+                    const_cast<std::unique_ptr<Preferences>&>(source)));
+            }
         }
 
         std::optional<std::string> GetString(
             const std::string& key) const override
         {
-            if (auto value = _cli->GetString(key))
-                return value;
-            if (auto value = _toml->GetString(key))
-                return value;
-            return _defaults->GetString(key);
+            for (const auto& source : _sources)
+            {
+                if (auto value = source->GetString(key))
+                    return value;
+            }
+            return std::nullopt;
         }
 
         std::optional<int> GetInteger(const std::string& key) const override
         {
-            if (auto value = _cli->GetInteger(key))
-                return value;
-            if (auto value = _toml->GetInteger(key))
-                return value;
-            return _defaults->GetInteger(key);
+            for (const auto& source : _sources)
+            {
+                if (auto value = source->GetInteger(key))
+                    return value;
+            }
+            return std::nullopt;
         }
 
         std::optional<std::vector<std::string>> GetStringList(
             const std::string& key) const override
         {
-            if (auto value = _cli->GetStringList(key))
-                return value;
-            if (auto value = _toml->GetStringList(key))
-                return value;
-            return _defaults->GetStringList(key);
+            for (const auto& source : _sources)
+            {
+                if (auto value = source->GetStringList(key))
+                    return value;
+            }
+            return std::nullopt;
         }
 
     private:
-        std::unique_ptr<Preferences> _cli;
-        std::unique_ptr<Preferences> _toml;
-        std::unique_ptr<Preferences> _defaults;
+        std::vector<std::unique_ptr<Preferences>> _sources;
     };
 
 } // namespace
 
 std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args)
 {
-    auto cli = CreateCliPreferences(args);
-    auto toml = CreateTomlPreferences();
-    auto defaults = CreateDefaultPreferences();
     return std::make_unique<CombinedPreferencesImpl>(
-        std::move(cli), std::move(toml), std::move(defaults));
+        std::initializer_list<std::unique_ptr<Preferences>>{
+            CreateCliPreferences(args),
+            CreateTomlPreferences(),
+            CreateDefaultPreferences()});
 }
