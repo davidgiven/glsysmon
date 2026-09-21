@@ -59,6 +59,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/display/wayland_dock_impl.o \
@@ -112,6 +113,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \

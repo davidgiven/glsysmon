@@ -10,6 +10,7 @@
 #include "sensors/clock_sensor.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/hostname_sensor.h"
+#include "sensors/temperature_sensor.h"
 #include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
@@ -31,6 +32,10 @@ extern std::unique_ptr<CpuSensor> CreateCpuSensor(
 extern std::unique_ptr<CpuSensor> CreateCpuSensor(
     const Preferences& prefs, Timer& timer);
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+    const Preferences& prefs, Timer& timer);
+extern std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
+    const Preferences& prefs, Timer& timer, const std::string& hwmonRoot);
+extern std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
     const Preferences& prefs, Timer& timer);
 extern std::unique_ptr<View> CreateClockView(
     const Preferences& prefs, Sensors& sensors);

@@ -34,6 +34,13 @@ HostnameSensor& Sensors::GetHostnameSensor()
     return *_hostnameSensor;
 }
 
+TemperatureSensor& Sensors::GetTemperatureSensor()
+{
+    if (_temperatureSensor == nullptr)
+        _temperatureSensor = CreateTemperatureSensor(_prefs, _timer);
+    return *_temperatureSensor;
+}
+
 void Sensors::SetClockSensor(std::unique_ptr<ClockSensor> sensor)
 {
     _clockSensor = std::move(sensor);
@@ -49,9 +56,15 @@ void Sensors::SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor)
     _hostnameSensor = std::move(sensor);
 }
 
+void Sensors::SetTemperatureSensor(std::unique_ptr<TemperatureSensor> sensor)
+{
+    _temperatureSensor = std::move(sensor);
+}
+
 void Sensors::Reset()
 {
     _clockSensor.reset();
     _cpuSensor.reset();
     _hostnameSensor.reset();
+    _temperatureSensor.reset();
 }
