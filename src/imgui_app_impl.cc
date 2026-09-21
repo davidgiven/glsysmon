@@ -269,7 +269,7 @@ namespace
         void Redraw()
         {
             _frameRenderer->BeginFrame();
-            _ui->Draw(_window->get(), _backend);
+            _ui->Draw();
 
             SDL_GPUCommandBuffer* command_buffer =
                 SDL_AcquireGPUCommandBuffer(_device->get());

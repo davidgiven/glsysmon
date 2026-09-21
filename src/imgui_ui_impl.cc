@@ -47,13 +47,14 @@ namespace
             }
         }
 
-        void Draw(SDL_Window* window, const char* backend) override
+        void Draw() override
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(viewport->Pos);
             ImGui::SetNextWindowSize(viewport->Size);
             ImGui::PushStyleVar(
                 ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 0.75f);
             ImGui::Begin("glsysmon",
                 nullptr,
                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
@@ -63,19 +64,9 @@ namespace
 
             for (auto& view : _views)
                 view->Draw();
-            ImGui::Separator();
-            int width, height;
-            SDL_GetWindowSize(window, &width, &height);
-            const float scale =
-                SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window));
-            ImGui::Text("backend: %s", backend);
-            ImGui::Text("window: %d x %d", width, height);
-            ImGui::Text("display scale: %.2f", scale);
-            ImGui::Text("%.1f FPS (%.3f ms/frame)",
-                ImGui::GetIO().Framerate,
-                1000.0f / ImGui::GetIO().Framerate);
 
             ImGui::End();
+            ImGui::PopFont();
             ImGui::PopStyleVar();
         }
 

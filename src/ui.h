@@ -8,5 +8,5 @@ class Ui
 public:
     virtual ~Ui() = default;
 
-    virtual void Draw(SDL_Window* window, const char* backend) = 0;
+    virtual void Draw() = 0;
 };

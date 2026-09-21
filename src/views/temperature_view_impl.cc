@@ -85,7 +85,14 @@ namespace
                 }
                 ImPlot::PopStyleVar();
                 ImGui::PopStyleVar();
-                ImGui::Text("%s", channelName.c_str());
+                {
+                    const float avail = ImGui::GetContentRegionAvail().x;
+                    const float textWidth =
+                        ImGui::CalcTextSize(channelName.c_str()).x;
+                    ImGui::SetCursorPosX(
+                        ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+                    ImGui::Text("%s", channelName.c_str());
+                }
             }
         }
 

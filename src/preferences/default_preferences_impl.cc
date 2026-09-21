@@ -33,11 +33,11 @@ namespace
         {"monitor",                     "0"                                             },
         {"views",                       "HostnameView,ClockView,CpuView,TemperatureView"},
         {"fps",                         "30"                                            },
-        {"cpu.update_interval",         "5"                                             },
+        {"cpu.update_interval",         "2"                                             },
         {"temperature.update_interval", "1"                                             },
-        {"temperature.minimum",         "0"                                             },
-        {"temperature.maximum",         "100"                                           },
-        {"temperature.sensors",         "CPU"},
+        {"temperature.minimum",         "20"                                            },
+        {"temperature.maximum",         "80"                                            },
+        {"temperature.sensors",         "CPU"                                           },
     };
 
 } // namespace

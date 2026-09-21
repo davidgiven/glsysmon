@@ -40,8 +40,20 @@ namespace
             char time[64];
             std::strftime(date, sizeof(date), "%Y-%m-%d", &tm);
             std::strftime(time, sizeof(time), "%H:%M:%S", &tm);
-            ImGui::Text("%s", date);
-            ImGui::Text("%s", time);
+            {
+                const float avail = ImGui::GetContentRegionAvail().x;
+                const float textWidth = ImGui::CalcTextSize(date).x;
+                ImGui::SetCursorPosX(
+                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+                ImGui::Text("%s", date);
+            }
+            {
+                const float avail = ImGui::GetContentRegionAvail().x;
+                const float textWidth = ImGui::CalcTextSize(time).x;
+                ImGui::SetCursorPosX(
+                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+                ImGui::Text("%s", time);
+            }
         }
 
     private:

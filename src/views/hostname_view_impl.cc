@@ -34,7 +34,12 @@ namespace
         {
             HostnameSensor& sensor =
                 _sensor ? *_sensor : _sensors->GetHostnameSensor();
-            ImGui::Text("%s", sensor.GetHostname().c_str());
+            const std::string hostname = sensor.GetHostname();
+            const float avail = ImGui::GetContentRegionAvail().x;
+            const float textWidth = ImGui::CalcTextSize(hostname.c_str()).x;
+            ImGui::SetCursorPosX(
+                ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+            ImGui::Text("%s", hostname.c_str());
         }
 
     private:
