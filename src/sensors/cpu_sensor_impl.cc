@@ -1,6 +1,7 @@
 #include "cpu_sensor.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstdint>
 #include <fstream>
@@ -10,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "graph_mixin.h"
 #include "preferences/preferences.h"
 #include "timer.h"
 
@@ -30,7 +32,7 @@ namespace
         std::uint64_t guest_nice = 0;
     };
 
-    class CpuSensorImpl : public CpuSensor
+    class CpuSensorImpl : public CpuSensor, public GraphMixin<CpuSample>
     {
     public:
         explicit CpuSensorImpl(const Preferences& prefs,
@@ -42,11 +44,11 @@ namespace
             int size = GlobalPreferencesFetcher::GetSize(prefs);
             if (size <= 0)
                 size = 1;
-            _sampleCount = static_cast<std::size_t>(size);
-            int fps = GlobalPreferencesFetcher::GetFps(prefs);
-            if (fps <= 0)
-                fps = 10;
-            _delta = 1'000'000'000ULL / static_cast<uint64_t>(fps);
+            std::size_t sampleCount = static_cast<std::size_t>(size);
+            int interval = prefs.GetInteger("cpu.update_interval").value_or(5);
+            if (interval <= 0)
+                interval = 5;
+            _delta = 1'000'000'000ULL / static_cast<uint64_t>(interval);
 
             std::ifstream file(_procStatPath);
             std::string line;
@@ -59,31 +61,31 @@ namespace
                     std::isdigit(static_cast<unsigned char>(line[3])))
                     count++;
             }
-            _cpuCount = count;
-            _samples.assign(_cpuCount,
-                std::vector<CpuSample>(
-                    _sampleCount, CpuSample{0.0f, 0.0f, 0.0f}));
-            _prev.resize(_cpuCount);
+            InitGraph(count, sampleCount, CpuSample{});
+            _prev.resize(count);
             Tick(_timer.Now());
         }
 
         std::size_t GetCpuCount() override
         {
-            return _cpuCount;
+            return GetChannels();
         }
 
         std::size_t GetSampleCount() override
         {
-            if (_samples.empty())
-                return 0;
-            return _samples[0].size();
+            return GraphMixin<CpuSample>::GetSampleCount();
         }
 
         const CpuSample* GetSamples(std::size_t cpu) override
         {
-            if (cpu >= _samples.size())
+            if (cpu >= GetChannels())
                 return nullptr;
-            return _samples[cpu].data();
+            return GraphMixin<CpuSample>::GetSamples(cpu);
+        }
+
+        std::string GetChannelName(std::size_t channel) const override
+        {
+            return "CPU" + std::to_string(channel);
         }
 
     private:
@@ -98,7 +100,8 @@ namespace
             {
                 std::string line;
                 std::size_t index = 0;
-                std::vector<RawTimes> cur(_cpuCount);
+                std::size_t channels = GetChannels();
+                std::vector<RawTimes> cur(channels);
 
                 while (std::getline(file, line))
                 {
@@ -107,7 +110,7 @@ namespace
                     if (line.size() <= 3 ||
                         !std::isdigit(static_cast<unsigned char>(line[3])))
                         continue;
-                    if (index >= _cpuCount)
+                    if (index >= channels)
                         break;
 
                     std::istringstream iss(line);
@@ -120,7 +123,7 @@ namespace
                     index++;
                 }
 
-                if (index != _cpuCount)
+                if (index != channels)
                 {
                     PushZeros();
                 }
@@ -132,7 +135,7 @@ namespace
                 }
                 else
                 {
-                    for (std::size_t i = 0; i < _cpuCount; ++i)
+                    for (std::size_t i = 0; i < channels; ++i)
                     {
                         const RawTimes& prev = _prev[i];
                         const RawTimes& now = cur[i];
@@ -168,14 +171,7 @@ namespace
                         }
 
                         CpuSample s{user, system, nice};
-                        auto& vec = _samples[i];
-                        if (!vec.empty())
-                        {
-                            if (vec.size() > 1)
-                                std::copy(
-                                    vec.begin() + 1, vec.end(), vec.begin());
-                            vec.back() = s;
-                        }
+                        AddSample(i, s);
                     }
 
                     _prev = cur;
@@ -188,21 +184,12 @@ namespace
         void PushZeros()
         {
             CpuSample zero{0.0f, 0.0f, 0.0f};
-            for (auto& vec : _samples)
-            {
-                if (vec.empty())
-                    continue;
-                if (vec.size() > 1)
-                    std::copy(vec.begin() + 1, vec.end(), vec.begin());
-                vec.back() = zero;
-            }
+            for (std::size_t i = 0; i < GetChannels(); ++i)
+                AddSample(i, zero);
         }
 
         Timer& _timer;
         std::string _procStatPath;
-        std::size_t _sampleCount = 0;
-        std::size_t _cpuCount = 0;
-        std::vector<std::vector<CpuSample>> _samples;
         std::vector<RawTimes> _prev;
         bool _first = true;
         uint64_t _delta = 0;

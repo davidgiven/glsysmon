@@ -64,11 +64,4 @@ public:
             return *value;
         return CreateDefaultPreferences()->GetInteger("fps").value();
     }
-
-    static int GetRedrawFps(const Preferences& prefs)
-    {
-        if (auto value = prefs.GetInteger("redraw_fps"))
-            return *value;
-        return CreateDefaultPreferences()->GetInteger("redraw_fps").value();
-    }
 };

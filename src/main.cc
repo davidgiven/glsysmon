@@ -13,7 +13,7 @@ namespace
         std::fprintf(stderr,
             "Usage: %s [--side=left|right] [--size=px] "
             "[--monitor=N] [--views=View1,View2] [--fps=N] "
-            "[--redraw-fps=N] [--help]\n",
+            "[--help]\n",
             prog);
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
         }
         if (arg.rfind("--side=", 0) != 0 && arg.rfind("--size=", 0) != 0 &&
             arg.rfind("--monitor=", 0) != 0 && arg.rfind("--views=", 0) != 0 &&
-            arg.rfind("--fps=", 0) != 0 && arg.rfind("--redraw-fps=", 0) != 0)
+            arg.rfind("--fps=", 0) != 0)
         {
             std::fprintf(stderr, "unknown argument: %s\n", arg.c_str());
             PrintUsage(argv[0]);

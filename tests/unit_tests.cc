@@ -88,13 +88,13 @@ TEST_CASE("CreateImGuiFrameRenderer creates a frame renderer")
     CHECK(renderer != nullptr);
 }
 
-TEST_CASE("CLI preferences default to left / 240 / monitor 0")
+TEST_CASE("CLI preferences default to left / 100 / monitor 0")
 {
     CliArgs args;
     auto prefs = CreateCliPreferences(args);
 
     CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "left");
-    CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
+    CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 100);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 0);
     CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
           std::vector<std::string>{"HostnameView", "ClockView", "CpuView"});
@@ -128,7 +128,7 @@ TEST_CASE("CLI preference values that are not integers fall back to defaults")
     auto prefs = CreateCliPreferences(args);
 
     CHECK(prefs->GetInteger("size") == std::nullopt);
-    CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 240);
+    CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 100);
 }
 
 TEST_CASE("CpuSensorImpl reads dummy proc file")
@@ -145,9 +145,9 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
 
     auto timer = CreateTimer();
     auto sensor = CreateCpuSensor(*prefs, *timer, path);
-    uint64_t delta =
-        1'000'000'000ULL /
-        static_cast<uint64_t>(GlobalPreferencesFetcher::GetFps(*prefs));
+    const int cpuInterval =
+        prefs->GetInteger("cpu.update_interval").value_or(5);
+    uint64_t delta = 1'000'000'000ULL / static_cast<uint64_t>(cpuInterval);
     if (delta == 0)
         delta = 100'000'000ULL;
     REQUIRE(sensor != nullptr);
@@ -237,9 +237,9 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     auto sensor = CreateCpuSensor(*prefs, *timer, missing);
     CHECK(sensor->GetCpuCount() == 0);
     CHECK(sensor->GetSampleCount() == 0);
-    uint64_t delta =
-        1'000'000'000ULL /
-        static_cast<uint64_t>(GlobalPreferencesFetcher::GetFps(*prefs));
+    const int cpuInterval =
+        prefs->GetInteger("cpu.update_interval").value_or(5);
+    uint64_t delta = 1'000'000'000ULL / static_cast<uint64_t>(cpuInterval);
     if (delta == 0)
         delta = 100'000'000ULL;
     timer->Tick(timer->Now() + delta);

@@ -64,13 +64,12 @@ namespace
     };
 
     const std::map<std::string, std::string> DefaultPreferencesImpl::_values{
-        {"side",       "left"                          },
-        {"size",       "240"                           },
-        {"monitor",    "0"                             },
-        {"views",      "HostnameView,ClockView,CpuView"},
-        {"fps",        "10"                            },
-        {"redraw_fps", "30"                            },
-        {"cpu.update_interval", "1"},
+        {"side",                "left"                          },
+        {"size",                "100"                           },
+        {"monitor",             "0"                             },
+        {"views",               "HostnameView,ClockView,CpuView"},
+        {"fps",                 "30"                            },
+        {"cpu.update_interval", "5"                             },
     };
 
 } // namespace

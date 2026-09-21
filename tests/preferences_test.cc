@@ -59,11 +59,20 @@ namespace
 
 } // namespace
 
-TEST_CASE("Default preferences provide cpu.update_interval = 1")
+TEST_CASE("Default preferences provide cpu.update_interval = 5")
 {
     auto prefs = CreateDefaultPreferences();
     REQUIRE(prefs->GetInteger("cpu.update_interval").has_value());
-    CHECK(prefs->GetInteger("cpu.update_interval").value() == 1);
+    CHECK(prefs->GetInteger("cpu.update_interval").value() == 5);
+}
+
+TEST_CASE("Default preferences provide single fps for redraw = 30")
+{
+    auto prefs = CreateDefaultPreferences();
+    REQUIRE(prefs->GetInteger("fps").has_value());
+    CHECK(prefs->GetInteger("fps").value() == 30);
+    CHECK_FALSE(prefs->GetInteger("redraw_fps").has_value());
+    CHECK(GlobalPreferencesFetcher::GetFps(*prefs) == 30);
 }
 
 TEST_CASE(
@@ -152,7 +161,44 @@ TEST_CASE("CombinedPreferences falls back to default when TOML missing")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     REQUIRE(prefs->GetInteger("cpu.update_interval").has_value());
-    CHECK(prefs->GetInteger("cpu.update_interval").value() == 1);
+    CHECK(prefs->GetInteger("cpu.update_interval").value() == 5);
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("TomlPreferences reads fps as single redraw fps")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "fps = 60\n");
+
+    auto prefs = CreateTomlPreferences();
+    REQUIRE(prefs->GetInteger("fps").has_value());
+    CHECK(prefs->GetInteger("fps").value() == 60);
+    CHECK_FALSE(prefs->GetInteger("redraw_fps").has_value());
+
+    CliArgs args;
+    auto combined = CreatePreferences(args);
+    CHECK(combined->GetInteger("fps").value() == 60);
+    CHECK(GlobalPreferencesFetcher::GetFps(*combined) == 60);
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("CombinedPreferences falls back to default fps when TOML missing")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    std::filesystem::create_directories(
+        std::filesystem::path(tmp) / "glsysmon");
+
+    CliArgs args;
+    auto prefs = CreatePreferences(args);
+    REQUIRE(prefs->GetInteger("fps").has_value());
+    CHECK(prefs->GetInteger("fps").value() == 30);
+    CHECK(GlobalPreferencesFetcher::GetFps(*prefs) == 30);
 
     std::filesystem::remove_all(tmp);
 }
