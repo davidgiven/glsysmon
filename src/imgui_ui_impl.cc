@@ -10,6 +10,7 @@
 #include "components.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
+#include "timer.h"
 #include "views/catalogue.h"
 
 namespace
@@ -19,11 +20,12 @@ namespace
     {
     public:
         explicit ImGuiUiImpl(const Preferences& prefs,
+            Timer* timer,
             std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr):
             _prefs(prefs),
-            _sensors(prefs)
+            _sensors(prefs, timer)
         {
             if (fakeHostnameSensor != nullptr)
                 _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
@@ -87,28 +89,28 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Ui> CreateUi(const Preferences& prefs)
+std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer* timer)
 {
-    return std::make_unique<ImGuiUiImpl>(prefs);
+    return std::make_unique<ImGuiUiImpl>(prefs, timer);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeHostname(
     const Preferences& prefs, std::unique_ptr<HostnameSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, std::move(fakeSensor), nullptr, nullptr);
+        prefs, nullptr, std::move(fakeSensor), nullptr, nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeClock(
     const Preferences& prefs, std::unique_ptr<ClockSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, nullptr, std::move(fakeSensor), nullptr);
+        prefs, nullptr, nullptr, std::move(fakeSensor), nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeCpu(
     const Preferences& prefs, std::unique_ptr<CpuSensor> fakeSensor)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, nullptr, nullptr, std::move(fakeSensor));
+        prefs, nullptr, nullptr, nullptr, std::move(fakeSensor));
 }

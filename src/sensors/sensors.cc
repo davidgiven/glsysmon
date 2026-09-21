@@ -7,26 +7,30 @@
 #include "components.h"
 #include "preferences/preferences.h"
 
-Sensors::Sensors(const Preferences& prefs): _prefs(prefs) {}
+Sensors::Sensors(const Preferences& prefs, Timer* timer):
+    _prefs(prefs),
+    _timer(timer)
+{
+}
 
 ClockSensor& Sensors::GetClockSensor()
 {
     if (_clockSensor == nullptr)
-        _clockSensor = CreateClockSensor(_prefs);
+        _clockSensor = CreateClockSensor(_prefs, _timer);
     return *_clockSensor;
 }
 
 CpuSensor& Sensors::GetCpuSensor()
 {
     if (_cpuSensor == nullptr)
-        _cpuSensor = CreateCpuSensor(_prefs);
+        _cpuSensor = CreateCpuSensor(_prefs, _timer);
     return *_cpuSensor;
 }
 
 HostnameSensor& Sensors::GetHostnameSensor()
 {
     if (_hostnameSensor == nullptr)
-        _hostnameSensor = CreateHostnameSensor(_prefs);
+        _hostnameSensor = CreateHostnameSensor(_prefs, _timer);
     return *_hostnameSensor;
 }
 

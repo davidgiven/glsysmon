@@ -7,11 +7,12 @@
 #include "hostname_sensor.h"
 
 class Preferences;
+class Timer;
 
 class Sensors
 {
 public:
-    explicit Sensors(const Preferences& prefs);
+    explicit Sensors(const Preferences& prefs, Timer* timer = nullptr);
 
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
@@ -30,6 +31,7 @@ public:
 
 private:
     const Preferences& _prefs;
+    Timer* _timer;
     std::unique_ptr<ClockSensor> _clockSensor;
     std::unique_ptr<CpuSensor> _cpuSensor;
     std::unique_ptr<HostnameSensor> _hostnameSensor;

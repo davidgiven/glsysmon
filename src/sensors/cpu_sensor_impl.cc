@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "preferences/preferences.h"
+#include "timer.h"
 
 namespace
 {
@@ -31,8 +32,10 @@ namespace
     class CpuSensorImpl : public CpuSensor
     {
     public:
-        explicit CpuSensorImpl(
-            const Preferences& prefs, const std::string& procStatPath):
+        explicit CpuSensorImpl(const Preferences& prefs,
+            Timer* timer,
+            const std::string& procStatPath):
+            _timer(timer),
             _procStatPath(procStatPath)
         {
             int size = GlobalPreferencesFetcher::GetSize(prefs);
@@ -182,6 +185,7 @@ namespace
                 vec.back() = zero;
             }
         }
+        Timer* _timer;
         std::string _procStatPath;
         std::size_t _sampleCount = 0;
         std::size_t _cpuCount = 0;
@@ -193,12 +197,24 @@ namespace
 } // namespace
 
 std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const Preferences& prefs, Timer* timer, const std::string& procStatPath)
+{
+    return std::make_unique<CpuSensorImpl>(prefs, timer, procStatPath);
+}
+
+std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const Preferences& prefs, Timer* timer)
+{
+    return CreateCpuSensor(prefs, timer, "/proc/stat");
+}
+
+std::unique_ptr<CpuSensor> CreateCpuSensor(
     const Preferences& prefs, const std::string& procStatPath)
 {
-    return std::make_unique<CpuSensorImpl>(prefs, procStatPath);
+    return CreateCpuSensor(prefs, nullptr, procStatPath);
 }
 
 std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs)
 {
-    return CreateCpuSensor(prefs, "/proc/stat");
+    return CreateCpuSensor(prefs, nullptr, "/proc/stat");
 }

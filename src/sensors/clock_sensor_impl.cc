@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "preferences/preferences.h"
+#include "timer.h"
 
 namespace
 {
@@ -12,7 +13,9 @@ namespace
     class ClockSensorImpl : public ClockSensor
     {
     public:
-        explicit ClockSensorImpl(const Preferences& prefs): _prefs(prefs)
+        explicit ClockSensorImpl(const Preferences& prefs, Timer* timer):
+            _prefs(prefs),
+            _timer(timer)
         {
             Tick();
         }
@@ -35,12 +38,19 @@ namespace
 
     private:
         const Preferences& _prefs;
+        Timer* _timer;
         std::tm _tm{};
     };
 
 } // namespace
 
+std::unique_ptr<ClockSensor> CreateClockSensor(
+    const Preferences& prefs, Timer* timer)
+{
+    return std::make_unique<ClockSensorImpl>(prefs, timer);
+}
+
 std::unique_ptr<ClockSensor> CreateClockSensor(const Preferences& prefs)
 {
-    return std::make_unique<ClockSensorImpl>(prefs);
+    return CreateClockSensor(prefs, nullptr);
 }

@@ -23,12 +23,16 @@ extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 extern std::unique_ptr<Dock> CreateDock(const Preferences& prefs);
 extern DockFactory CreateDockFactory(const Preferences& prefs);
 
-extern std::unique_ptr<ClockSensor> CreateClockSensor(const Preferences& prefs);
+extern std::unique_ptr<ClockSensor> CreateClockSensor(
+    const Preferences& prefs, Timer* timer = nullptr);
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const Preferences& prefs, Timer* timer, const std::string& procStatPath);
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(
+    const Preferences& prefs, Timer* timer = nullptr);
 extern std::unique_ptr<CpuSensor> CreateCpuSensor(
     const Preferences& prefs, const std::string& procStatPath);
-extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs);
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Preferences& prefs);
+    const Preferences& prefs, Timer* timer = nullptr);
 extern std::unique_ptr<View> CreateClockView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateClockView(
@@ -42,7 +46,8 @@ extern std::unique_ptr<View> CreateHostnameView(
 extern std::unique_ptr<View> CreateHostnameView(
     const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor);
 
-extern std::unique_ptr<Ui> CreateUi(const Preferences& prefs);
+extern std::unique_ptr<Ui> CreateUi(
+    const Preferences& prefs, Timer* timer = nullptr);
 extern std::unique_ptr<Ui> CreateUiWithFakeHostname(
     const Preferences& prefs, std::unique_ptr<HostnameSensor> fakeSensor);
 extern std::unique_ptr<Ui> CreateUiWithFakeClock(

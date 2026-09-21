@@ -7,6 +7,7 @@
 #include <string>
 
 #include "preferences/preferences.h"
+#include "timer.h"
 
 namespace
 {
@@ -14,7 +15,9 @@ namespace
     class HostnameSensorImpl : public HostnameSensor
     {
     public:
-        explicit HostnameSensorImpl(const Preferences& prefs): _prefs(prefs)
+        explicit HostnameSensorImpl(const Preferences& prefs, Timer* timer):
+            _prefs(prefs),
+            _timer(timer)
         {
             Tick();
         }
@@ -35,12 +38,19 @@ namespace
 
     private:
         const Preferences& _prefs;
+        Timer* _timer;
         std::string _hostname;
     };
 
 } // namespace
 
+std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+    const Preferences& prefs, Timer* timer)
+{
+    return std::make_unique<HostnameSensorImpl>(prefs, timer);
+}
+
 std::unique_ptr<HostnameSensor> CreateHostnameSensor(const Preferences& prefs)
 {
-    return std::make_unique<HostnameSensorImpl>(prefs);
+    return CreateHostnameSensor(prefs, nullptr);
 }

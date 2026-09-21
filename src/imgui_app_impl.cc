@@ -10,6 +10,7 @@
 #include "components.h"
 #include "display/imgui_frame_renderer.h"
 #include "preferences/preferences.h"
+#include "timer.h"
 
 namespace
 {
@@ -119,11 +120,13 @@ namespace
         ImGuiAppImpl(DockFactory dockFactory,
             std::unique_ptr<Ui> ui,
             std::unique_ptr<ImGuiFrameRenderer> frameRenderer,
-            std::unique_ptr<Preferences> prefs):
+            std::unique_ptr<Preferences> prefs,
+            std::unique_ptr<Timer> timer):
             _prefs(std::move(prefs)),
             _dockFactory(std::move(dockFactory)),
             _ui(std::move(ui)),
-            _frameRenderer(std::move(frameRenderer))
+            _frameRenderer(std::move(frameRenderer)),
+            _timer(std::move(timer))
         {
         }
 
@@ -181,6 +184,8 @@ namespace
             _dock->PollWindow(_window->get());
 
             const Uint64 now = SDL_GetTicksNS();
+            if (_timer != nullptr)
+                _timer->Tick(now);
             if (_lastUpdateNs == 0)
                 _lastUpdateNs = now;
             while (now - _lastUpdateNs >= _updateNs)
@@ -227,6 +232,7 @@ namespace
         DockFactory _dockFactory;
         std::unique_ptr<Ui> _ui;
         std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
+        std::unique_ptr<Timer> _timer;
         std::unique_ptr<Dock> _dock;
         std::unique_ptr<SdlSession> _sdl;
         std::unique_ptr<DockWindow> _window;
@@ -244,10 +250,12 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
 {
     auto prefs = CreatePreferences(args);
     auto dockFactory = CreateDockFactory(*prefs);
-    auto ui = CreateUi(*prefs);
+    auto timer = CreateTimer();
+    auto ui = CreateUi(*prefs, timer.get());
     auto renderer = CreateImGuiFrameRenderer();
     return std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
         std::move(ui),
         std::move(renderer),
-        std::move(prefs));
+        std::move(prefs),
+        std::move(timer));
 }
