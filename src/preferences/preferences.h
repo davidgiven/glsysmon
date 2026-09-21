@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -23,38 +24,51 @@ public:
         const std::string& key) const = 0;
 };
 
+extern std::unique_ptr<Preferences> CreateDefaultPreferences();
+
 // Typed accessors for the known preference keys.
 class GlobalPreferencesFetcher
 {
 public:
     static std::string GetSide(const Preferences& prefs)
     {
-        return prefs.GetString("side").value_or("left");
+        if (auto value = prefs.GetString("side"))
+            return *value;
+        return CreateDefaultPreferences()->GetString("side").value();
     }
 
     static int GetSize(const Preferences& prefs)
     {
-        return prefs.GetInteger("size").value_or(240);
+        if (auto value = prefs.GetInteger("size"))
+            return *value;
+        return CreateDefaultPreferences()->GetInteger("size").value();
     }
 
     static int GetMonitor(const Preferences& prefs)
     {
-        return prefs.GetInteger("monitor").value_or(0);
+        if (auto value = prefs.GetInteger("monitor"))
+            return *value;
+        return CreateDefaultPreferences()->GetInteger("monitor").value();
     }
 
     static std::vector<std::string> GetViews(const Preferences& prefs)
     {
-        return prefs.GetStringList("views").value_or(
-            std::vector<std::string>{"HostnameView", "ClockView", "CpuView"});
+        if (auto value = prefs.GetStringList("views"))
+            return *value;
+        return CreateDefaultPreferences()->GetStringList("views").value();
     }
 
     static int GetFps(const Preferences& prefs)
     {
-        return prefs.GetInteger("fps").value_or(10);
+        if (auto value = prefs.GetInteger("fps"))
+            return *value;
+        return CreateDefaultPreferences()->GetInteger("fps").value();
     }
 
     static int GetRedrawFps(const Preferences& prefs)
     {
-        return prefs.GetInteger("redraw_fps").value_or(30);
+        if (auto value = prefs.GetInteger("redraw_fps"))
+            return *value;
+        return CreateDefaultPreferences()->GetInteger("redraw_fps").value();
     }
 };
