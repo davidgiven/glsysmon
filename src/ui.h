@@ -9,5 +9,4 @@ public:
     virtual ~Ui() = default;
 
     virtual void Draw() = 0;
-    virtual bool IsContextMenuOpen() const = 0;
 };

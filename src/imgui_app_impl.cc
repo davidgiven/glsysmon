@@ -172,15 +172,9 @@ namespace
             Redraw();
             _lastRedrawNs = SDL_GetTicksNS();
             bool pendingRedraw = false;
-            constexpr Uint64 kPopupDrawNs = 1'000'000'000 / 30;
             while (running)
             {
                 const Uint64 nowForWait = SDL_GetTicksNS();
-                const bool isPopupOpenForWait = _ui->IsContextMenuOpen();
-                if (isPopupOpenForWait)
-                    pendingRedraw = true;
-                const Uint64 effectiveDrawNsForWait =
-                    isPopupOpenForWait ? kPopupDrawNs : _drawNs;
                 std::optional<Timer::Time> wait =
                     _timer->GetTimeUntilNextEvent(nowForWait);
                 Sint32 timeoutMs = -1;
@@ -196,7 +190,7 @@ namespace
                 }
                 if (pendingRedraw)
                 {
-                    Uint64 earliest = _lastRedrawNs + effectiveDrawNsForWait;
+                    Uint64 earliest = _lastRedrawNs + _drawNs;
                     Uint64 untilFrame =
                         (earliest <= nowForWait) ? 0 : earliest - nowForWait;
                     Sint32 frameMs;
@@ -218,8 +212,7 @@ namespace
                 else
                     hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
 
-                bool windowNeedsRedraw = false;
-                bool mouseButtonNeedsRedraw = false;
+                bool needsRedraw = false;
                 if (hasEvent)
                 {
                     do
@@ -234,11 +227,10 @@ namespace
                         if (event.type == SDL_EVENT_WINDOW_EXPOSED ||
                             event.type == SDL_EVENT_WINDOW_RESIZED ||
                             event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
-                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
-                            windowNeedsRedraw = true;
-                        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                             event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                            mouseButtonNeedsRedraw = true;
+                            needsRedraw = true;
                     } while (SDL_PollEvent(&event));
                 }
                 else
@@ -252,9 +244,13 @@ namespace
                             event.window.windowID ==
                                 SDL_GetWindowID(_window->get()))
                             running = false;
-                        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                        if (event.type == SDL_EVENT_WINDOW_EXPOSED ||
+                            event.type == SDL_EVENT_WINDOW_RESIZED ||
+                            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
+                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                             event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                            mouseButtonNeedsRedraw = true;
+                            needsRedraw = true;
                     }
                 }
                 _dock->PollWindow(_window->get());
@@ -263,19 +259,12 @@ namespace
                 std::size_t fired = _timer->Tick(now);
                 if (fired > 0)
                     pendingRedraw = true;
-                if (windowNeedsRedraw)
+                if (needsRedraw)
                     pendingRedraw = true;
-                if (mouseButtonNeedsRedraw)
-                    pendingRedraw = true;
-                const bool isPopupOpen = _ui->IsContextMenuOpen();
-                if (isPopupOpen)
-                    pendingRedraw = true;
-                const Uint64 effectiveDrawNs =
-                    isPopupOpen ? kPopupDrawNs : _drawNs;
 
                 if (pendingRedraw && running)
                 {
-                    Uint64 earliest = _lastRedrawNs + effectiveDrawNs;
+                    Uint64 earliest = _lastRedrawNs + _drawNs;
                     if (now >= earliest)
                     {
                         Redraw();

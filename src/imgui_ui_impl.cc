@@ -1,6 +1,5 @@
 #include "ui.h"
 
-#include <SDL3/SDL.h>
 #include <imgui.h>
 
 #include <memory>
@@ -68,36 +67,13 @@ namespace
             ImGui::PopFont();
             ImGui::PopStyleVar();
 
-            ImGuiWindowClass window_class;
-            window_class.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost;
-            ImGui::SetNextWindowClass(&window_class);
-            if (ImGui::BeginPopupContextWindow("context_menu"))
-            {
-                if (ImGui::MenuItem("Quit"))
-                {
-                    SDL_Event quitEvent{};
-                    quitEvent.type = SDL_EVENT_QUIT;
-                    SDL_PushEvent(&quitEvent);
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-
-            _isContextMenuOpen = ImGui::IsPopupOpen("context_menu");
-
             ImGui::End();
-        }
-
-        bool IsContextMenuOpen() const override
-        {
-            return _isContextMenuOpen;
         }
 
     private:
         const Preferences& _prefs;
         Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
-        bool _isContextMenuOpen = false;
     };
 
 } // namespace
