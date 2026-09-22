@@ -172,9 +172,15 @@ namespace
             Redraw();
             _lastRedrawNs = SDL_GetTicksNS();
             bool pendingRedraw = false;
+            constexpr Uint64 kPopupDrawNs = 1'000'000'000 / 30;
             while (running)
             {
                 const Uint64 nowForWait = SDL_GetTicksNS();
+                const bool isPopupOpenForWait = _ui->IsContextMenuOpen();
+                if (isPopupOpenForWait)
+                    pendingRedraw = true;
+                const Uint64 effectiveDrawNsForWait =
+                    isPopupOpenForWait ? kPopupDrawNs : _drawNs;
                 std::optional<Timer::Time> wait =
                     _timer->GetTimeUntilNextEvent(nowForWait);
                 Sint32 timeoutMs = -1;
@@ -190,7 +196,7 @@ namespace
                 }
                 if (pendingRedraw)
                 {
-                    Uint64 earliest = _lastRedrawNs + _drawNs;
+                    Uint64 earliest = _lastRedrawNs + effectiveDrawNsForWait;
                     Uint64 untilFrame =
                         (earliest <= nowForWait) ? 0 : earliest - nowForWait;
                     Sint32 frameMs;
@@ -213,7 +219,7 @@ namespace
                     hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
 
                 bool windowNeedsRedraw = false;
-                bool mouseNeedsRedraw = false;
+                bool mouseButtonNeedsRedraw = false;
                 if (hasEvent)
                 {
                     do
@@ -230,11 +236,9 @@ namespace
                             event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
                             event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
                             windowNeedsRedraw = true;
-                        if (event.type == SDL_EVENT_MOUSE_MOTION ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_UP ||
-                            event.type == SDL_EVENT_MOUSE_WHEEL)
-                            mouseNeedsRedraw = true;
+                        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                            event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+                            mouseButtonNeedsRedraw = true;
                     } while (SDL_PollEvent(&event));
                 }
                 else
@@ -248,10 +252,9 @@ namespace
                             event.window.windowID ==
                                 SDL_GetWindowID(_window->get()))
                             running = false;
-                        if (event.type == SDL_EVENT_MOUSE_MOTION ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+                        if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                             event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                            mouseNeedsRedraw = true;
+                            mouseButtonNeedsRedraw = true;
                     }
                 }
                 _dock->PollWindow(_window->get());
@@ -262,12 +265,17 @@ namespace
                     pendingRedraw = true;
                 if (windowNeedsRedraw)
                     pendingRedraw = true;
-                if (mouseNeedsRedraw)
+                if (mouseButtonNeedsRedraw)
                     pendingRedraw = true;
+                const bool isPopupOpen = _ui->IsContextMenuOpen();
+                if (isPopupOpen)
+                    pendingRedraw = true;
+                const Uint64 effectiveDrawNs =
+                    isPopupOpen ? kPopupDrawNs : _drawNs;
 
                 if (pendingRedraw && running)
                 {
-                    Uint64 earliest = _lastRedrawNs + _drawNs;
+                    Uint64 earliest = _lastRedrawNs + effectiveDrawNs;
                     if (now >= earliest)
                     {
                         Redraw();

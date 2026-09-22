@@ -71,9 +71,7 @@ namespace
             ImGuiWindowClass window_class;
             window_class.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost;
             ImGui::SetNextWindowClass(&window_class);
-            if (ImGui::BeginPopupContextWindow(
-                    "item_context_menu")) // opens on right-click of the item
-                                          // above
+            if (ImGui::BeginPopupContextWindow("context_menu"))
             {
                 if (ImGui::MenuItem("Quit"))
                 {
@@ -85,40 +83,21 @@ namespace
                 ImGui::EndPopup();
             }
 
+            _isContextMenuOpen = ImGui::IsPopupOpen("context_menu");
+
             ImGui::End();
+        }
 
-            // if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-            // {
-            //     ImVec2 mousePos = ImGui::GetMousePos();
-            //     if (mousePos.x >= viewport->Pos.x &&
-            //         mousePos.x < viewport->Pos.x + viewport->Size.x &&
-            //         mousePos.y >= viewport->Pos.y &&
-            //         mousePos.y < viewport->Pos.y + viewport->Size.y)
-            //         ImGui::OpenPopup("popup_menu");
-            // }
-
-            // if (ImGui::BeginPopup("popup_menu"))
-            // {
-            //     if (ImGui::MenuItem("Quit"))
-            //     {
-            //         SDL_Event quitEvent{};
-            //         quitEvent.type = SDL_EVENT_QUIT;
-            //         SDL_PushEvent(&quitEvent);
-            //         ImGui::CloseCurrentPopup();
-            //     }
-            //     ImGui::Separator();
-            //     ImGui::BeginDisabled();
-            //     ImGui::MenuItem("Preferences");
-            //     ImGui::MenuItem("About");
-            //     ImGui::EndDisabled();
-            //     ImGui::EndPopup();
-            // }
+        bool IsContextMenuOpen() const override
+        {
+            return _isContextMenuOpen;
         }
 
     private:
         const Preferences& _prefs;
         Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
+        bool _isContextMenuOpen = false;
     };
 
 } // namespace
