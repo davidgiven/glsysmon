@@ -2,32 +2,14 @@
 
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
-#include <vector>
 
 #include "components.h"
+#include "map_preferences_impl.h"
 
 namespace
 {
-
-    class DefaultPreferencesImpl : public Preferences
-    {
-    public:
-        std::optional<std::string> GetString(
-            const std::string& key) const override
-        {
-            const auto it = _values.find(key);
-            if (it == _values.end())
-                return std::nullopt;
-            return it->second;
-        }
-
-    private:
-        static const std::map<std::string, std::string> _values;
-    };
-
-    const std::map<std::string, std::string> DefaultPreferencesImpl::_values{
+    const std::map<std::string, std::string> kDefaultValues{
         {"side",                        "left"                                          },
         {"size",                        "100"                                           },
         {"monitor",                     "0"                                             },
@@ -44,5 +26,5 @@ namespace
 
 std::unique_ptr<Preferences> CreateDefaultPreferences()
 {
-    return std::make_unique<DefaultPreferencesImpl>();
+    return std::make_unique<MapPreferencesImpl>(kDefaultValues);
 }

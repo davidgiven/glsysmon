@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -20,6 +21,9 @@
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
 extern std::unique_ptr<Preferences> CreateTomlPreferences();
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
+extern std::unique_ptr<Preferences> CreateMapPreferences(
+    std::map<std::string, std::string> values);
+extern std::unique_ptr<Preferences> CreateMapPreferences();
 extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 
 extern std::unique_ptr<Dock> CreateDock(const Preferences& prefs);

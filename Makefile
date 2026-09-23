@@ -47,6 +47,7 @@ SRC_OBJS := \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/default_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/display/dock.o \
 	$(BUILD)/display/fallback_dock_impl.o \
 	$(BUILD)/imgui_app_impl.o \
@@ -110,6 +111,7 @@ TEST_OBJS := \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/default_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/views.o \
