@@ -32,15 +32,22 @@ namespace
             if (side == "right")
                 x = bounds.x + bounds.w - width;
 
+            // Ask SDL to tag the window as a dock. This ONLY takes effect if no
+            // other flag (TOOLTIP/UTILITY/POPUP_MENU) claims a specific type --
+            // so those flags must NOT be passed to SDL_CreateWindow below.
             SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE, "_NET_WM_WINDOW_TYPE_DOCK");
+
+            // Create hidden so we can finish setting properties before the WM
+            // ever sees the window mapped.
             SDL_Window* window = SDL_CreateWindow("glsysmon",
                 width,
                 height,
                 SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP |
-                    SDL_WINDOW_UTILITY);
+                    SDL_WINDOW_HIDDEN);
             SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE, nullptr);
             if (window == nullptr)
                 return nullptr;
+
             SDL_SetWindowPosition(window, x, y);
             SDL_SetWindowSize(window, width, height);
 
@@ -56,34 +63,36 @@ namespace
                 return nullptr;
             }
 
-            // Make window sticky / visible on all virtual desktops.
-            // SDL's UTILITY + DOCK hint covers SKIP_TASKBAR/SKIP_PAGER
-            // and window type, but STICKY/DESKTOP must be set via EWMH.
-            // Use ClientMessage so the window manager applies it even
-            // after the window is mapped; also set the property directly
-            // for WMs that read it.
+            // Initial _NET_WM_STATE: skip taskbar/pager (previously implied by
+            // SDL_WINDOW_UTILITY, now set explicitly) + sticky (visible on all
+            // virtual desktops). Set as a property (not a ClientMessage) since
+            // the window isn't mapped yet -- the WM will pick this up when it
+            // maps the window.
             {
                 Atom net_wm_state =
                     XInternAtom(display_x11, "_NET_WM_STATE", False);
+                Atom skip_taskbar = XInternAtom(
+                    display_x11, "_NET_WM_STATE_SKIP_TASKBAR", False);
+                Atom skip_pager =
+                    XInternAtom(display_x11, "_NET_WM_STATE_SKIP_PAGER", False);
                 Atom sticky =
                     XInternAtom(display_x11, "_NET_WM_STATE_STICKY", False);
-                XEvent xev;
-                std::memset(&xev, 0, sizeof(xev));
-                xev.xclient.type = ClientMessage;
-                xev.xclient.display = display_x11;
-                xev.xclient.window = win;
-                xev.xclient.message_type = net_wm_state;
-                xev.xclient.format = 32;
-                xev.xclient.data.l[0] = 1; // _NET_WM_STATE_ADD
-                xev.xclient.data.l[1] = static_cast<long>(sticky);
-                xev.xclient.data.l[2] = 0;
-                xev.xclient.data.l[3] = 1; // source indication: normal app
-                XSendEvent(display_x11,
-                    DefaultRootWindow(display_x11),
-                    False,
-                    SubstructureRedirectMask | SubstructureNotifyMask,
-                    &xev);
 
+                Atom states[3] = {skip_taskbar, skip_pager, sticky};
+                XChangeProperty(display_x11,
+                    win,
+                    net_wm_state,
+                    XA_ATOM,
+                    32,
+                    PropModeReplace,
+                    reinterpret_cast<const unsigned char*>(states),
+                    3);
+            }
+
+            // Initial desktop: all desktops (0xFFFFFFFF), set directly as a
+            // property rather than a ClientMessage, for the same reason as
+            // above.
+            {
                 Atom net_wm_desktop =
                     XInternAtom(display_x11, "_NET_WM_DESKTOP", False);
                 long desktop = 0xFFFFFFFF;
@@ -95,20 +104,6 @@ namespace
                     PropModeReplace,
                     reinterpret_cast<const unsigned char*>(&desktop),
                     1);
-                XEvent xev2;
-                std::memset(&xev2, 0, sizeof(xev2));
-                xev2.xclient.type = ClientMessage;
-                xev2.xclient.display = display_x11;
-                xev2.xclient.window = win;
-                xev2.xclient.message_type = net_wm_desktop;
-                xev2.xclient.format = 32;
-                xev2.xclient.data.l[0] = 0xFFFFFFFF;
-                xev2.xclient.data.l[1] = 1;
-                XSendEvent(display_x11,
-                    DefaultRootWindow(display_x11),
-                    False,
-                    SubstructureRedirectMask | SubstructureNotifyMask,
-                    &xev2);
             }
 
             Atom wm_pid = XInternAtom(display_x11, "_NET_WM_PID", False);
@@ -161,6 +156,12 @@ namespace
                 12);
 
             XFlush(display_x11);
+
+            // Now that window type, state, desktop, PID and struts are all set,
+            // it's safe to map the window.
+            SDL_ShowWindow(window);
+            XFlush(display_x11);
+
             return window;
         }
 
