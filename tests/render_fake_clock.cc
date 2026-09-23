@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "app.h"
 #include "components.h"
 #include "render_lib.h"
 #include "sensors/clock_sensor.h"
@@ -37,6 +38,18 @@ namespace
         void DrawConfiguration() override {}
     };
 
+    class FakeApp : public App
+    {
+    public:
+        void Setup() override {}
+
+        void MainLoop() override {}
+
+        void Shutdown() override {}
+
+        void Quit() override {}
+    };
+
 } // namespace
 
 int main()
@@ -46,7 +59,8 @@ int main()
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeClockSensor>();
-    auto ui = CreateUiWithFakeClock(*prefs, *timer, std::move(fakeSensor));
+    FakeApp app;
+    auto ui = CreateUiWithFakeClock(*prefs, *timer, std::move(fakeSensor), app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_clock", *ui, *renderer);
 }

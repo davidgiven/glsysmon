@@ -2,13 +2,15 @@
 
 #include <imgui.h>
 
+#include "app.h"
 #include "sensors/sensors.h"
 #include "views/views.h"
 
 ConfigurationWindow::ConfigurationWindow(
-    const Views& views, const Sensors& sensors):
+    const Views& views, const Sensors& sensors, App& app):
     _views(views),
-    _sensors(sensors)
+    _sensors(sensors),
+    _app(app)
 {
 }
 
@@ -48,7 +50,8 @@ void ConfigurationWindow::Draw()
         float totalWidth =
             okWidth + cancelWidth + ImGui::GetStyle().ItemSpacing.x;
         ImGui::SetCursorPosX(0);
-        if (ImGui::Button("Quit!")) {}
+        if (ImGui::Button("Quit!"))
+            _app.Quit();
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
                              ImGui::GetContentRegionAvail().x - totalWidth);

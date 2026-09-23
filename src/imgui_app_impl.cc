@@ -123,13 +123,11 @@ namespace
     {
     public:
         ImGuiAppImpl(DockFactory dockFactory,
-            std::unique_ptr<Ui> ui,
             std::unique_ptr<ImGuiFrameRenderer> frameRenderer,
             std::unique_ptr<Preferences> prefs,
             std::unique_ptr<Timer> timer):
             _prefs(std::move(prefs)),
             _dockFactory(std::move(dockFactory)),
-            _ui(std::move(ui)),
             _frameRenderer(std::move(frameRenderer)),
             _timer(std::move(timer))
         {
@@ -138,6 +136,11 @@ namespace
         ~ImGuiAppImpl() override
         {
             Shutdown();
+        }
+
+        void SetUi(std::unique_ptr<Ui> ui)
+        {
+            _ui = std::move(ui);
         }
 
         void Setup() override
@@ -211,10 +214,16 @@ namespace
             _dock.reset();
         }
 
+        void Quit() override
+        {
+            _running = false;
+        }
+
         void Redraw()
         {
             _frameRenderer->BeginFrame();
-            _ui->Draw();
+            if (_ui != nullptr)
+                _ui->Draw();
 
             SDL_GPUCommandBuffer* command_buffer =
                 SDL_AcquireGPUCommandBuffer(_device->get());
@@ -266,10 +275,10 @@ namespace
         {
             _frameRenderer->ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
-                _running = false;
+                Quit();
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
                 event.window.windowID == SDL_GetWindowID(_window->get()))
-                _running = false;
+                Quit();
         }
 
         void TryRedraw(Uint64 now, bool& pendingRedraw)
@@ -277,7 +286,7 @@ namespace
             Uint64 earliest = _lastRedrawNs + _drawNs;
             if (now < earliest)
                 return;
-            
+
             Redraw();
             _lastRedrawNs = now;
             pendingRedraw = false;
@@ -285,9 +294,9 @@ namespace
 
         std::unique_ptr<Preferences> _prefs;
         DockFactory _dockFactory;
-        std::unique_ptr<Ui> _ui;
         std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
         std::unique_ptr<Timer> _timer;
+        std::unique_ptr<Ui> _ui;
         std::unique_ptr<Dock> _dock;
         std::unique_ptr<SdlSession> _sdl;
         std::unique_ptr<DockWindow> _window;
@@ -305,11 +314,14 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
     auto prefs = CreatePreferences(args);
     auto dockFactory = CreateDockFactory(*prefs);
     auto timer = CreateTimer();
-    auto ui = CreateUi(*prefs, *timer);
+    Timer& timerRef = *timer;
+    Preferences& prefsRef = *prefs;
     auto renderer = CreateImGuiFrameRenderer();
-    return std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
-        std::move(ui),
+    auto app = std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
         std::move(renderer),
         std::move(prefs),
         std::move(timer));
+    auto ui = CreateUi(prefsRef, timerRef, *app);
+    static_cast<ImGuiAppImpl*>(app.get())->SetUi(std::move(ui));
+    return app;
 }

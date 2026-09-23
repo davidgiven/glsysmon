@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "app.h"
 #include "components.h"
 #include "render_lib.h"
 #include "sensors/hostname_sensor.h"
@@ -29,6 +30,18 @@ namespace
         void DrawConfiguration() override {}
     };
 
+    class FakeApp : public App
+    {
+    public:
+        void Setup() override {}
+
+        void MainLoop() override {}
+
+        void Shutdown() override {}
+
+        void Quit() override {}
+    };
+
 } // namespace
 
 int main()
@@ -38,7 +51,9 @@ int main()
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeHostnameSensor>();
-    auto ui = CreateUiWithFakeHostname(*prefs, *timer, std::move(fakeSensor));
+    FakeApp app;
+    auto ui =
+        CreateUiWithFakeHostname(*prefs, *timer, std::move(fakeSensor), app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_hostname", *ui, *renderer);
 }

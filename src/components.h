@@ -54,19 +54,24 @@ extern std::unique_ptr<View> CreateTemperatureView(
 extern std::unique_ptr<View> CreateTemperatureView(
     const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor);
 
-extern std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer);
+extern std::unique_ptr<Ui> CreateUi(
+    const Preferences& prefs, Timer& timer, App& app);
 extern std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<HostnameSensor> fakeSensor);
+    std::unique_ptr<HostnameSensor> fakeSensor,
+    App& app);
 extern std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<ClockSensor> fakeSensor);
+    std::unique_ptr<ClockSensor> fakeSensor,
+    App& app);
 extern std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<CpuSensor> fakeSensor);
+    std::unique_ptr<CpuSensor> fakeSensor,
+    App& app);
 extern std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<TemperatureSensor> fakeSensor);
+    std::unique_ptr<TemperatureSensor> fakeSensor,
+    App& app);
 extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
 extern std::unique_ptr<Timer> CreateTimer();
 extern std::unique_ptr<App> CreateApp(const CliArgs& args);

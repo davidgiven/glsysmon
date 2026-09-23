@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "app.h"
 #include "components.h"
 #include "configuration.h"
 #include "preferences/preferences.h"
@@ -23,6 +24,7 @@ namespace
     public:
         explicit ImGuiUiImpl(const Preferences& prefs,
             Timer& timer,
+            App& app,
             std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr,
@@ -30,7 +32,8 @@ namespace
             _prefs(prefs),
             _sensors(prefs, timer),
             _views(prefs, _sensors),
-            _configurationWindow(_views, _sensors)
+            _app(app),
+            _configurationWindow(_views, _sensors, _app)
         {
             if (fakeHostnameSensor != nullptr)
                 _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
@@ -118,6 +121,7 @@ namespace
         const Preferences& _prefs;
         Sensors _sensors;
         Views _views;
+        App& _app;
         std::vector<View*> _activeViews;
         ConfigurationWindow _configurationWindow;
         bool _viewportOpen = false;
@@ -126,39 +130,43 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer)
+std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer, App& app)
 {
-    return std::make_unique<ImGuiUiImpl>(prefs, timer);
+    return std::make_unique<ImGuiUiImpl>(prefs, timer, app);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<HostnameSensor> fakeSensor)
+    std::unique_ptr<HostnameSensor> fakeSensor,
+    App& app)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, std::move(fakeSensor), nullptr, nullptr, nullptr);
+        prefs, timer, app, std::move(fakeSensor), nullptr, nullptr, nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<ClockSensor> fakeSensor)
+    std::unique_ptr<ClockSensor> fakeSensor,
+    App& app)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, nullptr, std::move(fakeSensor), nullptr, nullptr);
+        prefs, timer, app, nullptr, std::move(fakeSensor), nullptr, nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<CpuSensor> fakeSensor)
+    std::unique_ptr<CpuSensor> fakeSensor,
+    App& app)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, nullptr, nullptr, std::move(fakeSensor), nullptr);
+        prefs, timer, app, nullptr, nullptr, std::move(fakeSensor), nullptr);
 }
 
 std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
     Timer& timer,
-    std::unique_ptr<TemperatureSensor> fakeSensor)
+    std::unique_ptr<TemperatureSensor> fakeSensor,
+    App& app)
 {
     return std::make_unique<ImGuiUiImpl>(
-        prefs, timer, nullptr, nullptr, nullptr, std::move(fakeSensor));
+        prefs, timer, app, nullptr, nullptr, nullptr, std::move(fakeSensor));
 }

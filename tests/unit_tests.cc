@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "app.h"
 #include "components.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/sensors.h"
@@ -32,6 +33,29 @@ namespace
         void DrawConfiguration() override {}
     };
 
+    class FakeApp : public App
+    {
+    public:
+        void Setup() override {}
+
+        void MainLoop() override {}
+
+        void Shutdown() override {}
+
+        void Quit() override
+        {
+            _quit = true;
+        }
+
+        bool quitCalled() const
+        {
+            return _quit;
+        }
+
+    private:
+        bool _quit = false;
+    };
+
 } // namespace
 
 TEST_CASE("CreateUi creates a UI component")
@@ -39,7 +63,8 @@ TEST_CASE("CreateUi creates a UI component")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto ui = CreateUi(*prefs, *timer);
+    FakeApp app;
+    auto ui = CreateUi(*prefs, *timer, app);
     CHECK(ui != nullptr);
 }
 

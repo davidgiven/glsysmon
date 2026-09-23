@@ -20,4 +20,6 @@ public:
     // Releases all resources acquired by Setup(). Safe to call multiple times;
     // the destructor calls it again as a safety net.
     virtual void Shutdown() = 0;
+
+    virtual void Quit() = 0;
 };

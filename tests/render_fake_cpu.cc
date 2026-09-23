@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "app.h"
 #include "components.h"
 #include "render_lib.h"
 #include "sensors/cpu_sensor.h"
@@ -64,6 +65,18 @@ namespace
         std::vector<std::vector<CpuSample>> _samples;
     };
 
+    class FakeApp : public App
+    {
+    public:
+        void Setup() override {}
+
+        void MainLoop() override {}
+
+        void Shutdown() override {}
+
+        void Quit() override {}
+    };
+
 } // namespace
 
 int main()
@@ -73,7 +86,8 @@ int main()
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     auto fakeSensor = std::make_unique<FakeCpuSensor>();
-    auto ui = CreateUiWithFakeCpu(*prefs, *timer, std::move(fakeSensor));
+    FakeApp app;
+    auto ui = CreateUiWithFakeCpu(*prefs, *timer, std::move(fakeSensor), app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_cpu", *ui, *renderer);
 }
