@@ -22,7 +22,7 @@ namespace
 
             SDL_DisplayID display = DockGetDisplay(monitor);
             SDL_Rect bounds;
-            if (!SDL_GetDisplayUsableBounds(display, &bounds))
+            if (!SDL_GetDisplayBounds(display, &bounds))
                 return nullptr;
 
             int width = size;
@@ -122,22 +122,33 @@ namespace
                 reinterpret_cast<const unsigned char*>(&pid),
                 1);
 
-            // _NET_WM_STRUT_PARTIAL: [left, right, top, bottom, ...edge
-            // extents...]
             long strut[12] = {};
-            const long edge_end = bounds.h - 1;
+            long strut_simple[4] = {};
+            const long start_y = bounds.y;
+            const long end_y = bounds.y + bounds.h - 1;
             if (side == "right")
             {
                 strut[1] = size;
-                strut[6] = 0;
-                strut[7] = edge_end;
+                strut_simple[1] = size;
+                strut[6] = start_y;
+                strut[7] = end_y;
             }
             else
             {
-                strut[0] = size;
-                strut[4] = 0;
-                strut[5] = edge_end;
+                strut[0] = x + width;
+                strut_simple[0] = x + width;
+                strut[4] = start_y;
+                strut[5] = end_y;
             }
+            Atom wm_strut = XInternAtom(display_x11, "_NET_WM_STRUT", False);
+            XChangeProperty(display_x11,
+                win,
+                wm_strut,
+                XA_CARDINAL,
+                32,
+                PropModeReplace,
+                reinterpret_cast<const unsigned char*>(strut_simple),
+                4);
             Atom wm_strut_partial =
                 XInternAtom(display_x11, "_NET_WM_STRUT_PARTIAL", False);
             XChangeProperty(display_x11,
