@@ -1,5 +1,7 @@
 #include "ui.h"
 
+#include <SDL3/SDL.h>
+
 #include <imgui.h>
 
 #include <memory>
@@ -68,12 +70,52 @@ namespace
             ImGui::PopStyleVar();
 
             ImGui::End();
+
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            {
+                if (!_viewportOpen)
+                    _viewportOpen = true;
+                _viewportFocusRequested = true;
+            }
+
+            if (_viewportOpen)
+            {
+                ImGuiWindowClass window_class;
+                window_class.ViewportFlagsOverrideSet =
+                    ImGuiViewportFlags_NoAutoMerge;
+                window_class.ViewportFlagsOverrideClear =
+                    ImGuiViewportFlags_NoDecoration;
+                ImGui::SetNextWindowClass(&window_class);
+                ImGui::SetNextWindowSize(
+                    ImVec2(300, 200), ImGuiCond_FirstUseEver);
+                ImGui::Begin(
+                    "Configuration", &_viewportOpen, ImGuiWindowFlags_NoTitleBar);
+                if (_viewportFocusRequested)
+                {
+                    ImGuiViewport* vp = ImGui::GetWindowViewport();
+                    if (vp != nullptr && vp != ImGui::GetMainViewport() &&
+                        vp->PlatformHandle != nullptr)
+                    {
+                        SDL_Window* sdlWin = SDL_GetWindowFromID(
+                            (SDL_WindowID)(uintptr_t)vp->PlatformHandle);
+                        if (sdlWin != nullptr)
+                        {
+                            SDL_RaiseWindow(sdlWin);
+                            _viewportFocusRequested = false;
+                        }
+                    }
+                }
+                ImGui::Text("Viewport");
+                ImGui::End();
+            }
         }
 
     private:
         const Preferences& _prefs;
         Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
+        bool _viewportOpen = false;
+        bool _viewportFocusRequested = false;
     };
 
 } // namespace
