@@ -9,4 +9,6 @@ public:
     virtual ~Sensor() = default;
 
     virtual std::string GetName() const = 0;
+
+    virtual void DrawConfiguration() = 0;
 };

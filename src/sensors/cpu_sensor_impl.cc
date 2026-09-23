@@ -1,5 +1,7 @@
 #include "cpu_sensor.h"
 
+#include <imgui.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -82,6 +84,11 @@ namespace
         std::string GetName() const override
         {
             return "Cpu";
+        }
+
+        void DrawConfiguration() override
+        {
+            ImGui::Text("%s settings", GetName().c_str());
         }
 
     private:

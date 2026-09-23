@@ -29,7 +29,8 @@ namespace
             std::unique_ptr<TemperatureSensor> fakeTemperatureSensor = nullptr):
             _prefs(prefs),
             _sensors(prefs, timer),
-            _views(prefs, _sensors)
+            _views(prefs, _sensors),
+            _configurationWindow(_views, _sensors)
         {
             if (fakeHostnameSensor != nullptr)
                 _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
@@ -88,10 +89,11 @@ namespace
                     ImGuiViewportFlags_NoDecoration;
                 ImGui::SetNextWindowClass(&window_class);
                 ImGui::SetNextWindowSize(
-                    ImVec2(300, 200), ImGuiCond_FirstUseEver);
+                    ImVec2(500, 400), ImGuiCond_FirstUseEver);
                 ImGui::Begin("Configuration",
                     &_viewportOpen,
                     ImGuiWindowFlags_NoTitleBar);
+
                 if (_viewportFocusRequested)
                 {
                     ImGuiViewport* vp = ImGui::GetWindowViewport();

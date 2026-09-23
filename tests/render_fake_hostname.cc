@@ -25,6 +25,8 @@ namespace
         {
             return "Hostname";
         }
+
+        void DrawConfiguration() override {}
     };
 
 } // namespace

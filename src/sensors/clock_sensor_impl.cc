@@ -1,5 +1,7 @@
 #include "clock_sensor.h"
 
+#include <imgui.h>
+
 #include <chrono>
 #include <ctime>
 #include <functional>
@@ -30,6 +32,11 @@ namespace
         std::string GetName() const override
         {
             return "Clock";
+        }
+
+        void DrawConfiguration() override
+        {
+            ImGui::Text("%s settings", GetName().c_str());
         }
 
     private:

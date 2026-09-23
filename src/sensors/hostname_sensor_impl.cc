@@ -1,5 +1,7 @@
 #include "hostname_sensor.h"
 
+#include <imgui.h>
+
 #include <unistd.h>
 
 #include <array>
@@ -31,6 +33,11 @@ namespace
         std::string GetName() const override
         {
             return "Hostname";
+        }
+
+        void DrawConfiguration() override
+        {
+            ImGui::Text("%s settings", GetName().c_str());
         }
 
     private:

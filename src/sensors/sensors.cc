@@ -13,32 +13,43 @@ Sensors::Sensors(const Preferences& prefs, Timer& timer):
 {
 }
 
-ClockSensor& Sensors::GetClockSensor()
+ClockSensor& Sensors::GetClockSensor() const
 {
     if (_clockSensor == nullptr)
         _clockSensor = CreateClockSensor(_prefs, _timer);
     return *_clockSensor;
 }
 
-CpuSensor& Sensors::GetCpuSensor()
+CpuSensor& Sensors::GetCpuSensor() const
 {
     if (_cpuSensor == nullptr)
         _cpuSensor = CreateCpuSensor(_prefs, _timer);
     return *_cpuSensor;
 }
 
-HostnameSensor& Sensors::GetHostnameSensor()
+HostnameSensor& Sensors::GetHostnameSensor() const
 {
     if (_hostnameSensor == nullptr)
         _hostnameSensor = CreateHostnameSensor(_prefs, _timer);
     return *_hostnameSensor;
 }
 
-TemperatureSensor& Sensors::GetTemperatureSensor()
+TemperatureSensor& Sensors::GetTemperatureSensor() const
 {
     if (_temperatureSensor == nullptr)
         _temperatureSensor = CreateTemperatureSensor(_prefs, _timer);
     return *_temperatureSensor;
+}
+
+std::vector<Sensor*> Sensors::GetAllSensors() const
+{
+    std::vector<Sensor*> sensors;
+    sensors.reserve(4);
+    sensors.push_back(&GetClockSensor());
+    sensors.push_back(&GetCpuSensor());
+    sensors.push_back(&GetHostnameSensor());
+    sensors.push_back(&GetTemperatureSensor());
+    return sensors;
 }
 
 void Sensors::SetClockSensor(std::unique_ptr<ClockSensor> sensor)

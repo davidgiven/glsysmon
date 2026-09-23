@@ -2,28 +2,37 @@
 
 #include "components.h"
 
+const std::map<std::string, Views::Factory> Views::_factories{
+    {"ClockView",       static_cast<Factory>(&CreateClockView)      },
+    {"CpuView",         static_cast<Factory>(&CreateCpuView)        },
+    {"HostnameView",    static_cast<Factory>(&CreateHostnameView)   },
+    {"TemperatureView", static_cast<Factory>(&CreateTemperatureView)},
+};
+
 Views::Views(const Preferences& prefs, Sensors& sensors):
     _prefs(prefs),
     _sensors(sensors)
 {
 }
 
-View* Views::Get(const std::string& name)
+std::vector<View*> Views::GetAllViews() const
+{
+    std::vector<View*> views;
+    views.reserve(_factories.size());
+    for (const auto& [name, _] : _factories)
+        views.push_back(Get(name));
+    return views;
+}
+
+View* Views::Get(const std::string& name) const
 {
     auto it = _views.find(name);
     if (it != _views.end())
         return it->second.get();
-    std::unique_ptr<View> view;
-    if (name == "ClockView")
-        view = CreateClockView(_prefs, _sensors);
-    else if (name == "CpuView")
-        view = CreateCpuView(_prefs, _sensors);
-    else if (name == "HostnameView")
-        view = CreateHostnameView(_prefs, _sensors);
-    else if (name == "TemperatureView")
-        view = CreateTemperatureView(_prefs, _sensors);
-    else
+    auto fIt = _factories.find(name);
+    if (fIt == _factories.end())
         return nullptr;
+    std::unique_ptr<View> view = fIt->second(_prefs, _sensors);
     View* ptr = view.get();
     _views.emplace(name, std::move(view));
     return ptr;

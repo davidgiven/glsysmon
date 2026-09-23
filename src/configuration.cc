@@ -2,6 +2,16 @@
 
 #include <imgui.h>
 
+#include "sensors/sensors.h"
+#include "views/views.h"
+
+ConfigurationWindow::ConfigurationWindow(
+    const Views& views, const Sensors& sensors):
+    _views(views),
+    _sensors(sensors)
+{
+}
+
 void ConfigurationWindow::Draw()
 {
     float buttonHeight = ImGui::GetFrameHeightWithSpacing();
@@ -10,19 +20,18 @@ void ConfigurationWindow::Draw()
     {
         if (ImGui::BeginTabBar("ConfigurationTabs"))
         {
-            if (ImGui::BeginTabItem("General"))
-            {
-                ImGui::Text("General settings");
-                ImGui::EndTabItem();
-            }
             if (ImGui::BeginTabItem("Views"))
             {
-                ImGui::Text("Views settings");
+                for (View* view : _views.GetAllViews())
+                    if (ImGui::CollapsingHeader(view->GetName().c_str()))
+                        view->DrawConfiguration();
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Advanced"))
+            if (ImGui::BeginTabItem("Sensors"))
             {
-                ImGui::Text("Advanced settings");
+                for (Sensor* sensor : _sensors.GetAllSensors())
+                    if (ImGui::CollapsingHeader(sensor->GetName().c_str()))
+                        sensor->DrawConfiguration();
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -38,6 +47,9 @@ void ConfigurationWindow::Draw()
                             ImGui::GetStyle().FramePadding.x * 2.0f;
         float totalWidth =
             okWidth + cancelWidth + ImGui::GetStyle().ItemSpacing.x;
+        ImGui::SetCursorPosX(0);
+        if (ImGui::Button("Quit!")) {}
+        ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
                              ImGui::GetContentRegionAvail().x - totalWidth);
         if (ImGui::Button("OK")) {}

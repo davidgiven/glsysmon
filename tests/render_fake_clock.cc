@@ -33,6 +33,8 @@ namespace
         {
             return "Clock";
         }
+
+        void DrawConfiguration() override {}
     };
 
 } // namespace

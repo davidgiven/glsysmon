@@ -1,5 +1,7 @@
 #include "temperature_sensor.h"
 
+#include <imgui.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -119,6 +121,11 @@ namespace
         std::string GetName() const override
         {
             return "Temperature";
+        }
+
+        void DrawConfiguration() override
+        {
+            ImGui::Text("%s settings", GetName().c_str());
         }
 
     private:

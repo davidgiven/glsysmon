@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "clock_sensor.h"
 #include "cpu_sensor.h"
@@ -18,10 +19,12 @@ public:
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
 
-    ClockSensor& GetClockSensor();
-    CpuSensor& GetCpuSensor();
-    HostnameSensor& GetHostnameSensor();
-    TemperatureSensor& GetTemperatureSensor();
+    ClockSensor& GetClockSensor() const;
+    CpuSensor& GetCpuSensor() const;
+    HostnameSensor& GetHostnameSensor() const;
+    TemperatureSensor& GetTemperatureSensor() const;
+
+    std::vector<Sensor*> GetAllSensors() const;
 
     void SetClockSensor(std::unique_ptr<ClockSensor> sensor);
     void SetCpuSensor(std::unique_ptr<CpuSensor> sensor);
@@ -33,8 +36,8 @@ public:
 private:
     const Preferences& _prefs;
     Timer& _timer;
-    std::unique_ptr<ClockSensor> _clockSensor;
-    std::unique_ptr<CpuSensor> _cpuSensor;
-    std::unique_ptr<HostnameSensor> _hostnameSensor;
-    std::unique_ptr<TemperatureSensor> _temperatureSensor;
+    mutable std::unique_ptr<ClockSensor> _clockSensor;
+    mutable std::unique_ptr<CpuSensor> _cpuSensor;
+    mutable std::unique_ptr<HostnameSensor> _hostnameSensor;
+    mutable std::unique_ptr<TemperatureSensor> _temperatureSensor;
 };

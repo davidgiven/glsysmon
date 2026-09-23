@@ -61,6 +61,8 @@ namespace
             return "Temperature";
         }
 
+        void DrawConfiguration() override {}
+
     private:
         std::vector<std::vector<double>> _samples;
         std::vector<std::string> _names;
