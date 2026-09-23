@@ -13,7 +13,7 @@
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "timer.h"
-#include "views/catalogue.h"
+#include "views/views.h"
 
 namespace
 {
@@ -28,7 +28,8 @@ namespace
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr,
             std::unique_ptr<TemperatureSensor> fakeTemperatureSensor = nullptr):
             _prefs(prefs),
-            _sensors(prefs, timer)
+            _sensors(prefs, timer),
+            _views(prefs, _sensors)
         {
             if (fakeHostnameSensor != nullptr)
                 _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
@@ -38,14 +39,13 @@ namespace
                 _sensors.SetCpuSensor(std::move(fakeCpuSensor));
             if (fakeTemperatureSensor != nullptr)
                 _sensors.SetTemperatureSensor(std::move(fakeTemperatureSensor));
-            const auto& catalogue = GetViewCatalogue();
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
             {
-                const auto it = catalogue.find(name);
-                if (it == catalogue.end())
+                View* view = _views.Get(name);
+                if (view == nullptr)
                     continue;
-                _views.push_back(it->second(prefs, _sensors));
+                _activeViews.push_back(view);
             }
         }
 
@@ -64,7 +64,7 @@ namespace
                     ImGuiWindowFlags_NoSavedSettings |
                     ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-            for (auto& view : _views)
+            for (View* view : _activeViews)
                 view->Draw();
 
             ImGui::PopFont();
@@ -115,7 +115,8 @@ namespace
     private:
         const Preferences& _prefs;
         Sensors _sensors;
-        std::vector<std::unique_ptr<View>> _views;
+        Views _views;
+        std::vector<View*> _activeViews;
         ConfigurationWindow _configurationWindow;
         bool _viewportOpen = false;
         bool _viewportFocusRequested = false;

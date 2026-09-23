@@ -11,7 +11,7 @@
 #include "sensors/cpu_sensor.h"
 #include "sensors/sensors.h"
 #include "timer.h"
-#include "views/catalogue.h"
+#include "views/views.h"
 
 namespace
 {
@@ -59,15 +59,16 @@ TEST_CASE("CreateHostnameView creates a view component")
 
 TEST_CASE("View catalogue exposes HostnameView and resolves it")
 {
-    const auto& catalogue = GetViewCatalogue();
-    REQUIRE(catalogue.find("HostnameView") != catalogue.end());
-
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     Sensors sensors(*prefs, *timer);
-    auto view = catalogue.at("HostnameView")(*prefs, sensors);
-    CHECK(view != nullptr);
+    Views views(*prefs, sensors);
+    View* view = views.Get("HostnameView");
+    REQUIRE(view != nullptr);
+    CHECK(views.Get("UnknownView") == nullptr);
+    View* view2 = views.Get("HostnameView");
+    CHECK(view == view2);
 }
 
 TEST_CASE("Hostname sensor returns the current hostname")

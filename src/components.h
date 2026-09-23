@@ -14,8 +14,8 @@
 #include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
-#include "view.h"
-#include "views/catalogue.h"
+#include "views/view.h"
+#include "views/views.h"
 
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
 extern std::unique_ptr<Preferences> CreateTomlPreferences();
