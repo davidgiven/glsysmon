@@ -168,110 +168,32 @@ namespace
 
         void MainLoop() override
         {
-            bool running = true;
             Redraw();
             _lastRedrawNs = SDL_GetTicksNS();
             bool pendingRedraw = false;
-            while (running)
+            while (_running)
             {
-                const Uint64 nowForWait = SDL_GetTicksNS();
-                std::optional<Timer::Time> wait =
-                    _timer->GetTimeUntilNextEvent(nowForWait);
-                Sint32 timeoutMs = -1;
-                if (wait.has_value())
-                {
-                    Timer::Time waitNs = *wait;
-                    if (waitNs > static_cast<Timer::Time>(
-                                     std::numeric_limits<Sint32>::max()) *
-                                     1'000'000ULL)
-                        timeoutMs = std::numeric_limits<Sint32>::max();
-                    else
-                        timeoutMs = static_cast<Sint32>(waitNs / 1'000'000ULL);
-                }
-                if (pendingRedraw)
-                {
-                    Uint64 earliest = _lastRedrawNs + _drawNs;
-                    Uint64 untilFrame =
-                        (earliest <= nowForWait) ? 0 : earliest - nowForWait;
-                    Sint32 frameMs;
-                    if (untilFrame > static_cast<Uint64>(
-                                         std::numeric_limits<Sint32>::max()) *
-                                         1'000'000ULL)
-                        frameMs = std::numeric_limits<Sint32>::max();
-                    else
-                        frameMs =
-                            static_cast<Sint32>(untilFrame / 1'000'000ULL);
-                    if (timeoutMs < 0 || frameMs < timeoutMs)
-                        timeoutMs = frameMs;
-                }
+                Sint32 timeoutMs =
+                    ComputeTimeoutMs(SDL_GetTicksNS(), pendingRedraw);
 
                 SDL_Event event;
-                bool hasEvent = false;
-                if (timeoutMs < 0)
-                    hasEvent = SDL_WaitEvent(&event);
-                else
-                    hasEvent = SDL_WaitEventTimeout(&event, timeoutMs);
-
-                bool needsRedraw = false;
+                bool hasEvent = (timeoutMs < 0)
+                                    ? SDL_WaitEvent(&event)
+                                    : SDL_WaitEventTimeout(&event, timeoutMs);
                 if (hasEvent)
                 {
-                    do
-                    {
-                        _frameRenderer->ProcessEvent(&event);
-                        if (event.type == SDL_EVENT_QUIT)
-                            running = false;
-                        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                            event.window.windowID ==
-                                SDL_GetWindowID(_window->get()))
-                            running = false;
-                        if (event.type == SDL_EVENT_WINDOW_EXPOSED ||
-                            event.type == SDL_EVENT_WINDOW_RESIZED ||
-                            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
-                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                            needsRedraw = true;
-                    } while (SDL_PollEvent(&event));
+                    HandleEvent(event);
+                    pendingRedraw = true;
                 }
-                else
-                {
-                    while (SDL_PollEvent(&event))
-                    {
-                        _frameRenderer->ProcessEvent(&event);
-                        if (event.type == SDL_EVENT_QUIT)
-                            running = false;
-                        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                            event.window.windowID ==
-                                SDL_GetWindowID(_window->get()))
-                            running = false;
-                        if (event.type == SDL_EVENT_WINDOW_EXPOSED ||
-                            event.type == SDL_EVENT_WINDOW_RESIZED ||
-                            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED ||
-                            event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
-                            event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-                            needsRedraw = true;
-                    }
-                }
+
                 _dock->PollWindow(_window->get());
 
-                const Uint64 now = SDL_GetTicksNS();
-                std::size_t fired = _timer->Tick(now);
-                if (fired > 0)
-                    pendingRedraw = true;
-                if (needsRedraw)
+                Uint64 now = SDL_GetTicksNS();
+                if (_timer->Tick(now) > 0)
                     pendingRedraw = true;
 
-                if (pendingRedraw && running)
-                {
-                    Uint64 earliest = _lastRedrawNs + _drawNs;
-                    if (now >= earliest)
-                    {
-                        Redraw();
-                        _lastRedrawNs = now;
-                        pendingRedraw = false;
-                    }
-                }
+                if (pendingRedraw)
+                    TryRedraw(now, pendingRedraw);
             }
         }
 
@@ -313,6 +235,54 @@ namespace
         }
 
     private:
+        static Sint32 ToClampedMs(Uint64 ns)
+        {
+            constexpr Uint64 kMaxNs =
+                static_cast<Uint64>(std::numeric_limits<Sint32>::max()) *
+                1'000'000ULL;
+            if (ns > kMaxNs)
+                return std::numeric_limits<Sint32>::max();
+            return static_cast<Sint32>(ns / 1'000'000ULL);
+        }
+
+        Sint32 ComputeTimeoutMs(Uint64 now, bool pendingRedraw) const
+        {
+            Sint32 timeoutMs = -1;
+            if (auto wait = _timer->GetTimeUntilNextEvent(now);
+                wait.has_value())
+                timeoutMs = ToClampedMs(*wait);
+            if (pendingRedraw)
+            {
+                Uint64 earliest = _lastRedrawNs + _drawNs;
+                Uint64 untilFrame = (earliest <= now) ? 0 : earliest - now;
+                Sint32 frameMs = ToClampedMs(untilFrame);
+                if (timeoutMs < 0 || frameMs < timeoutMs)
+                    timeoutMs = frameMs;
+            }
+            return timeoutMs;
+        }
+
+        void HandleEvent(SDL_Event& event)
+        {
+            _frameRenderer->ProcessEvent(&event);
+            if (event.type == SDL_EVENT_QUIT)
+                _running = false;
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+                event.window.windowID == SDL_GetWindowID(_window->get()))
+                _running = false;
+        }
+
+        void TryRedraw(Uint64 now, bool& pendingRedraw)
+        {
+            Uint64 earliest = _lastRedrawNs + _drawNs;
+            if (now < earliest)
+                return;
+            
+            Redraw();
+            _lastRedrawNs = now;
+            pendingRedraw = false;
+        }
+
         std::unique_ptr<Preferences> _prefs;
         DockFactory _dockFactory;
         std::unique_ptr<Ui> _ui;
@@ -325,6 +295,7 @@ namespace
         bool _rendererInited = false;
         Uint64 _drawNs = 0;
         Uint64 _lastRedrawNs = 0;
+        bool _running = true;
     };
 
 } // namespace
