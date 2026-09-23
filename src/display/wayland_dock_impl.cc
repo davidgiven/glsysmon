@@ -108,6 +108,10 @@ namespace
             // EXCLUSIVE so ImGui receives keyboard input on the layer surface.
             zwlr_layer_surface_v1_set_keyboard_interactivity(_layerSurface,
                 ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE);
+            // As a wlr-layer-shell panel (LAYER_TOP with exclusive zone),
+            // this surface is a panel and is automatically visible on all
+            // virtual desktops / workspaces (sticky); no _NET_WM_DESKTOP
+            // equivalent is needed on Wayland.
             wl_surface_commit(_surface);
             wl_display_flush(_display);
 

@@ -1,5 +1,12 @@
 #include "dock.h"
 
+#include <SDL3/SDL.h>
+
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+
+#include <cstring>
+
 namespace
 {
 
@@ -26,10 +33,13 @@ namespace
             if (side == "right")
                 x = bounds.x + bounds.w - width;
 
+            SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE, "_NET_WM_WINDOW_TYPE_DOCK");
             SDL_Window* window = SDL_CreateWindow("glsysmon",
                 width,
                 height,
-                SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP);
+                SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP |
+                    SDL_WINDOW_UTILITY);
+            SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE, nullptr);
             if (window == nullptr)
                 return nullptr;
             SDL_SetWindowPosition(window, x, y);
