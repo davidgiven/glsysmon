@@ -28,6 +28,11 @@ namespace
             return _hostname;
         }
 
+        std::string GetName() const override
+        {
+            return "Hostname";
+        }
+
     private:
         void Tick(Timer::Time t)
         {

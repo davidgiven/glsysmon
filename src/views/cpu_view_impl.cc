@@ -92,6 +92,11 @@ namespace
             }
         }
 
+        std::string GetName() const override
+        {
+            return "Cpu";
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<CpuSensor> _sensor;

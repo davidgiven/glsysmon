@@ -4,6 +4,7 @@
 // identical.
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "components.h"
@@ -50,6 +51,11 @@ namespace
         std::string GetChannelName(std::size_t channel) const override
         {
             return "CPU" + std::to_string(channel);
+        }
+
+        std::string GetName() const override
+        {
+            return "Cpu";
         }
 
     private:

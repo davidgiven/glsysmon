@@ -4,6 +4,7 @@
 #include <ctime>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "preferences/preferences.h"
 #include "timer.h"
@@ -24,6 +25,11 @@ namespace
         std::tm GetLocalTime() override
         {
             return _tm;
+        }
+
+        std::string GetName() const override
+        {
+            return "Clock";
         }
 
     private:

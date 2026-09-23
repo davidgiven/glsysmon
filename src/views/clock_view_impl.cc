@@ -56,6 +56,11 @@ namespace
             }
         }
 
+        std::string GetName() const override
+        {
+            return "Clock";
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<ClockSensor> _sensor;

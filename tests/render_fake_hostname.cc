@@ -20,6 +20,11 @@ namespace
         {
             return "fake-hostname";
         }
+
+        std::string GetName() const override
+        {
+            return "Hostname";
+        }
     };
 
 } // namespace

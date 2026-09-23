@@ -42,6 +42,11 @@ namespace
             ImGui::Text("%s", hostname.c_str());
         }
 
+        std::string GetName() const override
+        {
+            return "Hostname";
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<HostnameSensor> _sensor;

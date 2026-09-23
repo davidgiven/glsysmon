@@ -56,6 +56,11 @@ namespace
             return "temp" + std::to_string(channel + 1);
         }
 
+        std::string GetName() const override
+        {
+            return "Temperature";
+        }
+
     private:
         std::vector<std::vector<double>> _samples;
         std::vector<std::string> _names;

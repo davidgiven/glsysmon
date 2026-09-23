@@ -96,6 +96,11 @@ namespace
             }
         }
 
+        std::string GetName() const override
+        {
+            return "Temperature";
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<TemperatureSensor> _sensor;

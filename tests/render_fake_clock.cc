@@ -5,6 +5,7 @@
 
 #include <ctime>
 #include <memory>
+#include <string>
 
 #include "components.h"
 #include "render_lib.h"
@@ -26,6 +27,11 @@ namespace
             tm.tm_min = 4;
             tm.tm_sec = 5;
             return tm;
+        }
+
+        std::string GetName() const override
+        {
+            return "Clock";
         }
     };
 

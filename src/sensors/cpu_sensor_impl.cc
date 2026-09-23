@@ -45,7 +45,8 @@ namespace
             if (size <= 0)
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
-            double interval = prefs.GetDouble("cpu.update_interval").value_or(5);
+            double interval =
+                prefs.GetDouble("cpu.update_interval").value_or(5);
             if (interval <= 0)
                 interval = 5;
             _delta = 1'000'000'000ULL / interval;
@@ -76,6 +77,11 @@ namespace
         std::string GetChannelName(std::size_t channel) const override
         {
             return "CPU" + std::to_string(channel);
+        }
+
+        std::string GetName() const override
+        {
+            return "Cpu";
         }
 
     private:

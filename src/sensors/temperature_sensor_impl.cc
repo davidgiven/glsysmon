@@ -116,6 +116,11 @@ namespace
             return "temp" + std::to_string(channel + 1);
         }
 
+        std::string GetName() const override
+        {
+            return "Temperature";
+        }
+
     private:
         void Tick(Timer::Time t)
         {
