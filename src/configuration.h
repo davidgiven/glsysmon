@@ -1,5 +1,8 @@
 #pragma once
 
+#include <map>
+#include "preferences/preferences.h"
+
 class App;
 class Sensors;
 class Views;
@@ -15,4 +18,5 @@ private:
     const Views& _views;
     const Sensors& _sensors;
     App& _app;
+    std::unique_ptr<Preferences> _pendingPreferences;
 };

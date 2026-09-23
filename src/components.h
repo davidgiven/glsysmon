@@ -1,8 +1,10 @@
 #pragma once
 
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "app.h"
 #include "display/dock.h"
@@ -21,9 +23,13 @@
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
 extern std::unique_ptr<Preferences> CreateTomlPreferences();
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
-extern std::unique_ptr<Preferences> CreateMapPreferences(
-    std::map<std::string, std::string> values);
-extern std::unique_ptr<Preferences> CreateMapPreferences();
+extern std::shared_ptr<Preferences> CreateMapPreferences(
+    const std::map<std::string, std::string>& values);
+extern std::shared_ptr<Preferences> CreateMapPreferences();
+extern std::unique_ptr<Preferences> CreateCombinedPreferences(
+    std::initializer_list<std::shared_ptr<Preferences>> sources);
+extern std::unique_ptr<Preferences> CreateCombinedPreferences(
+    std::vector<std::shared_ptr<Preferences>> sources);
 extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 
 extern std::unique_ptr<Dock> CreateDock(const Preferences& prefs);

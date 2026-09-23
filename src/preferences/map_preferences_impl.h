@@ -9,16 +9,17 @@
 class MapPreferencesImpl : public Preferences
 {
 public:
-    explicit MapPreferencesImpl(std::map<std::string, std::string> values);
+    explicit MapPreferencesImpl(
+        const std::map<std::string, std::string>& values);
 
     std::optional<std::string> GetString(const std::string& key) const override;
 
-    void Set(const std::string& key, const std::string& value);
+    void Set(const std::string& key, const std::string& value) override;
 
 private:
     std::map<std::string, std::string> _values;
 };
 
-extern std::unique_ptr<Preferences> CreateMapPreferences(
-    std::map<std::string, std::string> values);
-extern std::unique_ptr<Preferences> CreateMapPreferences();
+extern std::shared_ptr<Preferences> CreateMapPreferences(
+    const std::map<std::string, std::string>& values);
+extern std::shared_ptr<Preferences> CreateMapPreferences();

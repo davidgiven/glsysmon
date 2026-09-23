@@ -26,9 +26,18 @@ public:
         const std::string& key) const;
     virtual std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
+
+    virtual void Set(const std::string& key, const std::string& value)
+    {
+        (void)key;
+        (void)value;
+    };
 };
 
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
+
+extern std::unique_ptr<Preferences> CreateCombinedPreferences(
+    std::initializer_list<std::shared_ptr<Preferences>> sources);
 
 // Typed accessors for the known preference keys.
 class GlobalPreferencesFetcher

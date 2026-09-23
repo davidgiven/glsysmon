@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include "preferences/preferences.h"
+
 // Application entry interface. Implementations live in imgui_app_impl.cc.
 // The main loop lives in main.cc, which drives Setup()/MainLoop()/Shutdown().
 class App
@@ -20,6 +23,9 @@ public:
     // Releases all resources acquired by Setup(). Safe to call multiple times;
     // the destructor calls it again as a safety net.
     virtual void Shutdown() = 0;
+
+    // Return the current preferences object.
+    virtual std::shared_ptr<Preferences> GetPreferences() = 0;
 
     virtual void Quit() = 0;
 };

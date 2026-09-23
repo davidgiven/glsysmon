@@ -15,13 +15,15 @@ namespace
     {
     public:
         explicit CombinedPreferencesImpl(
-            std::initializer_list<std::unique_ptr<Preferences>> sources)
+            std::initializer_list<std::shared_ptr<Preferences>> sources):
+            _sources(sources)
         {
-            for (auto& source : sources)
-            {
-                _sources.push_back(std::move(
-                    const_cast<std::unique_ptr<Preferences>&>(source)));
-            }
+        }
+
+        explicit CombinedPreferencesImpl(
+            std::vector<std::shared_ptr<Preferences>> sources):
+            _sources(std::move(sources))
+        {
         }
 
         std::optional<std::string> GetString(
@@ -67,16 +69,27 @@ namespace
         }
 
     private:
-        std::vector<std::unique_ptr<Preferences>> _sources;
+        std::vector<std::shared_ptr<Preferences>> _sources;
     };
 
 } // namespace
 
+std::unique_ptr<Preferences> CreateCombinedPreferences(
+    std::initializer_list<std::shared_ptr<Preferences>> sources)
+{
+    return std::make_unique<CombinedPreferencesImpl>(sources);
+}
+
+std::unique_ptr<Preferences> CreateCombinedPreferences(
+    std::vector<std::shared_ptr<Preferences>> sources)
+{
+    return std::make_unique<CombinedPreferencesImpl>(std::move(sources));
+}
+
 std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args)
 {
-    return std::make_unique<CombinedPreferencesImpl>(
-        std::initializer_list<std::unique_ptr<Preferences>>{
-            CreateCliPreferences(args),
-            CreateTomlPreferences(),
-            CreateDefaultPreferences()});
+    return CreateCombinedPreferences(
+        {std::shared_ptr<Preferences>(CreateCliPreferences(args)),
+            std::shared_ptr<Preferences>(CreateTomlPreferences()),
+            std::shared_ptr<Preferences>(CreateDefaultPreferences())});
 }

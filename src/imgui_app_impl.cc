@@ -124,7 +124,7 @@ namespace
     public:
         ImGuiAppImpl(DockFactory dockFactory,
             std::unique_ptr<ImGuiFrameRenderer> frameRenderer,
-            std::unique_ptr<Preferences> prefs,
+            std::shared_ptr<Preferences> prefs,
             std::unique_ptr<Timer> timer):
             _prefs(std::move(prefs)),
             _dockFactory(std::move(dockFactory)),
@@ -136,6 +136,11 @@ namespace
         ~ImGuiAppImpl() override
         {
             Shutdown();
+        }
+
+        std::shared_ptr<Preferences> GetPreferences()
+        {
+            return _prefs;
         }
 
         void SetUi(std::unique_ptr<Ui> ui)
@@ -292,7 +297,7 @@ namespace
             pendingRedraw = false;
         }
 
-        std::unique_ptr<Preferences> _prefs;
+        std::shared_ptr<Preferences> _prefs;
         DockFactory _dockFactory;
         std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
         std::unique_ptr<Timer> _timer;
@@ -311,16 +316,14 @@ namespace
 
 std::unique_ptr<App> CreateApp(const CliArgs& args)
 {
-    auto prefs = CreatePreferences(args);
+    auto prefs = std::shared_ptr<Preferences>(CreatePreferences(args));
     auto dockFactory = CreateDockFactory(*prefs);
     auto timer = CreateTimer();
     Timer& timerRef = *timer;
     Preferences& prefsRef = *prefs;
     auto renderer = CreateImGuiFrameRenderer();
-    auto app = std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
-        std::move(renderer),
-        std::move(prefs),
-        std::move(timer));
+    auto app = std::make_unique<ImGuiAppImpl>(
+        std::move(dockFactory), std::move(renderer), prefs, std::move(timer));
     auto ui = CreateUi(prefsRef, timerRef, *app);
     static_cast<ImGuiAppImpl*>(app.get())->SetUi(std::move(ui));
     return app;
