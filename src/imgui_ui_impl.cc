@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "components.h"
+#include "configuration.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "timer.h"
@@ -88,8 +89,9 @@ namespace
                 ImGui::SetNextWindowClass(&window_class);
                 ImGui::SetNextWindowSize(
                     ImVec2(300, 200), ImGuiCond_FirstUseEver);
-                ImGui::Begin(
-                    "Configuration", &_viewportOpen, ImGuiWindowFlags_NoTitleBar);
+                ImGui::Begin("Configuration",
+                    &_viewportOpen,
+                    ImGuiWindowFlags_NoTitleBar);
                 if (_viewportFocusRequested)
                 {
                     ImGuiViewport* vp = ImGui::GetWindowViewport();
@@ -105,7 +107,7 @@ namespace
                         }
                     }
                 }
-                ImGui::Text("Viewport");
+                _configurationWindow.Draw();
                 ImGui::End();
             }
         }
@@ -114,6 +116,7 @@ namespace
         const Preferences& _prefs;
         Sensors _sensors;
         std::vector<std::unique_ptr<View>> _views;
+        ConfigurationWindow _configurationWindow;
         bool _viewportOpen = false;
         bool _viewportFocusRequested = false;
     };

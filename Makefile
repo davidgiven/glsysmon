@@ -42,6 +42,7 @@ COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(X1
                  -I$(CURDIR)/src -MMD -MP
 
 SRC_OBJS := \
+	$(BUILD)/configuration.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
@@ -101,6 +102,7 @@ TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
+	$(BUILD)/configuration.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
 	$(BUILD)/preferences/preferences.o \
