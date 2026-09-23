@@ -1,32 +1,41 @@
-#include "map_preferences_impl.h"
+#include "preferences.h"
 
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 
-#include "components.h"
-#include "preferences.h"
-
-MapPreferencesImpl::MapPreferencesImpl(
-    const std::map<std::string, std::string>& values):
-    _values(values)
+namespace
 {
-}
 
-std::optional<std::string> MapPreferencesImpl::GetString(
-    const std::string& key) const
-{
-    const auto it = _values.find(key);
-    if (it == _values.end())
-        return std::nullopt;
-    return it->second;
-}
+    class MapPreferencesImpl : public Preferences
+    {
+    public:
+        explicit MapPreferencesImpl(
+            const std::map<std::string, std::string>& values):
+            _values(values)
+        {
+        }
 
-void MapPreferencesImpl::Set(const std::string& key, const std::string& value)
-{
-    _values[key] = value;
-}
+        std::optional<std::string> GetString(
+            const std::string& key) const override
+        {
+            const auto it = _values.find(key);
+            if (it == _values.end())
+                return std::nullopt;
+            return it->second;
+        }
+
+        void Set(const std::string& key, const std::string& value) override
+        {
+            _values[key] = value;
+        }
+
+    private:
+        std::map<std::string, std::string> _values;
+    };
+
+} // namespace
 
 std::shared_ptr<Preferences> CreateMapPreferences(
     const std::map<std::string, std::string>& values)

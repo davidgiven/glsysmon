@@ -2,10 +2,8 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
-
-#include "components.h"
-#include "map_preferences_impl.h"
 
 namespace
 {
@@ -22,9 +20,36 @@ namespace
         {"temperature.sensors",         "CPU"                                           },
     };
 
+    class DefaultPreferencesImpl : public Preferences
+    {
+    public:
+        explicit DefaultPreferencesImpl(
+            const std::map<std::string, std::string>& values):
+            _values(values)
+        {
+        }
+
+        std::optional<std::string> GetString(
+            const std::string& key) const override
+        {
+            const auto it = _values.find(key);
+            if (it == _values.end())
+                return std::nullopt;
+            return it->second;
+        }
+
+        void Set(const std::string& key, const std::string& value) override
+        {
+            _values[key] = value;
+        }
+
+    private:
+        std::map<std::string, std::string> _values;
+    };
+
 } // namespace
 
 std::unique_ptr<Preferences> CreateDefaultPreferences()
 {
-    return std::make_unique<MapPreferencesImpl>(kDefaultValues);
+    return std::make_unique<DefaultPreferencesImpl>(kDefaultValues);
 }

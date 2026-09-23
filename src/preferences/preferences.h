@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -35,6 +36,10 @@ public:
 };
 
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
+
+extern std::shared_ptr<Preferences> CreateMapPreferences(
+    const std::map<std::string, std::string>& values);
+extern std::shared_ptr<Preferences> CreateMapPreferences();
 
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(
     std::initializer_list<std::shared_ptr<Preferences>> sources);

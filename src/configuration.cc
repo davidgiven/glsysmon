@@ -3,9 +3,9 @@
 #include <imgui.h>
 
 #include "app.h"
+#include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/views.h"
-#include "preferences/map_preferences_impl.h"
 
 ConfigurationWindow::ConfigurationWindow(
     const Views& views, const Sensors& sensors, App& app):
