@@ -44,6 +44,8 @@ public:
         const std::string& key, const std::vector<std::string>& value);
     virtual void SetStringSet(
         const std::string& key, const std::set<std::string>& value);
+
+    virtual void ClearAll();
 };
 
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);

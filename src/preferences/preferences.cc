@@ -3,6 +3,7 @@
 #include <charconv>
 #include <optional>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -120,4 +121,9 @@ void Preferences::SetStringSet(
         first = false;
     }
     SetString(key, joined);
+}
+
+void Preferences::ClearAll()
+{
+    throw std::runtime_error("unsupported operation");
 }

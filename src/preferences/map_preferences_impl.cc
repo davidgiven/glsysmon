@@ -41,6 +41,11 @@ namespace
             _values[key] = value;
         }
 
+        void ClearAll() override
+        {
+            _values.clear();
+        }
+
     private:
         std::map<std::string, std::string> _values;
     };

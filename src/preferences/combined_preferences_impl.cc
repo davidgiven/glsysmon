@@ -89,6 +89,12 @@ namespace
                 _sources.front()->SetString(key, value);
         }
 
+        void ClearAll() override
+        {
+            if (!_sources.empty())
+                _sources.front()->ClearAll();
+        }
+
     private:
         std::vector<std::shared_ptr<Preferences>> _sources;
     };

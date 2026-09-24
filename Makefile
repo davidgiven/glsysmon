@@ -96,6 +96,7 @@ TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
 TEST_UNIT   := $(TEST_BUILD)/unit_tests
 TEST_TIMER  := $(TEST_BUILD)/timer_tests
 TEST_GRAPH_MIXIN := $(TEST_BUILD)/graph_mixin_test
+TEST_PREFERENCES := $(TEST_BUILD)/preferences_test
 TEST_RENDER_HOSTNAME := $(TEST_BUILD)/render_fake_hostname
 TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
 TEST_RENDER_CPU      := $(TEST_BUILD)/render_fake_cpu
@@ -211,6 +212,9 @@ $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
 $(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
+$(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+
 $(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
@@ -234,10 +238,11 @@ $(TEST_RENDER_TEMPERATURE): $(TEST_BUILD)/render_fake_temperature.o \
 run: $(BIN)
 	./$(BIN)
 
-test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_RENDER)
+test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_RENDER)
 	./$(TEST_UNIT)
 	./$(TEST_TIMER)
 	./$(TEST_GRAPH_MIXIN)
+	./$(TEST_PREFERENCES)
 	./$(TEST_RENDER_HOSTNAME)
 	./$(TEST_RENDER_CLOCK)
 	./$(TEST_RENDER_CPU)

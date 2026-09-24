@@ -471,3 +471,55 @@ TEST_CASE("CombinedPreferences delegates string serialisation to first source")
     CHECK(combined->GetStringList("new_list").value() ==
           std::vector<std::string>{"a", "b"});
 }
+
+TEST_CASE("Preferences::ClearAll default throws unsupported operation")
+{
+    CliArgs args;
+    auto cli = CreateCliPreferences(args);
+    CHECK_THROWS_AS(cli->ClearAll(), std::runtime_error);
+    CHECK_THROWS_WITH(cli->ClearAll(), "unsupported operation");
+
+    auto toml = CreateTomlPreferences();
+    CHECK_THROWS_AS(toml->ClearAll(), std::runtime_error);
+
+    auto def = CreateDefaultPreferences();
+    CHECK_THROWS_AS(def->ClearAll(), std::runtime_error);
+    CHECK_THROWS_WITH(def->ClearAll(), "unsupported operation");
+}
+
+TEST_CASE("MapPreferences::ClearAll clears the underlying map")
+{
+    auto prefs = CreateMapPreferences();
+    prefs->SetString("a", "1");
+    prefs->SetString("b", "2");
+    prefs->SetInteger("c", 3);
+    REQUIRE(prefs->GetAll().size() == 3);
+    prefs->ClearAll();
+    CHECK(prefs->GetAll().empty());
+    CHECK_FALSE(prefs->GetString("a").has_value());
+    CHECK_FALSE(prefs->GetString("b").has_value());
+    CHECK_FALSE(prefs->GetInteger("c").has_value());
+}
+
+TEST_CASE("CombinedPreferences::ClearAll calls ClearAll on the first child")
+{
+    auto map1 = CreateMapPreferences();
+    auto map2 = CreateMapPreferences();
+    map1->SetString("k1", "v1");
+    map2->SetString("k2", "v2");
+    auto combined = CreateCombinedPreferences({map1, map2});
+    REQUIRE(combined->GetString("k1").has_value());
+    REQUIRE(combined->GetString("k2").has_value());
+    combined->ClearAll();
+    CHECK_FALSE(map1->GetString("k1").has_value());
+    CHECK(map1->GetAll().empty());
+    CHECK(map2->GetString("k2").value() == "v2");
+    CHECK_FALSE(combined->GetString("k1").has_value());
+    CHECK(combined->GetString("k2").value() == "v2");
+}
+
+TEST_CASE("CombinedPreferences::ClearAll on empty sources does not throw")
+{
+    auto combined = CreateCombinedPreferences({});
+    CHECK_NOTHROW(combined->ClearAll());
+}
