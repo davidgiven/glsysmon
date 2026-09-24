@@ -34,8 +34,8 @@ namespace
         {
             for (const auto& source : _sources)
             {
-                if (auto value = source->GetInteger(key))
-                    return value;
+                if (source->GetString(key).has_value())
+                    return source->GetInteger(key);
             }
             return std::nullopt;
         }
@@ -44,8 +44,8 @@ namespace
         {
             for (const auto& source : _sources)
             {
-                if (auto value = source->GetDouble(key))
-                    return value;
+                if (source->GetString(key).has_value())
+                    return source->GetDouble(key);
             }
             return std::nullopt;
         }
@@ -54,8 +54,8 @@ namespace
         {
             for (const auto& source : _sources)
             {
-                if (auto value = source->GetBoolean(key))
-                    return value;
+                if (source->GetString(key).has_value())
+                    return source->GetBoolean(key);
             }
             return std::nullopt;
         }
@@ -65,8 +65,8 @@ namespace
         {
             for (const auto& source : _sources)
             {
-                if (auto value = source->GetStringList(key))
-                    return value;
+                if (source->GetString(key).has_value())
+                    return source->GetStringList(key);
             }
             return std::nullopt;
         }

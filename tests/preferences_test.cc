@@ -677,3 +677,36 @@ TEST_CASE("WriteTomlPreferences writes to DefaultConfigPath and creates dirs")
 
     std::filesystem::remove_all(tmp);
 }
+
+TEST_CASE("CombinedPreferences::GetAll enumerates overridden keys exactly once")
+{
+    auto map1 = CreateMapPreferences();
+    auto map2 = CreateMapPreferences();
+
+    map1->SetString("a", "1");
+    map1->SetString("b", "override");
+    map2->SetString("b", "original");
+    map2->SetString("c", "3");
+
+    auto combined = CreateCombinedPreferences({map1, map2});
+    const std::set<std::string> all = combined->GetAll();
+
+    CHECK(all.size() == 3);
+    CHECK(all.count("a") == 1);
+    CHECK(all.count("b") == 1);
+    CHECK(all.count("c") == 1);
+    CHECK(combined->GetString("a").value() == "1");
+    CHECK(combined->GetString("b").value() == "override");
+    CHECK(combined->GetString("c").value() == "3");
+    CHECK(combined->GetString("b").value() != "original");
+
+    // Writing the combined preferences must persist the overridden value
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+    WriteTomlPreferences(*combined);
+    auto loaded = CreateTomlPreferences();
+    CHECK(loaded->GetString("a").value() == "1");
+    CHECK(loaded->GetString("b").value() == "override");
+    CHECK(loaded->GetString("c").value() == "3");
+    std::filesystem::remove_all(tmp);
+}

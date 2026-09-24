@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 
+#include <cstdio>
 #include <csetjmp>
 
 #include "app.h"
