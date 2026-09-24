@@ -77,7 +77,7 @@ namespace
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
             double interval =
-                prefs.GetInteger(_prefPrefix + ".update_interval").value_or(1);
+                prefs.GetDouble(_prefPrefix + ".update_interval").value_or(1);
             if (interval <= 0)
                 interval = 1;
             _delta = 1'000'000'000ULL / interval;

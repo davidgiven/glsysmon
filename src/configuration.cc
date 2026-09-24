@@ -63,7 +63,7 @@ void ConfigurationWindow::Draw(bool* open)
                              ImGui::GetContentRegionAvail().x - totalWidth);
         if (ImGui::Button("OK"))
         {
-            WriteTomlPreferences(*_pendingMapPreferences);
+            WriteTomlPreferences(*_pendingPreferences);
             longjmp(g_restartJmp, 1);
         }
         ImGui::SameLine();
