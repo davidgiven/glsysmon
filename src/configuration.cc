@@ -7,15 +7,13 @@
 #include "app.h"
 #include "preferences/preferences.h"
 #include "restart.h"
-#include "sensors/sensors.h"
+#include "sensors/sensor.h"
 #include "views/views.h"
 
 jmp_buf g_restartJmp;
 
-ConfigurationWindow::ConfigurationWindow(
-    const Views& views, const Sensors& sensors, App& app):
+ConfigurationWindow::ConfigurationWindow(const Views& views, App& app):
     _views(views),
-    _sensors(sensors),
     _app(app),
     _pendingMapPreferences(CreateMapPreferences()),
     _pendingPreferences(CreateCombinedPreferences(

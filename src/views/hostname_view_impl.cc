@@ -18,7 +18,7 @@ namespace
     public:
         explicit HostnameViewImpl(const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensors(&sensors)
+            _sensor(sensors.CreateHostnameSensor())
         {
         }
 
@@ -31,9 +31,7 @@ namespace
 
         void Draw() override
         {
-            HostnameSensor& sensor =
-                _sensor ? *_sensor : _sensors->GetHostnameSensor();
-            const std::string hostname = sensor.GetHostname();
+            const std::string hostname = _sensor->GetHostname();
             const float avail = ImGui::GetContentRegionAvail().x;
             const float textWidth = ImGui::CalcTextSize(hostname.c_str()).x;
             ImGui::SetCursorPosX(
@@ -53,22 +51,17 @@ namespace
 
         std::vector<Sensor*> GetSensors() override
         {
-            if (_sensor)
-                return {static_cast<Sensor*>(_sensor.get())};
-            return {static_cast<Sensor*>(&_sensors->GetHostnameSensor())};
+            return {static_cast<Sensor*>(_sensor.get())};
         }
 
         std::vector<Sensor*> GetSensors() const override
         {
-            if (_sensor)
-                return {static_cast<Sensor*>(_sensor.get())};
-            return {static_cast<Sensor*>(&_sensors->GetHostnameSensor())};
+            return {static_cast<Sensor*>(_sensor.get())};
         }
 
     private:
         const Preferences& _prefs;
         std::unique_ptr<HostnameSensor> _sensor;
-        Sensors* _sensors = nullptr;
     };
 
 } // namespace

@@ -32,16 +32,21 @@ namespace
             _sensors(prefs, timer),
             _views(prefs, _sensors),
             _app(app),
-            _configurationWindow(_views, _sensors, _app)
+            _configurationWindow(_views, _app)
         {
             if (fakeHostnameSensor != nullptr)
-                _sensors.SetHostnameSensor(std::move(fakeHostnameSensor));
+                _views.Inject("HostnameView",
+                    CreateHostnameView(prefs, std::move(fakeHostnameSensor)));
             if (fakeClockSensor != nullptr)
-                _sensors.SetClockSensor(std::move(fakeClockSensor));
+                _views.Inject("ClockView",
+                    CreateClockView(prefs, std::move(fakeClockSensor)));
             if (fakeCpuSensor != nullptr)
-                _sensors.SetCpuSensor(std::move(fakeCpuSensor));
+                _views.Inject(
+                    "CpuView", CreateCpuView(prefs, std::move(fakeCpuSensor)));
             if (fakeTemperatureSensor != nullptr)
-                _sensors.SetTemperatureSensor(std::move(fakeTemperatureSensor));
+                _views.Inject("TemperatureView",
+                    CreateTemperatureView(
+                        prefs, std::move(fakeTemperatureSensor)));
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
             {

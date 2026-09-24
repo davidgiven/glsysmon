@@ -270,10 +270,17 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
         }
     }
 
-    // Via Sensors registry
+    // Via Sensors factory
     Sensors sensors(*prefs, *timer);
-    sensors.SetCpuSensor(CreateCpuSensor(*prefs, *timer, path));
-    CHECK(sensors.GetCpuSensor().GetChannels() == 2);
+    auto factorySensor = sensors.CreateCpuSensor(path);
+    CHECK(factorySensor->GetChannels() == 2);
+    // Via view-owned sensor
+    auto view = CreateCpuView(*prefs, sensors.CreateCpuSensor(path));
+    REQUIRE(view != nullptr);
+    CHECK(view->GetSensors().size() == 1);
+    auto* viewSensor = dynamic_cast<CpuSensor*>(view->GetSensors()[0]);
+    REQUIRE(viewSensor != nullptr);
+    CHECK(viewSensor->GetChannels() == 2);
 
     std::remove(path.c_str());
 }

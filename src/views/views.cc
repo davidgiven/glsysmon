@@ -38,6 +38,11 @@ View* Views::Get(const std::string& name) const
     return ptr;
 }
 
+void Views::Inject(const std::string& name, std::unique_ptr<View> view)
+{
+    _views[name] = std::move(view);
+}
+
 void Views::Reset()
 {
     _views.clear();

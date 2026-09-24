@@ -22,6 +22,8 @@ public:
 
     View* Get(const std::string& name) const;
 
+    void Inject(const std::string& name, std::unique_ptr<View> view);
+
     void Reset();
 
 private:

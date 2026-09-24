@@ -22,15 +22,21 @@ namespace
         explicit TemperatureViewImpl(
             const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensors(&sensors)
+            _sensor(sensors.CreateTemperatureSensor())
+        {
+        }
+
+        explicit TemperatureViewImpl(const Preferences& prefs,
+            std::unique_ptr<TemperatureSensor> sensor):
+            _prefs(prefs),
+            _sensor(std::move(sensor))
         {
         }
 
         void Draw() override
         {
-            TemperatureSensor& sensor = _sensors->GetTemperatureSensor();
-            const std::size_t count = sensor.GetChannels();
-            const std::size_t sampleCount = sensor.GetSampleCount();
+            const std::size_t count = _sensor->GetChannels();
+            const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
             const int minimum =
@@ -43,11 +49,11 @@ namespace
 
             for (std::size_t ch = 0; ch < count; ++ch)
             {
-                const std::string channelName = sensor.GetChannelName(ch);
+                const std::string channelName = _sensor->GetChannelName(ch);
                 if (allowedSet &&
                     allowedSet->find(channelName) == allowedSet->end())
                     continue;
-                const double* samples = sensor.GetSamples(ch);
+                const double* samples = _sensor->GetSamples(ch);
                 if (samples == nullptr)
                     continue;
                 const int n = static_cast<int>(sampleCount);
@@ -100,17 +106,17 @@ namespace
 
         std::vector<Sensor*> GetSensors() override
         {
-            return {static_cast<Sensor*>(&_sensors->GetTemperatureSensor())};
+            return {static_cast<Sensor*>(_sensor.get())};
         }
 
         std::vector<Sensor*> GetSensors() const override
         {
-            return {static_cast<Sensor*>(&_sensors->GetTemperatureSensor())};
+            return {static_cast<Sensor*>(_sensor.get())};
         }
 
     private:
         const Preferences& _prefs;
-        Sensors* _sensors = nullptr;
+        std::unique_ptr<TemperatureSensor> _sensor;
     };
 
 } // namespace
@@ -119,4 +125,10 @@ std::unique_ptr<View> CreateTemperatureView(
     const Preferences& prefs, Sensors& sensors)
 {
     return std::make_unique<TemperatureViewImpl>(prefs, sensors);
+}
+
+std::unique_ptr<View> CreateTemperatureView(
+    const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor)
+{
+    return std::make_unique<TemperatureViewImpl>(prefs, std::move(sensor));
 }
