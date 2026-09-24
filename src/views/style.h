@@ -1,20 +1,14 @@
 #pragma once
 
+#include <functional>
 #include <string>
 
 class Style
 {
 public:
-    class GraphGroup
-    {
-    public:
-        explicit GraphGroup(const char* title);
-        explicit GraphGroup(const std::string& title);
-        ~GraphGroup();
-
-        GraphGroup(const GraphGroup&) = delete;
-        GraphGroup& operator=(const GraphGroup&) = delete;
-    };
+    static void GraphGroup(const char* title, std::function<void()> body);
+    static void GraphGroup(
+        const std::string& title, std::function<void()> body);
 
     static void DrawCentredText(const char* text);
     static void DrawCentredText(const std::string& text);

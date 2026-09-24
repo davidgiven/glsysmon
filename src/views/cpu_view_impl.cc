@@ -40,60 +40,65 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            Style::GraphGroup group("CPU usage");
-            for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
-            {
-                const CpuSample* samples = _sensor->GetSamples(cpu);
-                if (samples == nullptr)
-                    continue;
-                const int n = static_cast<int>(sampleCount);
-                std::vector<float> values;
-                values.resize(static_cast<std::size_t>(3) * n);
-                for (int i = 0; i < n; ++i)
+            Style::GraphGroup("CPU usage",
+                [&]
                 {
-                    values[static_cast<std::size_t>(0) * n + i] =
-                        samples[i].user;
-                    values[static_cast<std::size_t>(1) * n + i] =
-                        samples[i].system;
-                    values[static_cast<std::size_t>(2) * n + i] =
-                        samples[i].nice;
-                }
-                const char* labels[] = {"user", "system", "nice"};
-                char title[32];
-                std::snprintf(title, sizeof(title), "##cpu%zu", cpu);
-                const float width = ImGui::GetContentRegionAvail().x;
-                if (ImPlot::BeginPlot(title,
-                        ImVec2(width, 40),
-                        ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
-                            ImPlotFlags_NoMouseText | ImPlotFlags_NoInputs |
-                            ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
-                            ImPlotFlags_NoFrame))
-                {
-                    ImPlot::SetupAxes(nullptr,
-                        nullptr,
-                        ImPlotAxisFlags_NoDecorations,
-                        ImPlotAxisFlags_NoDecorations);
-                    ImPlot::SetupAxesLimits(0, n, 0, 1, ImPlotCond_Always);
-                    ImPlot::SetupFinish();
-                    ImPlot::PlotBarGroups(labels,
-                        values.data(),
-                        3,
-                        n,
-                        1.0,
-                        0.5,
-                        ImPlotSpec(
-                            ImPlotProp_Flags, ImPlotBarGroupsFlags_Stacked));
-                    const std::string channelName =
-                        _sensor->GetChannelName(cpu);
-                    ImVec2 pos = ImPlot::GetPlotPos();
-                    ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
-                        ImGui::GetFontSize() * 2.0f / 3.0f,
-                        ImVec2(pos.x + 2, pos.y + 2),
-                        ImGui::GetColorU32(ImGuiCol_Text),
-                        std::to_string(cpu).c_str());
-                    ImPlot::EndPlot();
-                }
-            }
+                    for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
+                    {
+                        const CpuSample* samples = _sensor->GetSamples(cpu);
+                        if (samples == nullptr)
+                            continue;
+                        const int n = static_cast<int>(sampleCount);
+                        std::vector<float> values;
+                        values.resize(static_cast<std::size_t>(3) * n);
+                        for (int i = 0; i < n; ++i)
+                        {
+                            values[static_cast<std::size_t>(0) * n + i] =
+                                samples[i].user;
+                            values[static_cast<std::size_t>(1) * n + i] =
+                                samples[i].system;
+                            values[static_cast<std::size_t>(2) * n + i] =
+                                samples[i].nice;
+                        }
+                        const char* labels[] = {"user", "system", "nice"};
+                        char title[32];
+                        std::snprintf(title, sizeof(title), "##cpu%zu", cpu);
+                        const float width = ImGui::GetContentRegionAvail().x;
+                        if (ImPlot::BeginPlot(title,
+                                ImVec2(width, 40),
+                                ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
+                                    ImPlotFlags_NoMouseText |
+                                    ImPlotFlags_NoInputs | ImPlotFlags_NoMenus |
+                                    ImPlotFlags_NoBoxSelect |
+                                    ImPlotFlags_NoFrame))
+                        {
+                            ImPlot::SetupAxes(nullptr,
+                                nullptr,
+                                ImPlotAxisFlags_NoDecorations,
+                                ImPlotAxisFlags_NoDecorations);
+                            ImPlot::SetupAxesLimits(
+                                0, n, 0, 1, ImPlotCond_Always);
+                            ImPlot::SetupFinish();
+                            ImPlot::PlotBarGroups(labels,
+                                values.data(),
+                                3,
+                                n,
+                                1.0,
+                                0.5,
+                                ImPlotSpec(ImPlotProp_Flags,
+                                    ImPlotBarGroupsFlags_Stacked));
+                            const std::string channelName =
+                                _sensor->GetChannelName(cpu);
+                            ImVec2 pos = ImPlot::GetPlotPos();
+                            ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
+                                ImGui::GetFontSize() * 2.0f / 3.0f,
+                                ImVec2(pos.x + 2, pos.y + 2),
+                                ImGui::GetColorU32(ImGuiCol_Text),
+                                std::to_string(cpu).c_str());
+                            ImPlot::EndPlot();
+                        }
+                    }
+                });
         }
 
         std::string GetHumanName() const override

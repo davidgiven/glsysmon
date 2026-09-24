@@ -48,47 +48,54 @@ namespace
             const double yMax = static_cast<double>(maximum);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
 
-            Style::GraphGroup group("Temperature");
-            for (std::size_t ch = 0; ch < count; ++ch)
-            {
-                const std::string channelName = _sensor->GetChannelName(ch);
-                if (allowedSet &&
-                    allowedSet->find(channelName) == allowedSet->end())
-                    continue;
-                const double* samples = _sensor->GetSamples(ch);
-                if (samples == nullptr)
-                    continue;
-                const int n = static_cast<int>(sampleCount);
-                char title[64];
-                std::snprintf(title, sizeof(title), "##temperature%zu", ch);
-                const float width = ImGui::GetContentRegionAvail().x;
-                if (ImPlot::BeginPlot(title,
-                        ImVec2(width, 40),
-                        ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
-                            ImPlotFlags_NoMouseText | ImPlotFlags_NoInputs |
-                            ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
-                            ImPlotFlags_NoFrame))
+            Style::GraphGroup("Temperature",
+                [&]
                 {
-                    ImPlot::SetupAxes(nullptr,
-                        nullptr,
-                        ImPlotAxisFlags_NoDecorations,
-                        ImPlotAxisFlags_NoDecorations);
-                    ImPlot::SetupAxesLimits(
-                        0, n, yMin, yMax, ImPlotCond_Always);
-                    ImPlot::SetupFinish();
-                    ImPlot::PlotLine(channelName.c_str(), samples, n);
-                    ImPlot::EndPlot();
-                }
+                    for (std::size_t ch = 0; ch < count; ++ch)
+                    {
+                        const std::string channelName =
+                            _sensor->GetChannelName(ch);
+                        if (allowedSet &&
+                            allowedSet->find(channelName) == allowedSet->end())
+                            continue;
+                        const double* samples = _sensor->GetSamples(ch);
+                        if (samples == nullptr)
+                            continue;
+                        const int n = static_cast<int>(sampleCount);
+                        char title[64];
+                        std::snprintf(
+                            title, sizeof(title), "##temperature%zu", ch);
+                        const float width = ImGui::GetContentRegionAvail().x;
+                        if (ImPlot::BeginPlot(title,
+                                ImVec2(width, 40),
+                                ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
+                                    ImPlotFlags_NoMouseText |
+                                    ImPlotFlags_NoInputs | ImPlotFlags_NoMenus |
+                                    ImPlotFlags_NoBoxSelect |
+                                    ImPlotFlags_NoFrame))
+                        {
+                            ImPlot::SetupAxes(nullptr,
+                                nullptr,
+                                ImPlotAxisFlags_NoDecorations,
+                                ImPlotAxisFlags_NoDecorations);
+                            ImPlot::SetupAxesLimits(
+                                0, n, yMin, yMax, ImPlotCond_Always);
+                            ImPlot::SetupFinish();
+                            ImPlot::PlotLine(channelName.c_str(), samples, n);
+                            ImPlot::EndPlot();
+                        }
 
-                {
-                    const float avail = ImGui::GetContentRegionAvail().x;
-                    const float textWidth =
-                        ImGui::CalcTextSize(channelName.c_str()).x;
-                    ImGui::SetCursorPosX(
-                        ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-                    ImGui::Text("%s", channelName.c_str());
-                }
-            }
+                        {
+                            const float avail =
+                                ImGui::GetContentRegionAvail().x;
+                            const float textWidth =
+                                ImGui::CalcTextSize(channelName.c_str()).x;
+                            ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                                                 (avail - textWidth) * 0.5f);
+                            ImGui::Text("%s", channelName.c_str());
+                        }
+                    }
+                });
         }
 
         std::string GetHumanName() const override
