@@ -74,6 +74,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
@@ -145,6 +146,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(FONT_GEN_OBJ)
 

@@ -42,12 +42,6 @@ namespace
             return "clock";
         }
 
-        void DrawConfiguration(Preferences& preferences) override
-        {
-            (void)preferences;
-            ImGui::Text("%s settings", GetHumanName().c_str());
-        }
-
     private:
         void Tick(Timer::Time t)
         {

@@ -18,7 +18,7 @@ public:
 
     virtual std::string GetPrefName() const = 0;
 
-    virtual void DrawConfiguration(Preferences& preferences) = 0;
+    virtual void DrawConfiguration(Preferences& preferences);
 
 protected:
     std::string _prefPrefix;
