@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "graph_mixin.h"
 #include "preferences/preferences.h"
+#include "sensor_graph_mixin.h"
 #include "timer.h"
 
 namespace
@@ -110,7 +110,7 @@ namespace
         {
             if (channel >= GetChannels())
                 return nullptr;
-            return this->GraphMixin<double>::GetSamples(channel);
+            return this->SensorGraphMixin<double>::GetSamples(channel);
         }
 
         std::string GetChannelName(std::size_t channel) const override

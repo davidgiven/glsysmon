@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graph_mixin.h"
 #include "sensor.h"
+#include "sensor_graph_mixin.h"
 
 #include <memory>
 #include <string>
@@ -9,7 +9,7 @@
 class Preferences;
 class Timer;
 
-class TemperatureSensor : public Sensor, public GraphMixin<double>
+class TemperatureSensor : public Sensor, public SensorGraphMixin<double>
 {
 public:
     explicit TemperatureSensor(const std::string& prefPrefix): Sensor(prefPrefix)

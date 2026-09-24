@@ -8,22 +8,22 @@
 #include <vector>
 
 template <typename T>
-class GraphMixin
+class SensorGraphMixin
 {
 public:
-    GraphMixin() = default;
+    SensorGraphMixin() = default;
 
-    explicit GraphMixin(
+    explicit SensorGraphMixin(
         std::size_t channels, std::size_t sampleCount, const T& initial = T{}):
         _samples(channels, std::vector<T>(sampleCount, initial))
     {
     }
 
-    virtual ~GraphMixin() = default;
+    virtual ~SensorGraphMixin() = default;
 
     virtual std::size_t GetChannels()
     {
-        return const_cast<const GraphMixin*>(this)->GetChannels();
+        return const_cast<const SensorGraphMixin*>(this)->GetChannels();
     }
 
     virtual std::size_t GetChannels() const
@@ -33,7 +33,7 @@ public:
 
     virtual std::size_t GetSampleCount()
     {
-        return const_cast<const GraphMixin*>(this)->GetSampleCount();
+        return const_cast<const SensorGraphMixin*>(this)->GetSampleCount();
     }
 
     virtual std::size_t GetSampleCount() const
@@ -45,7 +45,7 @@ public:
 
     virtual const T* GetSamples(std::size_t channel)
     {
-        return const_cast<const GraphMixin*>(this)->GetSamples(channel);
+        return const_cast<const SensorGraphMixin*>(this)->GetSamples(channel);
     }
 
     virtual const T* GetSamples(std::size_t channel) const

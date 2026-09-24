@@ -10,19 +10,19 @@
 
 #include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
-#include "sensors/graph_mixin.h"
+#include "sensors/sensor_graph_mixin.h"
 #include "timer.h"
 
 namespace
 {
 
     template <typename T>
-    class TestGraph : public GraphMixin<T>
+    class TestGraph : public SensorGraphMixin<T>
     {
     public:
-        using GraphMixin<T>::AddSample;
-        using GraphMixin<T>::GraphMixin;
-        using GraphMixin<T>::InitGraph;
+        using SensorGraphMixin<T>::AddSample;
+        using SensorGraphMixin<T>::SensorGraphMixin;
+        using SensorGraphMixin<T>::InitGraph;
 
         std::string GetChannelName(std::size_t channel) const override
         {
@@ -42,7 +42,7 @@ namespace
 
 } // namespace
 
-TEST_CASE("GraphMixin default is empty")
+TEST_CASE("SensorGraphMixin default is empty")
 {
     TestGraph<int> g;
     CHECK(g.GetChannels() == 0);
@@ -52,7 +52,7 @@ TEST_CASE("GraphMixin default is empty")
     CHECK(cg.GetSampleCount() == 0);
 }
 
-TEST_CASE("GraphMixin constructor initializes channels and samples")
+TEST_CASE("SensorGraphMixin constructor initializes channels and samples")
 {
     TestGraph<int> g(2, 3, 42);
     CHECK(g.GetChannels() == 2);
@@ -72,7 +72,7 @@ TEST_CASE("GraphMixin constructor initializes channels and samples")
     CHECK(cg.GetSamples(0)[0] == 42);
 }
 
-TEST_CASE("GraphMixin InitGraph creates and resets graph")
+TEST_CASE("SensorGraphMixin InitGraph creates and resets graph")
 {
     TestGraph<int> g;
     g.InitGraph(3, 4, 7);
@@ -95,7 +95,7 @@ TEST_CASE("GraphMixin InitGraph creates and resets graph")
     CHECK(s[1] == 9);
 }
 
-TEST_CASE("GraphMixin AddSample shifts history per channel")
+TEST_CASE("SensorGraphMixin AddSample shifts history per channel")
 {
     TestGraph<int> g(1, 3, 0);
     // initial [0,0,0]
@@ -134,7 +134,7 @@ TEST_CASE("GraphMixin AddSample shifts history per channel")
     CHECK(s0[2] == 4);
 }
 
-TEST_CASE("GraphMixin channels are independent")
+TEST_CASE("SensorGraphMixin channels are independent")
 {
     TestGraph<int> g(2, 3, 0);
     g.AddSample(0, 1);
@@ -165,7 +165,7 @@ TEST_CASE("GraphMixin channels are independent")
     CHECK(s1[2] == 20);
 }
 
-TEST_CASE("GraphMixin AddSample with sampleCount 1 overwrites")
+TEST_CASE("SensorGraphMixin AddSample with sampleCount 1 overwrites")
 {
     TestGraph<int> g(2, 1, 0);
     CHECK(g.GetSampleCount() == 1);
@@ -179,7 +179,7 @@ TEST_CASE("GraphMixin AddSample with sampleCount 1 overwrites")
     CHECK(g.GetSamples(0)[0] == 6);
 }
 
-TEST_CASE("GraphMixin GetSamplesSpan returns span")
+TEST_CASE("SensorGraphMixin GetSamplesSpan returns span")
 {
     TestGraph<int> g(1, 3, 0);
     g.AddSample(0, 1);
@@ -198,7 +198,7 @@ TEST_CASE("GraphMixin GetSamplesSpan returns span")
     CHECK(cspan[0] == 1);
 }
 
-TEST_CASE("GraphMixin works with struct sample type")
+TEST_CASE("SensorGraphMixin works with struct sample type")
 {
     TestGraph<Sample> g(1, 2, Sample{0.0f, 0.0f});
     g.AddSample(0, Sample{0.2f, 0.1f});
@@ -209,30 +209,30 @@ TEST_CASE("GraphMixin works with struct sample type")
     CHECK(s[1] == Sample{0.5f, 0.3f});
 }
 
-TEST_CASE("GraphMixin virtual dispatch via base pointer")
+TEST_CASE("SensorGraphMixin virtual dispatch via base pointer")
 {
     TestGraph<int> impl(2, 2, 1);
-    GraphMixin<int>* base = &impl;
+    SensorGraphMixin<int>* base = &impl;
     CHECK(base->GetChannels() == 2);
     CHECK(base->GetSampleCount() == 2);
     REQUIRE(base->GetSamples(0) != nullptr);
     CHECK(base->GetSamples(0)[0] == 1);
 
-    const GraphMixin<int>* cbase = &impl;
+    const SensorGraphMixin<int>* cbase = &impl;
     CHECK(cbase->GetChannels() == 2);
     CHECK(cbase->GetSampleCount() == 2);
 }
 
-TEST_CASE("GraphMixin GetChannelName returns channel name")
+TEST_CASE("SensorGraphMixin GetChannelName returns channel name")
 {
     TestGraph<int> g(2, 2, 0);
     CHECK(g.GetChannelName(0) == "Channel0");
     CHECK(g.GetChannelName(1) == "Channel1");
-    const GraphMixin<int>& cg = g;
+    const SensorGraphMixin<int>& cg = g;
     CHECK(cg.GetChannelName(0) == "Channel0");
     CHECK(cg.GetChannelName(1) == "Channel1");
 
-    GraphMixin<int>* base = &g;
+    SensorGraphMixin<int>* base = &g;
     CHECK(base->GetChannelName(0) == "Channel0");
     CHECK(base->GetChannelName(2) == "Channel2");
 }
@@ -251,13 +251,13 @@ TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
     }
     auto timer = CreateTimer();
     auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", path);
-    auto* gm = dynamic_cast<GraphMixin<CpuSample>*>(sensor.get());
+    auto* gm = dynamic_cast<SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(gm != nullptr);
     CHECK(gm->GetChannelName(0) == "CPU0");
     CHECK(gm->GetChannelName(1) == "CPU1");
     CHECK(gm->GetChannelName(2) == "CPU2");
     // also via const
-    const auto* cgm = dynamic_cast<const GraphMixin<CpuSample>*>(sensor.get());
+    const auto* cgm = dynamic_cast<const SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(cgm != nullptr);
     CHECK(cgm->GetChannelName(0) == "CPU0");
     std::remove(path.c_str());

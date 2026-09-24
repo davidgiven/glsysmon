@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graph_mixin.h"
 #include "sensor.h"
+#include "sensor_graph_mixin.h"
 
 #include <memory>
 #include <string>
@@ -16,7 +16,7 @@ struct CpuSample
     float nice;
 };
 
-class CpuSensor : public Sensor, public GraphMixin<CpuSample>
+class CpuSensor : public Sensor, public SensorGraphMixin<CpuSample>
 {
 public:
     explicit CpuSensor(const std::string& prefPrefix): Sensor(prefPrefix)
