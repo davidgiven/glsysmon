@@ -26,6 +26,10 @@ STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb 2>/dev/null)
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
 IMGUI_BACKENDS_DIR := $(IMGUI_DIR)/backends
+FONT_TTF               := $(IMGUI_DIR)/misc/fonts/DroidSans.ttf
+FONT_TOOL              := $(BUILD)/binary_to_compressed_c
+FONT_GEN_CPP           := $(BUILD)/DroidSansFont.cpp
+FONT_GEN_OBJ           := $(BUILD)/DroidSansFont.o
 
 WAYLAND_XML               := third_party/wayland/wlr-layer-shell-unstable-v1.xml
 WAYLAND_PROTOCOL_HEADER   := $(GEN)/wlr-layer-shell-client-protocol.h
@@ -68,7 +72,8 @@ SRC_OBJS := \
 	$(BUILD)/main.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/display/wayland_dock_impl.o \
-	$(BUILD)/display/x11_dock_impl.o
+	$(BUILD)/display/x11_dock_impl.o \
+	$(FONT_GEN_OBJ)
 
 BACKEND_OBJS := \
 	$(BUILD)/imgui_impl_sdl3.o \
@@ -126,11 +131,12 @@ TEST_OBJS := \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
-	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS)
+	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(FONT_GEN_OBJ)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
-         $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d
+         $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
+         $(FONT_GEN_CPP:.cpp=.d)
 
 TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
 	$(TEST_BUILD)/render_lib.o
@@ -140,6 +146,19 @@ all: $(BIN)
 $(BIN): $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
 		$(TOMLPLUSPLUS_LIBS)
+
+$(FONT_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) -O2 -o $@ $<
+
+$(FONT_GEN_CPP): $(FONT_TTF) $(FONT_TOOL)
+	@mkdir -p $(dir $@)
+	$(FONT_TOOL) -nostatic $< DroidSansFont > $@
+	sed -i 's/^const unsigned/extern const unsigned/' $@
+
+$(FONT_GEN_OBJ): $(FONT_GEN_CPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
 	@mkdir -p $(GEN)

@@ -8,6 +8,9 @@
 
 #include <memory>
 
+extern const unsigned int DroidSansFont_compressed_size;
+extern const unsigned char DroidSansFont_compressed_data[];
+
 namespace
 {
 
@@ -36,6 +39,11 @@ namespace
             ImGuiStyle& style = ImGui::GetStyle();
             style.ScaleAllSizes(ui_scale);
             style.FontScaleDpi = ui_scale;
+
+            io.Fonts->AddFontFromMemoryCompressedTTF(
+                DroidSansFont_compressed_data,
+                static_cast<int>(DroidSansFont_compressed_size),
+                16.0f);
 
             ImGui_ImplSDL3_InitForSDLGPU(window);
             ImGui_ImplSDLGPU3_InitInfo init_info = {};
