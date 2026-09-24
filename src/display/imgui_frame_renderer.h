@@ -3,6 +3,8 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
+#include <memory>
+
 // ImGui context, backends, and per-frame render pass. Owns everything ImGui so
 // the app and the off-screen render harness share one implementation; callers
 // only supply the SDL window/device and the target texture (swapchain or
@@ -33,3 +35,5 @@ public:
     // Shuts down the backends and destroys the ImGui context.
     virtual void Shutdown() = 0;
 };
+
+extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();

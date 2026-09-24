@@ -1,6 +1,11 @@
 #pragma once
 
+#include <memory>
 #include <string>
+
+class Preferences;
+class Sensors;
+class HostnameSensor;
 
 // A system-monitor widget shown in the dock. Implementations live in
 // *_view_impl.cc.
@@ -17,3 +22,14 @@ public:
 
     virtual std::string GetName() const = 0;
 };
+
+extern std::unique_ptr<View> CreateClockView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateCpuView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateHostnameView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateHostnameView(
+    const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor);
+extern std::unique_ptr<View> CreateTemperatureView(
+    const Preferences& prefs, Sensors& sensors);

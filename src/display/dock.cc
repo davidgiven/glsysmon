@@ -26,11 +26,6 @@ std::unique_ptr<Dock> DockCreate(const Preferences& prefs)
     return DockCreateFallback(prefs);
 }
 
-std::unique_ptr<Dock> CreateDock(const Preferences& prefs)
-{
-    return DockCreate(prefs);
-}
-
 DockFactory CreateDockFactory(const Preferences& prefs)
 {
     return [&prefs]()

@@ -4,8 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
 #include "preferences/preferences.h"
+#include "sensors/clock_sensor.h"
+#include "sensors/cpu_sensor.h"
+#include "sensors/hostname_sensor.h"
+#include "sensors/temperature_sensor.h"
 
 Sensors::Sensors(const Preferences& prefs, Timer& timer):
     _prefs(prefs),

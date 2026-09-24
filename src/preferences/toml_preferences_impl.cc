@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include "components.h"
-
 namespace
 {
 

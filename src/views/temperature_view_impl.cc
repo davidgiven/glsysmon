@@ -9,7 +9,6 @@
 #include <set>
 #include <string>
 
-#include "components.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -26,17 +25,9 @@ namespace
         {
         }
 
-        explicit TemperatureViewImpl(const Preferences& prefs,
-            std::unique_ptr<TemperatureSensor> sensor):
-            _prefs(prefs),
-            _sensor(std::move(sensor))
-        {
-        }
-
         void Draw() override
         {
-            TemperatureSensor& sensor =
-                _sensor ? *_sensor : _sensors->GetTemperatureSensor();
+            TemperatureSensor& sensor = _sensors->GetTemperatureSensor();
             const std::size_t count = sensor.GetChannels();
             const std::size_t sampleCount = sensor.GetSampleCount();
             if (count == 0 || sampleCount == 0)
@@ -108,7 +99,6 @@ namespace
 
     private:
         const Preferences& _prefs;
-        std::unique_ptr<TemperatureSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
@@ -118,10 +108,4 @@ std::unique_ptr<View> CreateTemperatureView(
     const Preferences& prefs, Sensors& sensors)
 {
     return std::make_unique<TemperatureViewImpl>(prefs, sensors);
-}
-
-std::unique_ptr<View> CreateTemperatureView(
-    const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor)
-{
-    return std::make_unique<TemperatureViewImpl>(prefs, std::move(sensor));
 }

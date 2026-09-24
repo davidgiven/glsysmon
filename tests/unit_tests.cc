@@ -8,10 +8,14 @@
 #include <vector>
 
 #include "app.h"
-#include "components.h"
+#include "display/imgui_frame_renderer.h"
+#include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
+#include "sensors/hostname_sensor.h"
 #include "sensors/sensors.h"
 #include "timer.h"
+#include "ui.h"
+#include "views/view.h"
 #include "views/views.h"
 
 namespace
@@ -41,6 +45,11 @@ namespace
         void MainLoop() override {}
 
         void Shutdown() override {}
+
+        std::shared_ptr<Preferences> GetPreferences() override
+        {
+            return nullptr;
+        }
 
         void Quit() override
         {

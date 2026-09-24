@@ -1,5 +1,15 @@
 #pragma once
 
+#include <memory>
+
+class Preferences;
+class Timer;
+class App;
+class HostnameSensor;
+class ClockSensor;
+class CpuSensor;
+class TemperatureSensor;
+
 struct SDL_Window;
 
 // UI backend interface. Implementations live in ui.cpp.
@@ -10,3 +20,22 @@ public:
 
     virtual void Draw() = 0;
 };
+
+extern std::unique_ptr<Ui> CreateUi(
+    const Preferences& prefs, Timer& timer, App& app);
+extern std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<HostnameSensor> fakeSensor,
+    App& app);
+extern std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<ClockSensor> fakeSensor,
+    App& app);
+extern std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<CpuSensor> fakeSensor,
+    App& app);
+extern std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<TemperatureSensor> fakeSensor,
+    App& app);

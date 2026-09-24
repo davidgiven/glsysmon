@@ -5,8 +5,6 @@
 #include <optional>
 #include <string>
 
-#include "components.h"
-
 namespace
 {
 

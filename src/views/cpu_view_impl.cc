@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -25,16 +24,9 @@ namespace
         {
         }
 
-        explicit CpuViewImpl(
-            const Preferences& prefs, std::unique_ptr<CpuSensor> sensor):
-            _prefs(prefs),
-            _sensor(std::move(sensor))
-        {
-        }
-
         void Draw() override
         {
-            CpuSensor& sensor = _sensor ? *_sensor : _sensors->GetCpuSensor();
+            CpuSensor& sensor = _sensors->GetCpuSensor();
             const std::size_t cpuCount = sensor.GetChannels();
             const std::size_t sampleCount = sensor.GetSampleCount();
             if (cpuCount == 0 || sampleCount == 0)
@@ -104,7 +96,6 @@ namespace
 
     private:
         const Preferences& _prefs;
-        std::unique_ptr<CpuSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
@@ -113,10 +104,4 @@ namespace
 std::unique_ptr<View> CreateCpuView(const Preferences& prefs, Sensors& sensors)
 {
     return std::make_unique<CpuViewImpl>(prefs, sensors);
-}
-
-std::unique_ptr<View> CreateCpuView(
-    const Preferences& prefs, std::unique_ptr<CpuSensor> sensor)
-{
-    return std::make_unique<CpuViewImpl>(prefs, std::move(sensor));
 }

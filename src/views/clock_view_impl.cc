@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -24,17 +23,9 @@ namespace
         {
         }
 
-        explicit ClockViewImpl(
-            const Preferences& prefs, std::unique_ptr<ClockSensor> sensor):
-            _prefs(prefs),
-            _sensor(std::move(sensor))
-        {
-        }
-
         void Draw() override
         {
-            ClockSensor& sensor =
-                _sensor ? *_sensor : _sensors->GetClockSensor();
+            ClockSensor& sensor = _sensors->GetClockSensor();
             std::tm tm = sensor.GetLocalTime();
             char date[64];
             char time[64];
@@ -68,7 +59,6 @@ namespace
 
     private:
         const Preferences& _prefs;
-        std::unique_ptr<ClockSensor> _sensor;
         Sensors* _sensors = nullptr;
     };
 
@@ -78,10 +68,4 @@ std::unique_ptr<View> CreateClockView(
     const Preferences& prefs, Sensors& sensors)
 {
     return std::make_unique<ClockViewImpl>(prefs, sensors);
-}
-
-std::unique_ptr<View> CreateClockView(
-    const Preferences& prefs, std::unique_ptr<ClockSensor> sensor)
-{
-    return std::make_unique<ClockViewImpl>(prefs, std::move(sensor));
 }

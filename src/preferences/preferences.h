@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <optional>
@@ -35,10 +36,12 @@ public:
     };
 };
 
+extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
+extern std::unique_ptr<Preferences> CreateTomlPreferences();
+extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
+
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
 
-extern std::shared_ptr<Preferences> CreateMapPreferences(
-    const std::map<std::string, std::string>& values);
 extern std::shared_ptr<Preferences> CreateMapPreferences();
 
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(

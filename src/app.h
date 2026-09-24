@@ -29,3 +29,5 @@ public:
 
     virtual void Quit() = 0;
 };
+
+extern std::unique_ptr<App> CreateApp(const CliArgs& args);

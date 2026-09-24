@@ -1,4 +1,5 @@
-#include "components.h"
+#include "app.h"
+#include "preferences/preferences.h"
 
 #include <cstdio>
 #include <exception>

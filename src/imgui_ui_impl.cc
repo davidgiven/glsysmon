@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "app.h"
-#include "components.h"
 #include "configuration.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"

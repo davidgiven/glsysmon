@@ -8,9 +8,12 @@
 #include <vector>
 
 #include "app.h"
-#include "components.h"
+#include "display/imgui_frame_renderer.h"
+#include "preferences/preferences.h"
 #include "render_lib.h"
 #include "sensors/temperature_sensor.h"
+#include "timer.h"
+#include "ui.h"
 
 namespace
 {
@@ -77,6 +80,11 @@ namespace
         void MainLoop() override {}
 
         void Shutdown() override {}
+
+        std::shared_ptr<Preferences> GetPreferences() override
+        {
+            return nullptr;
+        }
 
         void Quit() override {}
     };

@@ -1,6 +1,6 @@
 #include "views.h"
 
-#include "components.h"
+#include "views/view.h"
 
 const std::map<std::string, Views::Factory> Views::_factories{
     {"ClockView",       static_cast<Factory>(&CreateClockView)      },

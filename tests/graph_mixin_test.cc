@@ -8,9 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
+#include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/graph_mixin.h"
+#include "timer.h"
 
 namespace
 {

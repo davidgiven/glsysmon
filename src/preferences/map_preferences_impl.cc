@@ -37,12 +37,6 @@ namespace
 
 } // namespace
 
-std::shared_ptr<Preferences> CreateMapPreferences(
-    const std::map<std::string, std::string>& values)
-{
-    return std::make_shared<MapPreferencesImpl>(values);
-}
-
 std::shared_ptr<Preferences> CreateMapPreferences()
 {
     return std::make_shared<MapPreferencesImpl>(

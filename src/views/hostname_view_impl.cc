@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 

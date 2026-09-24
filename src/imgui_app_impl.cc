@@ -12,10 +12,11 @@
 #include <string>
 #include <utility>
 
-#include "components.h"
+#include "display/dock.h"
 #include "display/imgui_frame_renderer.h"
 #include "preferences/preferences.h"
 #include "timer.h"
+#include "ui.h"
 
 namespace
 {

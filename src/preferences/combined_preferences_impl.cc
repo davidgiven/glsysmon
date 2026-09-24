@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "components.h"
-
 namespace
 {
 
@@ -17,12 +15,6 @@ namespace
         explicit CombinedPreferencesImpl(
             std::initializer_list<std::shared_ptr<Preferences>> sources):
             _sources(sources)
-        {
-        }
-
-        explicit CombinedPreferencesImpl(
-            std::vector<std::shared_ptr<Preferences>> sources):
-            _sources(std::move(sources))
         {
         }
 
@@ -78,12 +70,6 @@ std::unique_ptr<Preferences> CreateCombinedPreferences(
     std::initializer_list<std::shared_ptr<Preferences>> sources)
 {
     return std::make_unique<CombinedPreferencesImpl>(sources);
-}
-
-std::unique_ptr<Preferences> CreateCombinedPreferences(
-    std::vector<std::shared_ptr<Preferences>> sources)
-{
-    return std::make_unique<CombinedPreferencesImpl>(std::move(sources));
 }
 
 std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args)

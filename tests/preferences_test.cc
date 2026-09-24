@@ -6,7 +6,6 @@
 #include <fstream>
 #include <string>
 
-#include "components.h"
 #include "preferences/preferences.h"
 
 namespace
