@@ -48,9 +48,8 @@ XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protoco
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
-COMMON_CFLAGS := $(CXXFLAGS) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
-                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -I$(BUILD) \
-                  -I$(CURDIR)/src -MMD -MP
+COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
+                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -MMD -MP
 LITEHTML_SRCS := $(wildcard $(LITEHTML_DIR)/src/*.cpp)
 LITEHTML_OBJS := $(patsubst $(LITEHTML_DIR)/src/%.cpp,$(BUILD)/litehtml/%.o,$(LITEHTML_SRCS))
 GUMBO_SRCS := $(wildcard $(LITEHTML_DIR)/src/gumbo/*.c)
@@ -58,32 +57,33 @@ GUMBO_OBJS := $(patsubst $(LITEHTML_DIR)/src/gumbo/%.c,$(BUILD)/gumbo/%.o,$(GUMB
 
 SRC_OBJS := \
 	$(BUILD)/configuration.o \
-	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/display/dock.o \
+	$(BUILD)/display/fallback_dock_impl.o \
+	$(BUILD)/display/imgui_frame_renderer_impl.o \
+	$(BUILD)/display/wayland_dock_impl.o \
+	$(BUILD)/display/x11_dock_impl.o \
+	$(BUILD)/imgui_app_impl.o \
+	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/main.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/display/dock.o \
-	$(BUILD)/display/fallback_dock_impl.o \
-	$(BUILD)/imgui_app_impl.o \
-	$(BUILD)/display/imgui_frame_renderer_impl.o \
-	$(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/timer.o \
-	$(BUILD)/views/view.o \
-	$(BUILD)/views/views.o \
-	$(BUILD)/views/clock_view_impl.o \
-	$(BUILD)/views/cpu_view_impl.o \
-	$(BUILD)/views/hostname_view_impl.o \
-	$(BUILD)/views/temperature_view_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
-	$(BUILD)/main.o \
-	$(BUILD)/preferences/toml_preferences_impl.o \
-	$(BUILD)/display/wayland_dock_impl.o \
-	$(BUILD)/display/x11_dock_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/views/clock_view_impl.o \
+	$(BUILD)/views/cpu_view_impl.o \
+	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/temperature_view_impl.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/views.o \
 	$(FONT_GEN_OBJ)
 
 BACKEND_OBJS := \
@@ -134,6 +134,7 @@ TEST_OBJS := \
 	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/style.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/views.o \

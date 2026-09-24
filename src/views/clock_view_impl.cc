@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include "style.h"
+
 #include <ctime>
 #include <memory>
 #include <optional>
@@ -37,20 +39,8 @@ namespace
             char time[64];
             std::strftime(date, sizeof(date), "%Y-%m-%d", &tm);
             std::strftime(time, sizeof(time), "%H:%M:%S", &tm);
-            {
-                const float avail = ImGui::GetContentRegionAvail().x;
-                const float textWidth = ImGui::CalcTextSize(date).x;
-                ImGui::SetCursorPosX(
-                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-                ImGui::Text("%s", date);
-            }
-            {
-                const float avail = ImGui::GetContentRegionAvail().x;
-                const float textWidth = ImGui::CalcTextSize(time).x;
-                ImGui::SetCursorPosX(
-                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-                ImGui::Text("%s", time);
-            }
+            Style::DrawCentredText(date);
+            Style::DrawCentredText(time);
         }
 
         std::string GetHumanName() const override

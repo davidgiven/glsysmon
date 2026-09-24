@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include "style.h"
+
 #include <cstdio>
 #include <memory>
 #include <optional>
@@ -38,13 +40,7 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            {
-                const float avail = ImGui::GetContentRegionAvail().x;
-                const float textWidth = ImGui::CalcTextSize("CPU usage").x;
-                ImGui::SetCursorPosX(
-                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-                ImGui::Text("CPU usage");
-            }
+            Style::DrawCentredText("CPU usage");
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
             for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
