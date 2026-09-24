@@ -22,7 +22,7 @@ namespace
     public:
         explicit CpuViewImpl(const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensor(sensors.CreateCpuSensor())
+            _sensor(sensors.CreateCpuSensor(GetPrefName()))
         {
         }
 

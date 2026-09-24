@@ -21,14 +21,15 @@ public:
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
 
-    std::unique_ptr<ClockSensor> CreateClockSensor() const;
-    std::unique_ptr<CpuSensor> CreateCpuSensor() const;
-    std::unique_ptr<CpuSensor> CreateCpuSensor(
-        const std::string& procStatPath) const;
-    std::unique_ptr<HostnameSensor> CreateHostnameSensor() const;
-    std::unique_ptr<TemperatureSensor> CreateTemperatureSensor() const;
+    std::unique_ptr<ClockSensor> CreateClockSensor(
+        const std::string& prefPrefix) const;
+    std::unique_ptr<CpuSensor> CreateCpuSensor(const std::string& prefPrefix,
+        const std::string& procStatPath = "/proc/stat") const;
+    std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+        const std::string& prefPrefix) const;
     std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-        const std::string& hwmonRoot) const;
+        const std::string& prefPrefix,
+        const std::string& hwmonRoot = "/sys/class/hwmon") const;
 
 private:
     const Preferences& _prefs;

@@ -14,6 +14,10 @@ class Timer;
 class ClockSensor : public Sensor
 {
 public:
+    explicit ClockSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    {
+    }
+
     virtual ~ClockSensor() = default;
 
     // Returns the current local time.
@@ -21,4 +25,4 @@ public:
 };
 
 extern std::unique_ptr<ClockSensor> CreateClockSensor(
-    const Preferences& prefs, Timer& timer);
+    const Preferences& prefs, Timer& timer, const std::string& prefPrefix);

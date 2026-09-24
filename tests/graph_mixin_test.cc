@@ -250,7 +250,7 @@ TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
         out << "cpu2 50 0 50 500 0 0 0 0 0 0\n";
     }
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, path);
+    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", path);
     auto* gm = dynamic_cast<GraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(gm != nullptr);
     CHECK(gm->GetChannelName(0) == "CPU0");

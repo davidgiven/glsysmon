@@ -39,7 +39,9 @@ namespace
     public:
         explicit CpuSensorImpl(const Preferences& prefs,
             Timer& timer,
+            const std::string& prefPrefix,
             const std::string& procStatPath):
+            CpuSensor(prefPrefix),
             _timer(timer),
             _procStatPath(procStatPath)
         {
@@ -48,7 +50,7 @@ namespace
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
             double interval =
-                prefs.GetDouble("cpu.update_interval").value_or(5);
+                prefs.GetDouble(_prefPrefix + ".update_interval").value_or(5);
             if (interval <= 0)
                 interval = 5;
             _delta = 1'000'000'000ULL / interval;
@@ -206,14 +208,11 @@ namespace
 
 } // namespace
 
-std::unique_ptr<CpuSensor> CreateCpuSensor(
-    const Preferences& prefs, Timer& timer, const std::string& procStatPath)
+std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs,
+    Timer& timer,
+    const std::string& prefPrefix,
+    const std::string& procStatPath)
 {
-    return std::make_unique<CpuSensorImpl>(prefs, timer, procStatPath);
-}
-
-std::unique_ptr<CpuSensor> CreateCpuSensor(
-    const Preferences& prefs, Timer& timer)
-{
-    return CreateCpuSensor(prefs, timer, "/proc/stat");
+    return std::make_unique<CpuSensorImpl>(
+        prefs, timer, prefPrefix, procStatPath);
 }

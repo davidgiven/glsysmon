@@ -14,34 +14,26 @@ Sensors::Sensors(const Preferences& prefs, Timer& timer):
 {
 }
 
-std::unique_ptr<ClockSensor> Sensors::CreateClockSensor() const
+std::unique_ptr<ClockSensor> Sensors::CreateClockSensor(
+    const std::string& prefPrefix) const
 {
-    return ::CreateClockSensor(_prefs, _timer);
-}
-
-std::unique_ptr<CpuSensor> Sensors::CreateCpuSensor() const
-{
-    return ::CreateCpuSensor(_prefs, _timer);
+    return ::CreateClockSensor(_prefs, _timer, prefPrefix);
 }
 
 std::unique_ptr<CpuSensor> Sensors::CreateCpuSensor(
-    const std::string& procStatPath) const
+    const std::string& a, const std::string& b) const
 {
-    return ::CreateCpuSensor(_prefs, _timer, procStatPath);
+    return ::CreateCpuSensor(_prefs, _timer, a, b);
 }
 
-std::unique_ptr<HostnameSensor> Sensors::CreateHostnameSensor() const
+std::unique_ptr<HostnameSensor> Sensors::CreateHostnameSensor(
+    const std::string& prefPrefix) const
 {
-    return ::CreateHostnameSensor(_prefs, _timer);
-}
-
-std::unique_ptr<TemperatureSensor> Sensors::CreateTemperatureSensor() const
-{
-    return ::CreateTemperatureSensor(_prefs, _timer);
+    return ::CreateHostnameSensor(_prefs, _timer, prefPrefix);
 }
 
 std::unique_ptr<TemperatureSensor> Sensors::CreateTemperatureSensor(
-    const std::string& hwmonRoot) const
+    const std::string& a, const std::string& b) const
 {
-    return ::CreateTemperatureSensor(_prefs, _timer, hwmonRoot);
+    return ::CreateTemperatureSensor(_prefs, _timer, a, b);
 }

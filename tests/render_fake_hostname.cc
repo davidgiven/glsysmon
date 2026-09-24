@@ -20,6 +20,8 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
+        FakeHostnameSensor(): HostnameSensor("hostname") {}
+
         std::string GetHostname() override
         {
             return "fake-hostname";

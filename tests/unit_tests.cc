@@ -24,6 +24,8 @@ namespace
     class FakeHostnameSensor : public HostnameSensor
     {
     public:
+        FakeHostnameSensor(): HostnameSensor("hostname") {}
+
         std::string GetHostname() override
         {
             return "fake-hostname";
@@ -125,7 +127,7 @@ TEST_CASE("Hostname sensor returns the current hostname")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto sensor = CreateHostnameSensor(*prefs, *timer);
+    auto sensor = CreateHostnameSensor(*prefs, *timer, "hostname");
 
     const std::string hostname = sensor->GetHostname();
     CHECK_FALSE(hostname.empty());
@@ -195,7 +197,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, path);
+    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", path);
     const int cpuInterval =
         prefs->GetInteger("cpu.update_interval").value_or(5);
     uint64_t delta = 1'000'000'000ULL / static_cast<uint64_t>(cpuInterval);
@@ -272,10 +274,10 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
 
     // Via Sensors factory
     Sensors sensors(*prefs, *timer);
-    auto factorySensor = sensors.CreateCpuSensor(path);
+    auto factorySensor = sensors.CreateCpuSensor("cpu", path);
     CHECK(factorySensor->GetChannels() == 2);
     // Via view-owned sensor
-    auto view = CreateCpuView(*prefs, sensors.CreateCpuSensor(path));
+    auto view = CreateCpuView(*prefs, sensors.CreateCpuSensor("cpu", path));
     REQUIRE(view != nullptr);
     CHECK(view->GetSensors().size() == 1);
     auto* viewSensor = dynamic_cast<CpuSensor*>(view->GetSensors()[0]);
@@ -292,7 +294,7 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     const std::string missing = ".obj/nonexistent_cpu_stat";
     std::remove(missing.c_str());
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, missing);
+    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", missing);
     CHECK(sensor->GetChannels() == 0);
     CHECK(sensor->GetSampleCount() == 0);
     const int cpuInterval =

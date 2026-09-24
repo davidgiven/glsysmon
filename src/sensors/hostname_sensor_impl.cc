@@ -18,7 +18,10 @@ namespace
     class HostnameSensorImpl : public HostnameSensor
     {
     public:
-        explicit HostnameSensorImpl(const Preferences& prefs, Timer& timer):
+        explicit HostnameSensorImpl(const Preferences& prefs,
+            Timer& timer,
+            const std::string& prefPrefix):
+            HostnameSensor(prefPrefix),
             _prefs(prefs),
             _timer(timer)
         {
@@ -67,7 +70,7 @@ namespace
 } // namespace
 
 std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Preferences& prefs, Timer& timer)
+    const Preferences& prefs, Timer& timer, const std::string& prefPrefix)
 {
-    return std::make_unique<HostnameSensorImpl>(prefs, timer);
+    return std::make_unique<HostnameSensorImpl>(prefs, timer, prefPrefix);
 }

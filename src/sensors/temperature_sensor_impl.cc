@@ -66,7 +66,9 @@ namespace
     public:
         explicit TemperatureSensorImpl(const Preferences& prefs,
             Timer& timer,
+            const std::string& prefPrefix,
             const std::string& hwmonRoot):
+            TemperatureSensor(prefPrefix),
             _timer(timer),
             _hwmonRoot(hwmonRoot)
         {
@@ -75,7 +77,7 @@ namespace
                 size = 1;
             std::size_t sampleCount = static_cast<std::size_t>(size);
             double interval =
-                prefs.GetInteger("temperature.update_interval").value_or(1);
+                prefs.GetInteger(_prefPrefix + ".update_interval").value_or(1);
             if (interval <= 0)
                 interval = 1;
             _delta = 1'000'000'000ULL / interval;
@@ -179,13 +181,11 @@ namespace
 } // namespace
 
 std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-    const Preferences& prefs, Timer& timer, const std::string& hwmonRoot)
+    const Preferences& prefs,
+    Timer& timer,
+    const std::string& prefPrefix,
+    const std::string& hwmonRoot)
 {
-    return std::make_unique<TemperatureSensorImpl>(prefs, timer, hwmonRoot);
-}
-
-std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-    const Preferences& prefs, Timer& timer)
-{
-    return CreateTemperatureSensor(prefs, timer, "/sys/class/hwmon");
+    return std::make_unique<TemperatureSensorImpl>(
+        prefs, timer, prefPrefix, hwmonRoot);
 }

@@ -18,7 +18,7 @@ namespace
     public:
         explicit HostnameViewImpl(const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensor(sensors.CreateHostnameSensor())
+            _sensor(sensors.CreateHostnameSensor(GetPrefName()))
         {
         }
 

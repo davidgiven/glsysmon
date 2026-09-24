@@ -23,7 +23,7 @@ namespace
         explicit TemperatureViewImpl(
             const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensor(sensors.CreateTemperatureSensor())
+            _sensor(sensors.CreateTemperatureSensor(GetPrefName()))
         {
         }
 

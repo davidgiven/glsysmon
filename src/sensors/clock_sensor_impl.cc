@@ -17,7 +17,10 @@ namespace
     class ClockSensorImpl : public ClockSensor
     {
     public:
-        explicit ClockSensorImpl(const Preferences& prefs, Timer& timer):
+        explicit ClockSensorImpl(const Preferences& prefs,
+            Timer& timer,
+            const std::string& prefPrefix):
+            ClockSensor(prefPrefix),
             _prefs(prefs),
             _timer(timer)
         {
@@ -67,7 +70,7 @@ namespace
 } // namespace
 
 std::unique_ptr<ClockSensor> CreateClockSensor(
-    const Preferences& prefs, Timer& timer)
+    const Preferences& prefs, Timer& timer, const std::string& prefPrefix)
 {
-    return std::make_unique<ClockSensorImpl>(prefs, timer);
+    return std::make_unique<ClockSensorImpl>(prefs, timer, prefPrefix);
 }

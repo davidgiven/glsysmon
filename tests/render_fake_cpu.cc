@@ -21,7 +21,7 @@ namespace
     class FakeCpuSensor : public CpuSensor
     {
     public:
-        FakeCpuSensor()
+        FakeCpuSensor(): CpuSensor("cpu")
         {
             _samples.resize(2);
             for (int i = 0; i < 60; ++i)

@@ -21,7 +21,7 @@ namespace
     public:
         explicit ClockViewImpl(const Preferences& prefs, Sensors& sensors):
             _prefs(prefs),
-            _sensor(sensors.CreateClockSensor())
+            _sensor(sensors.CreateClockSensor(GetPrefName()))
         {
         }
 

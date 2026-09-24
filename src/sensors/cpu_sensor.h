@@ -19,10 +19,14 @@ struct CpuSample
 class CpuSensor : public Sensor, public GraphMixin<CpuSample>
 {
 public:
+    explicit CpuSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    {
+    }
+
     virtual ~CpuSensor() = default;
 };
 
-extern std::unique_ptr<CpuSensor> CreateCpuSensor(
-    const Preferences& prefs, Timer& timer, const std::string& procStatPath);
-extern std::unique_ptr<CpuSensor> CreateCpuSensor(
-    const Preferences& prefs, Timer& timer);
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs,
+    Timer& timer,
+    const std::string& prefPrefix,
+    const std::string& procStatPath = "/proc/stat");

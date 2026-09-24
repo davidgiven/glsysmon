@@ -14,6 +14,10 @@ class Timer;
 class HostnameSensor : public Sensor
 {
 public:
+    explicit HostnameSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    {
+    }
+
     virtual ~HostnameSensor() = default;
 
     // Returns the current hostname, or an empty string if it cannot be read.
@@ -21,4 +25,4 @@ public:
 };
 
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Preferences& prefs, Timer& timer);
+    const Preferences& prefs, Timer& timer, const std::string& prefPrefix);

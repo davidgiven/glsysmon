@@ -21,7 +21,7 @@ namespace
     class FakeTemperatureSensor : public TemperatureSensor
     {
     public:
-        FakeTemperatureSensor()
+        FakeTemperatureSensor(): TemperatureSensor("temperature")
         {
             _samples.resize(2);
             for (int i = 0; i < 60; ++i)
