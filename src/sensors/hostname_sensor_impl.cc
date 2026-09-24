@@ -35,8 +35,9 @@ namespace
             return "Hostname";
         }
 
-        void DrawConfiguration() override
+        void DrawConfiguration(Preferences& preferences) override
         {
+            (void)preferences;
             ImGui::Text("%s settings", GetName().c_str());
         }
 

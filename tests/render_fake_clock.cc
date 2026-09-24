@@ -38,7 +38,10 @@ namespace
             return "Clock";
         }
 
-        void DrawConfiguration() override {}
+        void DrawConfiguration(Preferences& preferences) override
+        {
+            (void)preferences;
+        }
     };
 
     class FakeApp : public App

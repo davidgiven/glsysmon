@@ -2,6 +2,8 @@
 
 #include <string>
 
+class Preferences;
+
 // Fetches a piece of system data. Implementations live in sensor_*.cc.
 class Sensor
 {
@@ -10,5 +12,5 @@ public:
 
     virtual std::string GetName() const = 0;
 
-    virtual void DrawConfiguration() = 0;
+    virtual void DrawConfiguration(Preferences& preferences) = 0;
 };

@@ -18,7 +18,7 @@ public:
     // its sensor. Called at the redraw rate.
     virtual void Draw() = 0;
 
-    virtual void DrawConfiguration() = 0;
+    virtual void DrawConfiguration(Preferences& preferences);
 
     virtual std::string GetName() const = 0;
 };

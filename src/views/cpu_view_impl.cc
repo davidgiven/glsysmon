@@ -84,11 +84,6 @@ namespace
             }
         }
 
-        void DrawConfiguration() override
-        {
-            ImGui::Text("%s settings", GetName().c_str());
-        }
-
         std::string GetName() const override
         {
             return "Cpu";

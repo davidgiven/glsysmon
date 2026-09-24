@@ -62,7 +62,10 @@ namespace
             return "Cpu";
         }
 
-        void DrawConfiguration() override {}
+        void DrawConfiguration(Preferences& preferences) override
+        {
+            (void)preferences;
+        }
 
     private:
         std::vector<std::vector<CpuSample>> _samples;

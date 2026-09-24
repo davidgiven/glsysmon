@@ -55,6 +55,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/timer.o \
+	$(BUILD)/views/view.o \
 	$(BUILD)/views/views.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
@@ -114,6 +115,7 @@ TEST_OBJS := \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/timer.o \
+	$(BUILD)/views/view.o \
 	$(BUILD)/views/views.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
