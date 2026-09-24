@@ -22,6 +22,57 @@ void Style::GraphGroup(const std::string& title, std::function<void()> body)
     GraphGroup(title.c_str(), std::move(body));
 }
 
+void Style::DrawGraph(const char* title, std::function<void()> body)
+{
+    DrawGraph(title, 60, 0, 1, std::move(body));
+}
+
+void Style::DrawGraph(const std::string& title, std::function<void()> body)
+{
+    DrawGraph(title.c_str(), std::move(body));
+}
+
+void Style::DrawGraph(const char* title,
+    int n,
+    double yMin,
+    double yMax,
+    std::function<void()> body)
+{
+    std::string plotId = std::string("##") + title;
+    const float width = ImGui::GetContentRegionAvail().x;
+    if (ImPlot::BeginPlot(plotId.c_str(),
+            ImVec2(width, 40),
+            ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
+                ImPlotFlags_NoMouseText | ImPlotFlags_NoInputs |
+                ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
+                ImPlotFlags_NoFrame))
+    {
+        ImPlot::SetupAxes(nullptr,
+            nullptr,
+            ImPlotAxisFlags_NoDecorations,
+            ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, n, yMin, yMax, ImPlotCond_Always);
+        ImPlot::SetupFinish();
+        body();
+        ImVec2 pos = ImPlot::GetPlotPos();
+        ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
+            ImGui::GetFontSize() * 2.0f / 3.0f,
+            ImVec2(pos.x + 2, pos.y + 2),
+            ImGui::GetColorU32(ImGuiCol_Text),
+            title);
+        ImPlot::EndPlot();
+    }
+}
+
+void Style::DrawGraph(const std::string& title,
+    int n,
+    double yMin,
+    double yMax,
+    std::function<void()> body)
+{
+    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body));
+}
+
 void Style::DrawCentredText(const char* text)
 {
     const float avail = ImGui::GetContentRegionAvail().x;

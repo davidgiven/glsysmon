@@ -61,42 +61,21 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        char title[32];
-                        std::snprintf(title, sizeof(title), "##cpu%zu", cpu);
-                        const float width = ImGui::GetContentRegionAvail().x;
-                        if (ImPlot::BeginPlot(title,
-                                ImVec2(width, 40),
-                                ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
-                                    ImPlotFlags_NoMouseText |
-                                    ImPlotFlags_NoInputs | ImPlotFlags_NoMenus |
-                                    ImPlotFlags_NoBoxSelect |
-                                    ImPlotFlags_NoFrame))
-                        {
-                            ImPlot::SetupAxes(nullptr,
-                                nullptr,
-                                ImPlotAxisFlags_NoDecorations,
-                                ImPlotAxisFlags_NoDecorations);
-                            ImPlot::SetupAxesLimits(
-                                0, n, 0, 1, ImPlotCond_Always);
-                            ImPlot::SetupFinish();
-                            ImPlot::PlotBarGroups(labels,
-                                values.data(),
-                                3,
-                                n,
-                                1.0,
-                                0.5,
-                                ImPlotSpec(ImPlotProp_Flags,
-                                    ImPlotBarGroupsFlags_Stacked));
-                            const std::string channelName =
-                                _sensor->GetChannelName(cpu);
-                            ImVec2 pos = ImPlot::GetPlotPos();
-                            ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
-                                ImGui::GetFontSize() * 2.0f / 3.0f,
-                                ImVec2(pos.x + 2, pos.y + 2),
-                                ImGui::GetColorU32(ImGuiCol_Text),
-                                std::to_string(cpu).c_str());
-                            ImPlot::EndPlot();
-                        }
+                        Style::DrawGraph(std::to_string(cpu),
+                            n,
+                            0,
+                            1,
+                            [&]
+                            {
+                                ImPlot::PlotBarGroups(labels,
+                                    values.data(),
+                                    3,
+                                    n,
+                                    1.0,
+                                    0.5,
+                                    ImPlotSpec(ImPlotProp_Flags,
+                                        ImPlotBarGroupsFlags_Stacked));
+                            });
                     }
                 });
         }
