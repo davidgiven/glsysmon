@@ -37,6 +37,16 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (cpuCount == 0 || sampleCount == 0)
                 return;
+
+            {
+                const float avail = ImGui::GetContentRegionAvail().x;
+                const float textWidth = ImGui::CalcTextSize("CPU usage").x;
+                ImGui::SetCursorPosX(
+                    ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+                ImGui::Text("CPU usage");
+            }
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
             for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
             {
                 const CpuSample* samples = _sensor->GetSamples(cpu);
@@ -83,11 +93,20 @@ namespace
                         0.5,
                         ImPlotSpec(
                             ImPlotProp_Flags, ImPlotBarGroupsFlags_Stacked));
+                    const std::string channelName =
+                        _sensor->GetChannelName(cpu);
+                    ImVec2 pos = ImPlot::GetPlotPos();
+                    ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
+                        ImGui::GetFontSize() * 2.0f / 3.0f,
+                        ImVec2(pos.x + 2, pos.y + 2),
+                        ImGui::GetColorU32(ImGuiCol_Text),
+                        std::to_string(cpu).c_str());
                     ImPlot::EndPlot();
                 }
                 ImPlot::PopStyleVar();
                 ImGui::PopStyleVar();
             }
+            ImGui::PopStyleVar();
         }
 
         std::string GetHumanName() const override

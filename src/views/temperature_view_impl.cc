@@ -47,6 +47,7 @@ namespace
             const double yMax = static_cast<double>(maximum);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
 
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
             for (std::size_t ch = 0; ch < count; ++ch)
             {
                 const std::string channelName = _sensor->GetChannelName(ch);
@@ -92,6 +93,7 @@ namespace
                     ImGui::Text("%s", channelName.c_str());
                 }
             }
+            ImGui::PopStyleVar();
         }
 
         std::string GetHumanName() const override
