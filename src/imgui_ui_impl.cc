@@ -111,7 +111,7 @@ namespace
                         }
                     }
                 }
-                _configurationWindow.Draw();
+                _configurationWindow.Draw(&_viewportOpen);
                 ImGui::End();
             }
         }

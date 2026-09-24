@@ -12,11 +12,12 @@ class ConfigurationWindow
 public:
     ConfigurationWindow(const Views& views, const Sensors& sensors, App& app);
 
-    void Draw();
+    void Draw(bool* open = nullptr);
 
 private:
     const Views& _views;
     const Sensors& _sensors;
     App& _app;
+    std::shared_ptr<Preferences> _pendingMapPreferences;
     std::unique_ptr<Preferences> _pendingPreferences;
 };

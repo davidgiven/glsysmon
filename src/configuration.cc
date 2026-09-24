@@ -2,22 +2,28 @@
 
 #include <imgui.h>
 
+#include <csetjmp>
+
 #include "app.h"
 #include "preferences/preferences.h"
+#include "restart.h"
 #include "sensors/sensors.h"
 #include "views/views.h"
+
+jmp_buf g_restartJmp;
 
 ConfigurationWindow::ConfigurationWindow(
     const Views& views, const Sensors& sensors, App& app):
     _views(views),
     _sensors(sensors),
     _app(app),
+    _pendingMapPreferences(CreateMapPreferences()),
     _pendingPreferences(CreateCombinedPreferences(
-        {CreateMapPreferences(), app.GetPreferences()}))
+        {_pendingMapPreferences, app.GetPreferences()}))
 {
 }
 
-void ConfigurationWindow::Draw()
+void ConfigurationWindow::Draw(bool* open)
 {
     float buttonHeight = ImGui::GetFrameHeightWithSpacing();
 
@@ -70,9 +76,18 @@ void ConfigurationWindow::Draw()
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
                              ImGui::GetContentRegionAvail().x - totalWidth);
-        if (ImGui::Button("OK")) {}
+        if (ImGui::Button("OK"))
+        {
+            WriteTomlPreferences(*_pendingMapPreferences);
+            longjmp(g_restartJmp, 1);
+        }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) {}
+        if (ImGui::Button("Cancel"))
+        {
+            _pendingMapPreferences->ClearAll();
+            if (open != nullptr)
+                *open = false;
+        }
     }
     ImGui::EndChild();
 }

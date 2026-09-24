@@ -1,10 +1,15 @@
 #include "app.h"
 #include "preferences/preferences.h"
+#include "restart.h"
 
+#include <cerrno>
 #include <cstdio>
+#include <csetjmp>
+#include <cstring>
 #include <exception>
 #include <memory>
 #include <string>
+#include <unistd.h>
 
 namespace
 {
@@ -22,6 +27,14 @@ namespace
 
 int main(int argc, char** argv)
 {
+    if (setjmp(g_restartJmp) != 0)
+    {
+        execv(argv[0], argv);
+        std::fprintf(
+            stderr, "glsysmon: execv failed: %s\n", std::strerror(errno));
+        return 1;
+    }
+
     auto args = std::make_unique<CliArgs>();
     for (int i = 1; i < argc; ++i)
     {
