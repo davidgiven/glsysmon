@@ -36,12 +36,13 @@ void Style::DrawGraph(const char* title,
     int n,
     double yMin,
     double yMax,
-    std::function<void()> body)
+    std::function<void()> body,
+    float height)
 {
     std::string plotId = std::string("##") + title;
     const float width = ImGui::GetContentRegionAvail().x;
     if (ImPlot::BeginPlot(plotId.c_str(),
-            ImVec2(width, 40),
+            ImVec2(width, height),
             ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
                 ImPlotFlags_NoMouseText | ImPlotFlags_NoInputs |
                 ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
@@ -68,9 +69,10 @@ void Style::DrawGraph(const std::string& title,
     int n,
     double yMin,
     double yMax,
-    std::function<void()> body)
+    std::function<void()> body,
+    float height)
 {
-    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body));
+    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height);
 }
 
 void Style::DrawCentredText(const char* text)

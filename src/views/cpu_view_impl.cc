@@ -1,4 +1,5 @@
 #include "views/view.h"
+#include "views/view_graph_mixin.h"
 
 #include <imgui.h>
 #include <implot.h>
@@ -17,7 +18,7 @@
 namespace
 {
 
-    class CpuViewImpl : public View
+    class CpuViewImpl : public ViewGraphMixin
     {
     public:
         explicit CpuViewImpl(const Preferences& prefs, Sensors& sensors):
@@ -40,6 +41,9 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
+            const int graphHeight =
+                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
+
             Style::GraphGroup("CPU usage",
                 [&]
                 {
@@ -61,7 +65,8 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        Style::DrawGraph(std::to_string(cpu),
+                        Style::DrawGraph(
+                            std::to_string(cpu),
                             n,
                             0,
                             1,
@@ -75,7 +80,8 @@ namespace
                                     0.5,
                                     ImPlotSpec(ImPlotProp_Flags,
                                         ImPlotBarGroupsFlags_Stacked));
-                            });
+                            },
+                            static_cast<float>(graphHeight));
                     }
                 });
         }

@@ -10,16 +10,18 @@
 namespace
 {
     const std::map<std::string, std::string> kDefaultValues{
-        {"side",                             "left"                                          },
-        {"size",                             "100"                                           },
-        {"monitor",                          "0"                                             },
-        {"views",                            "HostnameView,ClockView,CpuView,TemperatureView"},
-        {"fps",                              "30"                                            },
-        {"cpu.update_interval",              "2"                                             },
-        {"temperature.update_interval",      "1"                                             },
-        {"temperature.minimum",              "20"                                            },
-        {"temperature.maximum",              "80"                                            },
-        {"temperature.sensors",              "CPU"                                           },
+        {"side",                        "left"                                          },
+        {"size",                        "100"                                           },
+        {"monitor",                     "0"                                             },
+        {"views",                       "HostnameView,ClockView,CpuView,TemperatureView"},
+        {"fps",                         "30"                                            },
+        {"cpu.graph_height",            "40"                                            },
+        {"cpu.update_interval",         "2"                                             },
+        {"temperature.graph_height",    "40"                                            },
+        {"temperature.update_interval", "1"                                             },
+        {"temperature.minimum",         "20"                                            },
+        {"temperature.maximum",         "80"                                            },
+        {"temperature.sensors",         "CPU"                                           },
     };
 
     class DefaultPreferencesImpl : public Preferences

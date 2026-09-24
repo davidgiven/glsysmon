@@ -1,4 +1,5 @@
 #include "views/view.h"
+#include "views/view_graph_mixin.h"
 
 #include <imgui.h>
 #include <implot.h>
@@ -17,7 +18,7 @@
 namespace
 {
 
-    class TemperatureViewImpl : public View
+    class TemperatureViewImpl : public ViewGraphMixin
     {
     public:
         explicit TemperatureViewImpl(
@@ -47,6 +48,8 @@ namespace
             const double yMin = static_cast<double>(minimum);
             const double yMax = static_cast<double>(maximum);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
+            const int graphHeight =
+                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
 
             Style::GraphGroup("Temperature",
                 [&]
@@ -62,7 +65,8 @@ namespace
                         if (samples == nullptr)
                             continue;
                         const int n = static_cast<int>(sampleCount);
-                        Style::DrawGraph(channelName,
+                        Style::DrawGraph(
+                            channelName,
                             n,
                             yMin,
                             yMax,
@@ -70,7 +74,8 @@ namespace
                             {
                                 ImPlot::PlotLine(
                                     channelName.c_str(), samples, n);
-                            });
+                            },
+                            static_cast<float>(graphHeight));
                     }
                 });
         }
