@@ -40,9 +40,7 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            Style::DrawCentredText("CPU usage");
-
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+            Style::GraphGroup group("CPU usage");
             for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
             {
                 const CpuSample* samples = _sensor->GetSamples(cpu);
@@ -63,10 +61,6 @@ namespace
                 const char* labels[] = {"user", "system", "nice"};
                 char title[32];
                 std::snprintf(title, sizeof(title), "##cpu%zu", cpu);
-                ImGui::PushStyleVar(
-                    ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-                ImPlot::PushStyleVar(
-                    ImPlotStyleVar_PlotPadding, ImVec2(0.0f, 0.0f));
                 const float width = ImGui::GetContentRegionAvail().x;
                 if (ImPlot::BeginPlot(title,
                         ImVec2(width, 40),
@@ -99,10 +93,7 @@ namespace
                         std::to_string(cpu).c_str());
                     ImPlot::EndPlot();
                 }
-                ImPlot::PopStyleVar();
-                ImGui::PopStyleVar();
             }
-            ImGui::PopStyleVar();
         }
 
         std::string GetHumanName() const override

@@ -134,7 +134,7 @@ TEST_OBJS := \
 	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/style.o \
+	$(BUILD)/views/style.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/views.o \

@@ -12,6 +12,7 @@
 
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
+#include "views/style.h"
 
 namespace
 {
@@ -47,7 +48,7 @@ namespace
             const double yMax = static_cast<double>(maximum);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
 
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+            Style::GraphGroup group("Temperature");
             for (std::size_t ch = 0; ch < count; ++ch)
             {
                 const std::string channelName = _sensor->GetChannelName(ch);
@@ -60,10 +61,6 @@ namespace
                 const int n = static_cast<int>(sampleCount);
                 char title[64];
                 std::snprintf(title, sizeof(title), "##temperature%zu", ch);
-                ImGui::PushStyleVar(
-                    ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-                ImPlot::PushStyleVar(
-                    ImPlotStyleVar_PlotPadding, ImVec2(0.0f, 0.0f));
                 const float width = ImGui::GetContentRegionAvail().x;
                 if (ImPlot::BeginPlot(title,
                         ImVec2(width, 40),
@@ -82,8 +79,7 @@ namespace
                     ImPlot::PlotLine(channelName.c_str(), samples, n);
                     ImPlot::EndPlot();
                 }
-                ImPlot::PopStyleVar();
-                ImGui::PopStyleVar();
+
                 {
                     const float avail = ImGui::GetContentRegionAvail().x;
                     const float textWidth =
@@ -93,7 +89,6 @@ namespace
                     ImGui::Text("%s", channelName.c_str());
                 }
             }
-            ImGui::PopStyleVar();
         }
 
         std::string GetHumanName() const override
