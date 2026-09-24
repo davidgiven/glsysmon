@@ -523,3 +523,157 @@ TEST_CASE("CombinedPreferences::ClearAll on empty sources does not throw")
     auto combined = CreateCombinedPreferences({});
     CHECK_NOTHROW(combined->ClearAll());
 }
+
+TEST_CASE("WriteTomlPreferences roundtrips typed values and preserves types")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    auto prefs = CreateMapPreferences();
+    prefs->SetString("side", "right");
+    prefs->SetInteger("size", 123);
+    prefs->SetInteger("monitor", 2);
+    prefs->SetDouble("fps", 60.5);
+    prefs->SetBoolean("flag_true", true);
+    prefs->SetBoolean("flag_false", false);
+    prefs->SetString("plain", "hello");
+    prefs->SetDouble("plain_double", 3.14);
+    prefs->SetInteger("plain_int", 42);
+    prefs->SetStringList("views", {"HostnameView", "CpuView"});
+    prefs->SetStringList("temperature.sensors", {"CPU", "GPU"});
+
+    WriteTomlPreferences(*prefs);
+
+    auto loaded = CreateTomlPreferences();
+
+    // String
+    REQUIRE(loaded->GetString("plain").has_value());
+    CHECK(loaded->GetString("plain").value() == "hello");
+    CHECK(loaded->GetString("side").value() == "right");
+
+    // Integer preserved as integer, not string/bool
+    REQUIRE(loaded->GetInteger("size").has_value());
+    CHECK(loaded->GetInteger("size").value() == 123);
+    CHECK(loaded->GetInteger("monitor").value() == 2);
+    REQUIRE(loaded->GetInteger("plain_int").has_value());
+    CHECK(loaded->GetInteger("plain_int").value() == 42);
+    CHECK_FALSE(loaded->GetInteger("flag_true").has_value());
+    CHECK_FALSE(loaded->GetInteger("plain").has_value());
+
+    // Double preserved as floating-point
+    REQUIRE(loaded->GetDouble("fps").has_value());
+    CHECK(loaded->GetDouble("fps").value() == doctest::Approx(60.5));
+    REQUIRE(loaded->GetDouble("plain_double").has_value());
+    CHECK(loaded->GetDouble("plain_double").value() == doctest::Approx(3.14));
+    CHECK_FALSE(loaded->GetInteger("plain_double").has_value());
+    // Integer also readable as double
+    CHECK(loaded->GetDouble("plain_int").value() == doctest::Approx(42));
+
+    // Boolean preserved as bool, not integer
+    REQUIRE(loaded->GetBoolean("flag_true").has_value());
+    CHECK(loaded->GetBoolean("flag_true").value() == true);
+    REQUIRE(loaded->GetBoolean("flag_false").has_value());
+    CHECK(loaded->GetBoolean("flag_false").value() == false);
+    CHECK_FALSE(loaded->GetBoolean("plain").has_value());
+    CHECK_FALSE(loaded->GetBoolean("plain_int").has_value());
+
+    // String list preserved as TOML array
+    REQUIRE(loaded->GetStringList("views").has_value());
+    CHECK(loaded->GetStringList("views").value() ==
+          std::vector<std::string>{"HostnameView", "CpuView"});
+    REQUIRE(loaded->GetStringList("temperature.sensors").has_value());
+    CHECK(loaded->GetStringList("temperature.sensors").value() ==
+          std::vector<std::string>{"CPU", "GPU"});
+    // String values are not misinterpreted as lists
+    CHECK_FALSE(loaded->GetStringList("plain").has_value());
+
+    // Const overload also works
+    const Preferences& constPrefs = *prefs;
+    WriteTomlPreferences(constPrefs);
+    auto reloaded = CreateTomlPreferences();
+    CHECK(reloaded->GetString("plain").value() == "hello");
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("WriteTomlPreferences reconstructs TOML groups from dotted paths")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    auto prefs = CreateMapPreferences();
+    prefs->SetInteger("cpu.update_interval", 7);
+    prefs->SetDouble("temperature.maximum", 80.5);
+    prefs->SetInteger("temperature.minimum", 20);
+    prefs->SetString("a.b.c", "hello");
+    prefs->SetStringList("a.b.list", {"x", "y"});
+    prefs->SetString("plain", "value");
+    prefs->SetStringList("views", {"A", "B"});
+
+    WriteTomlPreferences(*prefs);
+
+    const std::filesystem::path file =
+        std::filesystem::path(tmp) / "glsysmon" / "config.toml";
+    REQUIRE(std::filesystem::exists(file));
+    std::ifstream in(file);
+    REQUIRE(in.is_open());
+    const std::string content(
+        (std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+    // Groups are reconstructed
+    CHECK(content.find("[cpu]") != std::string::npos);
+    CHECK(content.find("[temperature]") != std::string::npos);
+    CHECK(content.find("[a.b]") != std::string::npos);
+    // Dotted keys are not left as inline dotted keys
+    CHECK(content.find("cpu.update_interval") == std::string::npos);
+    CHECK(content.find("temperature.maximum") == std::string::npos);
+    CHECK(content.find("a.b.c") == std::string::npos);
+
+    // Values are readable via dotted keys
+    auto loaded = CreateTomlPreferences();
+    CHECK(loaded->GetInteger("cpu.update_interval").value() == 7);
+    CHECK(loaded->GetDouble("temperature.maximum").value() ==
+          doctest::Approx(80.5));
+    CHECK(loaded->GetInteger("temperature.minimum").value() == 20);
+    CHECK(loaded->GetString("a.b.c").value() == "hello");
+    CHECK(loaded->GetStringList("a.b.list").value() ==
+          std::vector<std::string>{"x", "y"});
+    CHECK(loaded->GetString("plain").value() == "value");
+    CHECK(loaded->GetStringList("views").value() ==
+          std::vector<std::string>{"A", "B"});
+
+    // Overload taking non-const Preferences& also works
+    auto prefs2 = CreateMapPreferences();
+    prefs2->SetString("extra", "1");
+    WriteTomlPreferences(*prefs2);
+    auto loaded2 = CreateTomlPreferences();
+    CHECK(loaded2->GetString("extra").value() == "1");
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("WriteTomlPreferences writes to DefaultConfigPath and creates dirs")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    // Ensure glsysmon subdir does not exist before write
+    const std::filesystem::path dir = std::filesystem::path(tmp) / "glsysmon";
+    std::filesystem::remove_all(dir);
+    REQUIRE_FALSE(std::filesystem::exists(dir));
+
+    auto prefs = CreateMapPreferences();
+    prefs->SetString("side", "left");
+    WriteTomlPreferences(*prefs);
+
+    const std::filesystem::path file = dir / "config.toml";
+    CHECK(std::filesystem::exists(file));
+
+    // Overwrite with new value
+    prefs->SetString("side", "right");
+    WriteTomlPreferences(*prefs);
+    auto loaded = CreateTomlPreferences();
+    CHECK(loaded->GetString("side").value() == "right");
+
+    std::filesystem::remove_all(tmp);
+}

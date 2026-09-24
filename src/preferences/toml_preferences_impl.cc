@@ -1,12 +1,12 @@
 #include "preferences.h"
 
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <set>
 #include <string>
 #include <toml++/toml.h>
-
-#include <cstdlib>
-#include <filesystem>
 
 namespace
 {
@@ -20,6 +20,34 @@ namespace
         if (home != nullptr && *home != '\0')
             return std::string(home) + "/.config/glsysmon/config.toml";
         return "glsysmon.toml";
+    }
+
+    template <typename T>
+    void InsertDotted(toml::table& root, const std::string& dotted, T&& value)
+    {
+        std::size_t start = 0;
+        toml::table* cur = &root;
+        while (true)
+        {
+            const std::size_t dot = dotted.find('.', start);
+            if (dot == std::string::npos)
+            {
+                const std::string last = dotted.substr(start);
+                cur->insert_or_assign(last, std::forward<T>(value));
+                break;
+            }
+            const std::string part = dotted.substr(start, dot - start);
+            toml::node* node = cur->get(part);
+            if (node == nullptr || !node->is_table())
+            {
+                cur->insert_or_assign(part, toml::table{});
+                node = cur->get(part);
+            }
+            cur = node->as_table();
+            if (cur == nullptr)
+                break;
+            start = dot + 1;
+        }
     }
 
     class TomlPreferencesImpl : public Preferences
@@ -149,4 +177,68 @@ namespace
 std::unique_ptr<Preferences> CreateTomlPreferences()
 {
     return std::make_unique<TomlPreferencesImpl>();
+}
+
+void WriteTomlPreferences(const Preferences& prefs)
+{
+    const std::string path = DefaultConfigPath();
+    const std::filesystem::path filePath(path);
+    const std::filesystem::path dir = filePath.parent_path();
+    if (!dir.empty())
+    {
+        std::error_code ec;
+        std::filesystem::create_directories(dir, ec);
+    }
+
+    toml::table table;
+
+    for (const std::string& key : prefs.GetAll())
+    {
+        const std::optional<std::string> strOpt = prefs.GetString(key);
+        if (!strOpt)
+            continue;
+        const std::string& str = *strOpt;
+
+        const bool hasComma = str.find(',') != std::string::npos;
+        if (hasComma)
+        {
+            if (auto listOpt = prefs.GetStringList(key))
+            {
+                toml::array arr;
+                for (const std::string& s : *listOpt)
+                    arr.emplace_back(s);
+                InsertDotted(table, key, std::move(arr));
+                continue;
+            }
+        }
+
+        if (auto iv = prefs.GetInteger(key))
+        {
+            InsertDotted(table, key, static_cast<int64_t>(*iv));
+            continue;
+        }
+        if (auto dv = prefs.GetDouble(key))
+        {
+            InsertDotted(table, key, *dv);
+            continue;
+        }
+        if (auto bv = prefs.GetBoolean(key))
+        {
+            if (str == "true" || str == "false")
+            {
+                InsertDotted(table, key, *bv);
+                continue;
+            }
+        }
+
+        InsertDotted(table, key, str);
+    }
+
+    std::ofstream out(path);
+    out << table;
+}
+
+void WriteTomlPreferences(Preferences& prefs)
+{
+    WriteTomlPreferences(static_cast<const Preferences&>(prefs));
 }

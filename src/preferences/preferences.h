@@ -50,6 +50,8 @@ public:
 
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);
 extern std::unique_ptr<Preferences> CreateTomlPreferences();
+extern void WriteTomlPreferences(const Preferences& prefs);
+extern void WriteTomlPreferences(Preferences& prefs);
 extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 
 extern std::unique_ptr<Preferences> CreateDefaultPreferences();
