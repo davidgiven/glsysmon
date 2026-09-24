@@ -34,6 +34,18 @@ std::optional<double> Preferences::GetDouble(const std::string& key) const
     return value;
 }
 
+std::optional<bool> Preferences::GetBoolean(const std::string& key) const
+{
+    auto str = GetString(key);
+    if (!str)
+        return std::nullopt;
+    if (*str == "true" || *str == "1")
+        return true;
+    if (*str == "false" || *str == "0")
+        return false;
+    return std::nullopt;
+}
+
 std::optional<std::vector<std::string>> Preferences::GetStringList(
     const std::string& key) const
 {
@@ -75,6 +87,11 @@ void Preferences::SetInteger(const std::string& key, int value)
 void Preferences::SetDouble(const std::string& key, double value)
 {
     SetString(key, std::to_string(value));
+}
+
+void Preferences::SetBoolean(const std::string& key, bool value)
+{
+    SetString(key, value ? "true" : "false");
 }
 
 void Preferences::SetStringList(

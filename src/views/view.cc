@@ -7,11 +7,7 @@
 void View::DrawConfiguration(Preferences& preferences)
 {
     std::string key = GetPrefName() + ".enabled";
-    bool enabled = true;
-    if (auto value = preferences.GetString(key))
-        enabled = (*value == "true" || *value == "1");
-    else if (auto iv = preferences.GetInteger(key))
-        enabled = (*iv != 0);
+    bool enabled = preferences.GetBoolean(key).value_or(true);
     if (ImGui::Checkbox("Enabled", &enabled))
-        preferences.SetString(key, enabled ? "true" : "false");
+        preferences.SetBoolean(key, enabled);
 }

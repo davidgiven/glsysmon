@@ -24,6 +24,7 @@ public:
         const std::string& key) const = 0;
     virtual std::optional<int> GetInteger(const std::string& key) const;
     virtual std::optional<double> GetDouble(const std::string& key) const;
+    virtual std::optional<bool> GetBoolean(const std::string& key) const;
     virtual std::optional<std::vector<std::string>> GetStringList(
         const std::string& key) const;
     virtual std::optional<std::set<std::string>> GetStringSet(
@@ -36,6 +37,7 @@ public:
     };
     virtual void SetInteger(const std::string& key, int value);
     virtual void SetDouble(const std::string& key, double value);
+    virtual void SetBoolean(const std::string& key, bool value);
     virtual void SetStringList(
         const std::string& key, const std::vector<std::string>& value);
     virtual void SetStringSet(

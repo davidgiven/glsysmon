@@ -49,6 +49,16 @@ namespace
             return std::nullopt;
         }
 
+        std::optional<bool> GetBoolean(const std::string& key) const override
+        {
+            for (const auto& source : _sources)
+            {
+                if (auto value = source->GetBoolean(key))
+                    return value;
+            }
+            return std::nullopt;
+        }
+
         std::optional<std::vector<std::string>> GetStringList(
             const std::string& key) const override
         {
