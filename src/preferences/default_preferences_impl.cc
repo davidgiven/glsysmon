@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 
 namespace
@@ -38,9 +39,12 @@ namespace
             return it->second;
         }
 
-        void Set(const std::string& key, const std::string& value) override
+        void SetString(
+            const std::string& key, const std::string& value) override
         {
-            _values[key] = value;
+            (void)key;
+            (void)value;
+            throw std::runtime_error("unsupported operation");
         }
 
     private:

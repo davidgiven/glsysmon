@@ -60,6 +60,13 @@ namespace
             return std::nullopt;
         }
 
+        void SetString(
+            const std::string& key, const std::string& value) override
+        {
+            if (!_sources.empty())
+                _sources.front()->SetString(key, value);
+        }
+
     private:
         std::vector<std::shared_ptr<Preferences>> _sources;
     };

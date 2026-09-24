@@ -29,11 +29,17 @@ public:
     virtual std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
 
-    virtual void Set(const std::string& key, const std::string& value)
+    virtual void SetString(const std::string& key, const std::string& value)
     {
         (void)key;
         (void)value;
     };
+    virtual void SetInteger(const std::string& key, int value);
+    virtual void SetDouble(const std::string& key, double value);
+    virtual void SetStringList(
+        const std::string& key, const std::vector<std::string>& value);
+    virtual void SetStringSet(
+        const std::string& key, const std::set<std::string>& value);
 };
 
 extern std::unique_ptr<Preferences> CreateCliPreferences(const CliArgs& args);

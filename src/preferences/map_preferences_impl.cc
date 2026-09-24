@@ -26,7 +26,8 @@ namespace
             return it->second;
         }
 
-        void Set(const std::string& key, const std::string& value) override
+        void SetString(
+            const std::string& key, const std::string& value) override
         {
             _values[key] = value;
         }

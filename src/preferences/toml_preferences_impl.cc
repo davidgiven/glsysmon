@@ -43,7 +43,13 @@ namespace
         std::optional<std::string> GetString(
             const std::string& key) const override
         {
-            return _table.at_path(key).value<std::string>();
+            if (auto value = _table.at_path(key).value<std::string>())
+                return value;
+            if (auto value = _table.at_path(key).value<bool>())
+                return *value ? "true" : "false";
+            if (auto value = _table.at_path(key).value<int>())
+                return std::to_string(*value);
+            return std::nullopt;
         }
 
         std::optional<int> GetInteger(const std::string& key) const override
