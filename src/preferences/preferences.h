@@ -30,6 +30,8 @@ public:
     virtual std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
 
+    virtual std::set<std::string> GetAll() const = 0;
+
     virtual void SetString(const std::string& key, const std::string& value)
     {
         (void)key;

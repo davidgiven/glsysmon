@@ -1,6 +1,8 @@
 #include "preferences.h"
 
 #include <memory>
+#include <set>
+#include <string>
 #include <toml++/toml.h>
 
 #include <cstdlib>
@@ -110,8 +112,36 @@ namespace
             return result;
         }
 
+        std::set<std::string> GetAll() const override
+        {
+            std::set<std::string> result;
+            CollectKeys(_table, "", result);
+            return result;
+        }
+
     private:
         toml::table _table;
+
+        static void CollectKeys(const toml::table& table,
+            const std::string& prefix,
+            std::set<std::string>& out)
+        {
+            for (auto&& [key, node] : table)
+            {
+                const std::string full =
+                    prefix.empty() ? std::string(key.str())
+                                   : prefix + "." + std::string(key.str());
+                if (node.is_table())
+                {
+                    if (const toml::table* sub = node.as_table())
+                        CollectKeys(*sub, full, out);
+                }
+                else
+                {
+                    out.insert(full);
+                }
+            }
+        }
     };
 
 } // namespace

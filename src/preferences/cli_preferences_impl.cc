@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 
 namespace
@@ -45,6 +46,14 @@ namespace
             if (it == _values.end())
                 return std::nullopt;
             return it->second;
+        }
+
+        std::set<std::string> GetAll() const override
+        {
+            std::set<std::string> result;
+            for (const auto& [key, _] : _values)
+                result.insert(key);
+            return result;
         }
 
     private:

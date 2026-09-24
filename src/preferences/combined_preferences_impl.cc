@@ -3,6 +3,7 @@
 #include <initializer_list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -68,6 +69,17 @@ namespace
                     return value;
             }
             return std::nullopt;
+        }
+
+        std::set<std::string> GetAll() const override
+        {
+            std::set<std::string> result;
+            for (const auto& source : _sources)
+            {
+                const std::set<std::string> keys = source->GetAll();
+                result.insert(keys.begin(), keys.end());
+            }
+            return result;
         }
 
         void SetString(
