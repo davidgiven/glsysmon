@@ -30,24 +30,7 @@ public:
     std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
         const std::string& hwmonRoot) const;
 
-    // Legacy registry API retained for compatibility with older tests.
-    ClockSensor& GetClockSensor() const;
-    CpuSensor& GetCpuSensor() const;
-    HostnameSensor& GetHostnameSensor() const;
-    TemperatureSensor& GetTemperatureSensor() const;
-
-    void SetClockSensor(std::unique_ptr<ClockSensor> sensor);
-    void SetCpuSensor(std::unique_ptr<CpuSensor> sensor);
-    void SetHostnameSensor(std::unique_ptr<HostnameSensor> sensor);
-    void SetTemperatureSensor(std::unique_ptr<TemperatureSensor> sensor);
-
-    void Reset();
-
 private:
     const Preferences& _prefs;
     Timer& _timer;
-    mutable std::unique_ptr<ClockSensor> _clockSensor;
-    mutable std::unique_ptr<CpuSensor> _cpuSensor;
-    mutable std::unique_ptr<HostnameSensor> _hostnameSensor;
-    mutable std::unique_ptr<TemperatureSensor> _temperatureSensor;
 };
