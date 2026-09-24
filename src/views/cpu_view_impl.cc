@@ -84,9 +84,14 @@ namespace
             }
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Cpu";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "cpu";
         }
 
     private:

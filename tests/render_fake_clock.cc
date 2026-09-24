@@ -33,9 +33,14 @@ namespace
             return tm;
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Clock";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "clock";
         }
 
         void DrawConfiguration(Preferences& preferences) override

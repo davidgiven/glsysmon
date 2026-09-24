@@ -60,9 +60,14 @@ namespace
             return "temp" + std::to_string(channel + 1);
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Temperature";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "temperature";
         }
 
         void DrawConfiguration(Preferences& preferences) override

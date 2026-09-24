@@ -30,15 +30,20 @@ namespace
             return _hostname;
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Hostname";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "hostname";
         }
 
         void DrawConfiguration(Preferences& preferences) override
         {
             (void)preferences;
-            ImGui::Text("%s settings", GetName().c_str());
+            ImGui::Text("%s settings", GetHumanName().c_str());
         }
 
     private:

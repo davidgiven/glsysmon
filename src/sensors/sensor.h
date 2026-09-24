@@ -10,7 +10,9 @@ class Sensor
 public:
     virtual ~Sensor() = default;
 
-    virtual std::string GetName() const = 0;
+    virtual std::string GetHumanName() const = 0;
+
+    virtual std::string GetPrefName() const = 0;
 
     virtual void DrawConfiguration(Preferences& preferences) = 0;
 };

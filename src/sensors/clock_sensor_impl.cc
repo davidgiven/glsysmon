@@ -29,15 +29,20 @@ namespace
             return _tm;
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Clock";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "clock";
         }
 
         void DrawConfiguration(Preferences& preferences) override
         {
             (void)preferences;
-            ImGui::Text("%s settings", GetName().c_str());
+            ImGui::Text("%s settings", GetHumanName().c_str());
         }
 
     private:

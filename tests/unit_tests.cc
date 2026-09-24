@@ -29,9 +29,14 @@ namespace
             return "fake-hostname";
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Hostname";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "hostname";
         }
 
         void DrawConfiguration(Preferences& preferences) override

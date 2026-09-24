@@ -28,14 +28,14 @@ void ConfigurationWindow::Draw()
             if (ImGui::BeginTabItem("Views"))
             {
                 for (View* view : _views.GetAllViews())
-                    if (ImGui::CollapsingHeader(view->GetName().c_str()))
+                    if (ImGui::CollapsingHeader(view->GetHumanName().c_str()))
                         view->DrawConfiguration(*_pendingPreferences);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Sensors"))
             {
                 for (Sensor* sensor : _sensors.GetAllSensors())
-                    if (ImGui::CollapsingHeader(sensor->GetName().c_str()))
+                    if (ImGui::CollapsingHeader(sensor->GetHumanName().c_str()))
                         sensor->DrawConfiguration(*_pendingPreferences);
                 ImGui::EndTabItem();
             }

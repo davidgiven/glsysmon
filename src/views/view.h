@@ -20,7 +20,9 @@ public:
 
     virtual void DrawConfiguration(Preferences& preferences);
 
-    virtual std::string GetName() const = 0;
+    virtual std::string GetHumanName() const = 0;
+
+    virtual std::string GetPrefName() const = 0;
 };
 
 extern std::unique_ptr<View> CreateClockView(

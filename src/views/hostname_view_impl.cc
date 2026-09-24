@@ -41,9 +41,14 @@ namespace
             ImGui::Text("%s", hostname.c_str());
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Hostname";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "hostname";
         }
 
     private:

@@ -118,15 +118,20 @@ namespace
             return "temp" + std::to_string(channel + 1);
         }
 
-        std::string GetName() const override
+        std::string GetHumanName() const override
         {
             return "Temperature";
+        }
+
+        std::string GetPrefName() const override
+        {
+            return "temperature";
         }
 
         void DrawConfiguration(Preferences& preferences) override
         {
             (void)preferences;
-            ImGui::Text("%s settings", GetName().c_str());
+            ImGui::Text("%s settings", GetHumanName().c_str());
         }
 
     private:
