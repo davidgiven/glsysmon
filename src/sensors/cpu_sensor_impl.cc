@@ -95,8 +95,14 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            (void)preferences;
-            ImGui::Text("%s settings", GetHumanName().c_str());
+            float interval = static_cast<float>(
+                preferences.GetDouble(_prefPrefix + ".update_interval")
+                    .value_or(2.0));
+            if (ImGui::InputFloat("Update interval (Hz)", &interval))
+            {
+                preferences.SetDouble(
+                    _prefPrefix + ".update_interval", interval);
+            }
         }
 
     private:
