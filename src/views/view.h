@@ -2,8 +2,10 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class Preferences;
+class Sensor;
 class Sensors;
 class HostnameSensor;
 
@@ -23,6 +25,10 @@ public:
     virtual std::string GetHumanName() const = 0;
 
     virtual std::string GetPrefName() const = 0;
+
+    virtual std::vector<Sensor*> GetSensors() = 0;
+
+    virtual std::vector<Sensor*> GetSensors() const = 0;
 };
 
 extern std::unique_ptr<View> CreateClockView(

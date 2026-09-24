@@ -51,6 +51,20 @@ namespace
             return "hostname";
         }
 
+        std::vector<Sensor*> GetSensors() override
+        {
+            if (_sensor)
+                return {static_cast<Sensor*>(_sensor.get())};
+            return {static_cast<Sensor*>(&_sensors->GetHostnameSensor())};
+        }
+
+        std::vector<Sensor*> GetSensors() const override
+        {
+            if (_sensor)
+                return {static_cast<Sensor*>(_sensor.get())};
+            return {static_cast<Sensor*>(&_sensors->GetHostnameSensor())};
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<HostnameSensor> _sensor;

@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -95,6 +96,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "temperature";
+        }
+
+        std::vector<Sensor*> GetSensors() override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetTemperatureSensor())};
+        }
+
+        std::vector<Sensor*> GetSensors() const override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetTemperatureSensor())};
         }
 
     private:

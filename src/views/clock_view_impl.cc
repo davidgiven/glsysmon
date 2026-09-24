@@ -57,6 +57,16 @@ namespace
             return "clock";
         }
 
+        std::vector<Sensor*> GetSensors() override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetClockSensor())};
+        }
+
+        std::vector<Sensor*> GetSensors() const override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetClockSensor())};
+        }
+
     private:
         const Preferences& _prefs;
         Sensors* _sensors = nullptr;

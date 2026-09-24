@@ -94,6 +94,16 @@ namespace
             return "cpu";
         }
 
+        std::vector<Sensor*> GetSensors() override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetCpuSensor())};
+        }
+
+        std::vector<Sensor*> GetSensors() const override
+        {
+            return {static_cast<Sensor*>(&_sensors->GetCpuSensor())};
+        }
+
     private:
         const Preferences& _prefs;
         Sensors* _sensors = nullptr;

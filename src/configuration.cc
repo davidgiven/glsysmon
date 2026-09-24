@@ -29,36 +29,23 @@ void ConfigurationWindow::Draw(bool* open)
 
     if (ImGui::BeginChild("UpperArea", ImVec2(0, -buttonHeight), false))
     {
-        if (ImGui::BeginTabBar("ConfigurationTabs"))
-        {
-            if (ImGui::BeginTabItem("Views"))
+        for (View* view : _views.GetAllViews())
+            if (ImGui::CollapsingHeader(view->GetHumanName().c_str()))
             {
-                for (View* view : _views.GetAllViews())
-                    if (ImGui::CollapsingHeader(view->GetHumanName().c_str()))
-                    {
-                        ImGui::PushID("view");
-                        ImGui::PushID(view->GetPrefName().c_str());
-                        view->DrawConfiguration(*_pendingPreferences);
-                        ImGui::PopID();
-                        ImGui::PopID();
-                    }
-                ImGui::EndTabItem();
+                ImGui::PushID(view->GetPrefName().c_str());
+                view->DrawConfiguration(*_pendingPreferences);
+
+                ImGui::PushID("sensors");
+                for (Sensor* sensor : view->GetSensors())
+                {
+                    ImGui::PushID(sensor->GetPrefName().c_str());
+                    sensor->DrawConfiguration(*_pendingPreferences);
+                    ImGui::PopID();
+                }
+
+                ImGui::PopID();
+                ImGui::PopID();
             }
-            if (ImGui::BeginTabItem("Sensors"))
-            {
-                for (Sensor* sensor : _sensors.GetAllSensors())
-                    if (ImGui::CollapsingHeader(sensor->GetHumanName().c_str()))
-                    {
-                        ImGui::PushID("sensor");
-                        ImGui::PushID(sensor->GetPrefName().c_str());
-                        sensor->DrawConfiguration(*_pendingPreferences);
-                        ImGui::PopID();
-                        ImGui::PopID();
-                    }
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
-        }
     }
     ImGui::EndChild();
 
