@@ -8,6 +8,7 @@
 
 void Style::GraphGroup(const char* title, std::function<void()> body)
 {
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.5f));
     DrawCentredText(title);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
