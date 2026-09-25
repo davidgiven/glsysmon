@@ -11,6 +11,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "preferences/preferences.h"
@@ -83,9 +84,21 @@ namespace
             _delta = 1'000'000'000ULL / interval;
 
             _inputPaths = DiscoverInputs(_hwmonRoot);
-            _names.reserve(_inputPaths.size());
+            std::vector<std::string> baseNames;
+            baseNames.reserve(_inputPaths.size());
             for (const std::string& input : _inputPaths)
             {
+                std::string hwmonDir;
+                std::size_t slash = input.rfind('/');
+                if (slash != std::string::npos)
+                    hwmonDir = input.substr(0, slash);
+                std::string namePath = hwmonDir + "/name";
+                std::ifstream nf(namePath);
+                std::string name;
+                if (nf)
+                    std::getline(nf, name);
+                name = Trim(name);
+
                 std::string labelPath = input;
                 std::size_t pos = labelPath.rfind("_input");
                 if (pos != std::string::npos)
@@ -97,7 +110,30 @@ namespace
                 label = Trim(label);
                 if (label.empty())
                     label = ExtractTempBase(input);
-                _names.push_back(label);
+
+                std::string combined;
+                if (!name.empty())
+                    combined = name + " " + label;
+                else
+                    combined = label;
+                baseNames.push_back(combined);
+            }
+
+            std::unordered_map<std::string, int> counts;
+            for (const auto& n : baseNames)
+                counts[n]++;
+
+            std::unordered_map<std::string, int> seen;
+            _names.reserve(baseNames.size());
+            for (const auto& base : baseNames)
+            {
+                if (counts[base] > 1)
+                {
+                    int idx = ++seen[base];
+                    _names.push_back(base + " #" + std::to_string(idx));
+                }
+                else
+                    _names.push_back(base);
             }
 
             InitGraph(_inputPaths.size(),
