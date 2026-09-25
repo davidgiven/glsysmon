@@ -127,15 +127,31 @@ namespace
         {
             ViewGraphMixin::DrawConfiguration(preferences);
 
-            float maximum = static_cast<float>(
-                preferences.GetDouble(GetPrefName() + ".maximum").value_or(0));
-            if (ImGui::DragFloat(
-                    "Maximum (B/s)", &maximum, 100.0f, 0.0f, 0.0f, "%.0f"))
+            static constexpr const char* kMaximumLabels[] = {
+                "1MBps", "10Mbps", "100Mbps", "1GBps"};
+            static constexpr double kMaximumValues[] = {
+                1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
+            double currentMaximum =
+                preferences.GetDouble(GetPrefName() + ".maximum").value_or(0);
+            int maximumIndex = 0;
+            double bestDiff = std::abs(currentMaximum - kMaximumValues[0]);
+            for (int i = 1; i < 4; ++i)
             {
-                if (maximum <= 0)
-                    preferences.SetDouble(GetPrefName() + ".maximum", 0);
-                else
-                    preferences.SetDouble(GetPrefName() + ".maximum", maximum);
+                double diff = std::abs(currentMaximum - kMaximumValues[i]);
+                if (diff < bestDiff)
+                {
+                    bestDiff = diff;
+                    maximumIndex = i;
+                }
+            }
+            if (ImGui::SliderInt("Maximum (B/s)",
+                    &maximumIndex,
+                    0,
+                    3,
+                    kMaximumLabels[maximumIndex]))
+            {
+                preferences.SetDouble(
+                    GetPrefName() + ".maximum", kMaximumValues[maximumIndex]);
             }
 
             auto allowedSet =

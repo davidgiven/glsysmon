@@ -253,12 +253,13 @@ TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
     auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", path);
     auto* gm = dynamic_cast<SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(gm != nullptr);
-    CHECK(gm->GetChannelName(0) == "CPU0");
-    CHECK(gm->GetChannelName(1) == "CPU1");
-    CHECK(gm->GetChannelName(2) == "CPU2");
+    CHECK(gm->GetChannelName(0) == "0");
+    CHECK(gm->GetChannelName(1) == "1");
+    CHECK(gm->GetChannelName(2) == "2");
     // also via const
-    const auto* cgm = dynamic_cast<const SensorGraphMixin<CpuSample>*>(sensor.get());
+    const auto* cgm =
+        dynamic_cast<const SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(cgm != nullptr);
-    CHECK(cgm->GetChannelName(0) == "CPU0");
+    CHECK(cgm->GetChannelName(0) == "0");
     std::remove(path.c_str());
 }

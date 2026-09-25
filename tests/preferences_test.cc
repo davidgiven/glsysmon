@@ -306,12 +306,18 @@ TEST_CASE(
     auto prefs = CreatePreferences(args);
     REQUIRE(prefs->GetStringList("views").has_value());
     CHECK(prefs->GetStringList("views").value() ==
-          std::vector<std::string>{
-              "HostnameView", "ClockView", "CpuView", "TemperatureView"});
+          std::vector<std::string>{"HostnameView",
+              "ClockView",
+              "CpuView",
+              "TemperatureView",
+              "NetworkView"});
     REQUIRE(prefs->GetStringSet("views").has_value());
     CHECK(prefs->GetStringSet("views").value() ==
-          std::set<std::string>{
-              "ClockView", "CpuView", "HostnameView", "TemperatureView"});
+          std::set<std::string>{"ClockView",
+              "CpuView",
+              "HostnameView",
+              "NetworkView",
+              "TemperatureView"});
 
     std::filesystem::remove_all(tmp);
 }
