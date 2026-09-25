@@ -40,7 +40,15 @@ void Style::DrawGraph(const char* title,
     float height)
 {
     std::string plotId = std::string("##") + title;
+    const bool inverted = yMin > yMax;
+    if (inverted)
+        plotId += "_inv";
     const float width = ImGui::GetContentRegionAvail().x;
+    if (inverted)
+    {
+        ImPlot::PushStyleColor(ImPlotCol_PlotBg, IM_COL32(0, 0, 0, 0));
+        ImPlot::PushStyleColor(ImPlotCol_FrameBg, IM_COL32(0, 0, 0, 0));
+    }
     if (ImPlot::BeginPlot(plotId.c_str(),
             ImVec2(width, height),
             ImPlotFlags_NoTitle | ImPlotFlags_NoLegend |
@@ -48,10 +56,11 @@ void Style::DrawGraph(const char* title,
                 ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
                 ImPlotFlags_NoFrame))
     {
-        ImPlot::SetupAxes(nullptr,
-            nullptr,
-            ImPlotAxisFlags_NoDecorations,
-            ImPlotAxisFlags_NoDecorations);
+        ImPlotAxisFlags yFlags = ImPlotAxisFlags_NoDecorations;
+        if (inverted)
+            yFlags |= ImPlotAxisFlags_Invert;
+        ImPlot::SetupAxes(
+            nullptr, nullptr, ImPlotAxisFlags_NoDecorations, yFlags);
         ImPlot::SetupAxesLimits(0, n, yMin, yMax, ImPlotCond_Always);
         ImPlot::SetupFinish();
         body();
@@ -63,6 +72,8 @@ void Style::DrawGraph(const char* title,
             title);
         ImPlot::EndPlot();
     }
+    if (inverted)
+        ImPlot::PopStyleColor(2);
 }
 
 void Style::DrawGraph(const std::string& title,

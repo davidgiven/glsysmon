@@ -125,7 +125,8 @@ TEST_RENDER_HOSTNAME := $(TEST_BUILD)/render_fake_hostname
 TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
 TEST_RENDER_CPU      := $(TEST_BUILD)/render_fake_cpu
 TEST_RENDER_TEMPERATURE := $(TEST_BUILD)/render_fake_temperature
-TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE)
+TEST_RENDER_NETWORK := $(TEST_BUILD)/render_fake_network
+TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK)
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
@@ -160,6 +161,7 @@ TEST_OBJS := \
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
+         $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d \
          $(BUILD)/imhtml.d \
          $(FONT_GEN_CPP:.cpp=.d)
 
@@ -291,6 +293,11 @@ $(TEST_RENDER_TEMPERATURE): $(TEST_BUILD)/render_fake_temperature.o \
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
+$(TEST_RENDER_NETWORK): $(TEST_BUILD)/render_fake_network.o \
+	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+		$(STB_LIBS)
+
 run: $(BIN)
 	./$(BIN)
 
@@ -303,6 +310,7 @@ test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_
 	./$(TEST_RENDER_CLOCK)
 	./$(TEST_RENDER_CPU)
 	./$(TEST_RENDER_TEMPERATURE)
+	./$(TEST_RENDER_NETWORK)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.

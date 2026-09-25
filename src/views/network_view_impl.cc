@@ -79,13 +79,14 @@ namespace
                         }
 
                         std::vector<double> rx(n);
-                        std::vector<double> txInv(n);
+                        std::vector<double> tx(n);
                         for (int i = 0; i < n; ++i)
                         {
                             rx[i] = samples[i].rxBps;
-                            txInv[i] = yMax - samples[i].txBps;
+                            tx[i] = samples[i].txBps;
                         }
 
+                        ImVec2 startPos = ImGui::GetCursorPos();
                         Style::DrawGraph(
                             channelName,
                             n,
@@ -93,10 +94,50 @@ namespace
                             yMax,
                             [&]
                             {
-                                ImPlot::PlotShaded("rx", rx.data(), n, 0.0);
-                                ImPlot::PlotLine("rx", rx.data(), n);
-                                ImPlot::PlotShaded("tx", txInv.data(), n, yMax);
-                                ImPlot::PlotLine("tx", txInv.data(), n);
+                                const ImVec4 col = ImPlot::GetColormapColor(0);
+                                ImPlot::PlotShaded("rx",
+                                    rx.data(),
+                                    n,
+                                    0.0,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor,
+                                        col,
+                                        ImPlotProp_FillColor,
+                                        col));
+                                ImPlot::PlotLine("rx",
+                                    rx.data(),
+                                    n,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor, col));
+                            },
+                            static_cast<float>(graphHeight));
+                        ImGui::SetCursorPos(startPos);
+                        Style::DrawGraph(
+                            channelName,
+                            n,
+                            yMax,
+                            0,
+                            [&]
+                            {
+                                const ImVec4 col = ImPlot::GetColormapColor(1);
+                                ImPlot::PlotShaded("tx",
+                                    tx.data(),
+                                    n,
+                                    0.0,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor,
+                                        col,
+                                        ImPlotProp_FillColor,
+                                        col));
+                                ImPlot::PlotLine("tx",
+                                    tx.data(),
+                                    n,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor, col));
                             },
                             static_cast<float>(graphHeight));
                     }
