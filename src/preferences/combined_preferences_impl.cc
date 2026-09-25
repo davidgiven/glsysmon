@@ -29,6 +29,13 @@ namespace
             return nullptr;
         }
 
+        std::unique_ptr<Value> Add(const std::string& key) override
+        {
+            if (!_sources.empty())
+                return _sources.front()->Add(key);
+            return nullptr;
+        }
+
         std::set<std::unique_ptr<Value>> GetAll() const override
         {
             std::set<std::string> names;

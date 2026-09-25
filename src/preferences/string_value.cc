@@ -94,6 +94,52 @@ std::optional<std::set<std::string>> StringValue::GetStringSet() const
     return result;
 }
 
+void StringValue::SetString(const std::string& value)
+{
+    _str = value;
+}
+
+void StringValue::SetInteger(int value)
+{
+    _str = std::to_string(value);
+}
+
+void StringValue::SetDouble(double value)
+{
+    _str = std::to_string(value);
+}
+
+void StringValue::SetBoolean(bool value)
+{
+    _str = value ? "true" : "false";
+}
+
+void StringValue::SetStringList(const std::vector<std::string>& value)
+{
+    std::string joined;
+    for (std::size_t i = 0; i < value.size(); ++i)
+    {
+        if (i != 0)
+            joined.push_back(',');
+        joined += value[i];
+    }
+    _str = joined;
+}
+
+void StringValue::SetStringSet(const std::set<std::string>& value)
+{
+    std::string joined;
+    bool first = true;
+    for (const auto& item : value)
+    {
+        if (!first)
+            joined.push_back(',');
+        joined += item;
+        first = false;
+    }
+    _str = joined;
+}
+
 std::unique_ptr<Value> CreateStringValue(
     const std::string& name, const std::string& s)
 {

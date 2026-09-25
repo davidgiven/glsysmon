@@ -36,6 +36,13 @@ public:
     virtual std::optional<std::vector<std::string>> GetStringList() const = 0;
     virtual std::optional<std::set<std::string>> GetStringSet() const = 0;
 
+    virtual void SetString(const std::string& value) = 0;
+    virtual void SetInteger(int value) = 0;
+    virtual void SetDouble(double value) = 0;
+    virtual void SetBoolean(bool value) = 0;
+    virtual void SetStringList(const std::vector<std::string>& value) = 0;
+    virtual void SetStringSet(const std::set<std::string>& value) = 0;
+
     bool operator==(const Value& other) const
     {
         return GetName() == other.GetName();
@@ -87,6 +94,7 @@ public:
     virtual ~Preferences() = default;
 
     virtual std::unique_ptr<Value> Get(const std::string& key) const = 0;
+    virtual std::unique_ptr<Value> Add(const std::string& key) = 0;
 
     std::optional<std::string> GetString(const std::string& key) const;
     std::optional<int> GetInteger(const std::string& key) const;
@@ -99,11 +107,7 @@ public:
 
     virtual std::set<std::unique_ptr<Value>> GetAll() const = 0;
 
-    virtual void SetString(const std::string& key, const std::string& value)
-    {
-        (void)key;
-        (void)value;
-    };
+    virtual void SetString(const std::string& key, const std::string& value);
     virtual void SetInteger(const std::string& key, int value);
     virtual void SetDouble(const std::string& key, double value);
     virtual void SetBoolean(const std::string& key, bool value);

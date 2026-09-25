@@ -53,8 +53,13 @@ namespace
     class TomlValue : public Value
     {
     public:
-        TomlValue(const toml::table* table, std::string key):
+        TomlValue(toml::table* table, std::string key):
             _table(table),
+            _key(std::move(key))
+        {
+        }
+        TomlValue(const toml::table* table, std::string key):
+            _table(const_cast<toml::table*>(table)),
             _key(std::move(key))
         {
         }
@@ -163,8 +168,44 @@ namespace
             return result;
         }
 
+        void SetString(const std::string& value) override
+        {
+            InsertDotted(*_table, _key, value);
+        }
+
+        void SetInteger(int value) override
+        {
+            InsertDotted(*_table, _key, static_cast<int64_t>(value));
+        }
+
+        void SetDouble(double value) override
+        {
+            InsertDotted(*_table, _key, value);
+        }
+
+        void SetBoolean(bool value) override
+        {
+            InsertDotted(*_table, _key, value);
+        }
+
+        void SetStringList(const std::vector<std::string>& value) override
+        {
+            toml::array arr;
+            for (const auto& s : value)
+                arr.emplace_back(s);
+            InsertDotted(*_table, _key, std::move(arr));
+        }
+
+        void SetStringSet(const std::set<std::string>& value) override
+        {
+            toml::array arr;
+            for (const auto& s : value)
+                arr.emplace_back(s);
+            InsertDotted(*_table, _key, std::move(arr));
+        }
+
     private:
-        const toml::table* _table;
+        toml::table* _table;
         std::string _key;
     };
 
@@ -195,6 +236,11 @@ namespace
                 return nullptr;
             if (node.is_table())
                 return nullptr;
+            return std::make_unique<TomlValue>(&_table, key);
+        }
+
+        std::unique_ptr<Value> Add(const std::string& key) override
+        {
             return std::make_unique<TomlValue>(&_table, key);
         }
 

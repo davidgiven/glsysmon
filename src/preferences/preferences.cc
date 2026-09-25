@@ -56,47 +56,48 @@ std::optional<std::set<std::string>> Preferences::GetStringSet(
     return v->GetStringSet();
 }
 
+void Preferences::SetString(const std::string& key, const std::string& value)
+{
+    auto v = Add(key);
+    if (v)
+        v->SetString(value);
+}
+
 void Preferences::SetInteger(const std::string& key, int value)
 {
-    SetString(key, std::to_string(value));
+    auto v = Add(key);
+    if (v)
+        v->SetInteger(value);
 }
 
 void Preferences::SetDouble(const std::string& key, double value)
 {
-    SetString(key, std::to_string(value));
+    auto v = Add(key);
+    if (v)
+        v->SetDouble(value);
 }
 
 void Preferences::SetBoolean(const std::string& key, bool value)
 {
-    SetString(key, value ? "true" : "false");
+    auto v = Add(key);
+    if (v)
+        v->SetBoolean(value);
 }
 
 void Preferences::SetStringList(
     const std::string& key, const std::vector<std::string>& value)
 {
-    std::string joined;
-    for (std::size_t i = 0; i < value.size(); ++i)
-    {
-        if (i != 0)
-            joined.push_back(',');
-        joined += value[i];
-    }
-    SetString(key, joined);
+    auto v = Add(key);
+    if (v)
+        v->SetStringList(value);
 }
 
 void Preferences::SetStringSet(
     const std::string& key, const std::set<std::string>& value)
 {
-    std::string joined;
-    bool first = true;
-    for (const auto& item : value)
-    {
-        if (!first)
-            joined.push_back(',');
-        joined += item;
-        first = false;
-    }
-    SetString(key, joined);
+    auto v = Add(key);
+    if (v)
+        v->SetStringSet(value);
 }
 
 void Preferences::ClearAll()

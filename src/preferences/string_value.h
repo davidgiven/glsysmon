@@ -21,6 +21,13 @@ public:
     std::optional<std::vector<std::string>> GetStringList() const override;
     std::optional<std::set<std::string>> GetStringSet() const override;
 
+    void SetString(const std::string& value) override;
+    void SetInteger(int value) override;
+    void SetDouble(double value) override;
+    void SetBoolean(bool value) override;
+    void SetStringList(const std::vector<std::string>& value) override;
+    void SetStringSet(const std::set<std::string>& value) override;
+
 private:
     std::string _name;
     std::string _str;
