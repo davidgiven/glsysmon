@@ -134,6 +134,7 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 - Declare non-static free-function prototypes in headers with `extern`.
 - Reformat changed sources with `clang-format` (per the repo `.clang-format`)
   before committing.
+- Never commit anything to the VCS — the user will always handle commits manually.
 - For very large numbers (e.g. nanosecond values) always use `'` digit separators grouped as `000'000` (e.g. `1'000'000'000`, `100'000'000`).
 - The dock backend must be configured before the first swapchain present.
 - On Wayland, the layer-surface `configure` event must call `ack_configure`
