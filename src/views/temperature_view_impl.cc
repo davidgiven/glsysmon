@@ -100,6 +100,25 @@ namespace
             return {static_cast<Sensor*>(_sensor.get())};
         }
 
+        void DrawConfiguration(Preferences& preferences) override
+        {
+            ViewGraphMixin::DrawConfiguration(preferences);
+
+            float minMax[2] = {static_cast<float>(preferences
+                                       .GetInteger(GetPrefName() + ".minimum")
+                                       .value_or(20)),
+                static_cast<float>(
+                    preferences.GetInteger(GetPrefName() + ".maximum")
+                        .value_or(80))};
+            if (ImGui::DragFloat2("Min/Max (°C)", minMax))
+            {
+                preferences.SetInteger(
+                    GetPrefName() + ".minimum", static_cast<int>(minMax[0]));
+                preferences.SetInteger(
+                    GetPrefName() + ".maximum", static_cast<int>(minMax[1]));
+            }
+        }
+
     private:
         const Preferences& _prefs;
         std::unique_ptr<TemperatureSensor> _sensor;
