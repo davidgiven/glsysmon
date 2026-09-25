@@ -10,6 +10,7 @@ class Sensors;
 class ClockSensor;
 class CpuSensor;
 class HostnameSensor;
+class NetworkSensor;
 class TemperatureSensor;
 
 // A system-monitor widget shown in the dock. Implementations live in
@@ -50,3 +51,7 @@ extern std::unique_ptr<View> CreateTemperatureView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateTemperatureView(
     const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor);
+extern std::unique_ptr<View> CreateNetworkView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateNetworkView(
+    const Preferences& prefs, std::unique_ptr<NetworkSensor> sensor);

@@ -6,6 +6,7 @@
 #include "sensors/clock_sensor.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/hostname_sensor.h"
+#include "sensors/network_sensor.h"
 #include "sensors/temperature_sensor.h"
 
 Sensors::Sensors(const Preferences& prefs, Timer& timer):
@@ -36,4 +37,10 @@ std::unique_ptr<TemperatureSensor> Sensors::CreateTemperatureSensor(
     const std::string& a, const std::string& b) const
 {
     return ::CreateTemperatureSensor(_prefs, _timer, a, b);
+}
+
+std::unique_ptr<NetworkSensor> Sensors::CreateNetworkSensor(
+    const std::string& a, const std::string& b) const
+{
+    return ::CreateNetworkSensor(_prefs, _timer, a, b);
 }

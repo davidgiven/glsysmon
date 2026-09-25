@@ -42,8 +42,9 @@ WAYLAND_XML               := third_party/wayland/wlr-layer-shell-unstable-v1.xml
 WAYLAND_PROTOCOL_HEADER   := $(GEN)/wlr-layer-shell-client-protocol.h
 WAYLAND_PROTOCOL_CODE     := $(GEN)/wlr-layer-shell-client-protocol.c
 
-# xdg-shell is referenced by the layer-shell get_popup request; Debian ships the
-# XML in wayland-protocols. Only its interface tables (for xdg_popup) are needed.
+#xdg - shell is referenced by the layer - shell get_popup request; \
+    Debian ships the
+#XML in wayland - protocols.Only its interface tables(for xdg_popup) are needed.
 XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml) $(wildcard /usr/share/qt6/wayland/protocols/xdg-shell/xdg-shell.xml))
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
@@ -75,6 +76,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
@@ -82,6 +84,7 @@ SRC_OBJS := \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/style.o \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/views/view.o \
@@ -144,10 +147,12 @@ TEST_OBJS := \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(FONT_GEN_OBJ)

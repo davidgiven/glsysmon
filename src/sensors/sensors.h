@@ -7,6 +7,7 @@
 #include "clock_sensor.h"
 #include "cpu_sensor.h"
 #include "hostname_sensor.h"
+#include "network_sensor.h"
 #include "temperature_sensor.h"
 
 class Preferences;
@@ -30,6 +31,9 @@ public:
     std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
         const std::string& prefPrefix,
         const std::string& hwmonRoot = "/sys/class/hwmon") const;
+    std::unique_ptr<NetworkSensor> CreateNetworkSensor(
+        const std::string& prefPrefix,
+        const std::string& procNetDevPath = "/proc/net/dev") const;
 
 private:
     const Preferences& _prefs;

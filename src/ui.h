@@ -8,6 +8,7 @@ class App;
 class HostnameSensor;
 class ClockSensor;
 class CpuSensor;
+class NetworkSensor;
 class TemperatureSensor;
 
 struct SDL_Window;
@@ -38,4 +39,8 @@ extern std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
 extern std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
     Timer& timer,
     std::unique_ptr<TemperatureSensor> fakeSensor,
+    App& app);
+extern std::unique_ptr<Ui> CreateUiWithFakeNetwork(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<NetworkSensor> fakeSensor,
     App& app);

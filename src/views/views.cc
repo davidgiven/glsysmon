@@ -6,6 +6,7 @@ const std::map<std::string, Views::Factory> Views::_factories{
     {"ClockView",       static_cast<Factory>(&CreateClockView)      },
     {"CpuView",         static_cast<Factory>(&CreateCpuView)        },
     {"HostnameView",    static_cast<Factory>(&CreateHostnameView)   },
+    {"NetworkView",     static_cast<Factory>(&CreateNetworkView)    },
     {"TemperatureView", static_cast<Factory>(&CreateTemperatureView)},
 };
 
