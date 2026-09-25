@@ -66,7 +66,7 @@ namespace
                         }
                         const char* labels[] = {"user", "system", "nice"};
                         Style::DrawGraph(
-                            std::to_string(cpu),
+                            _sensor->GetChannelName(cpu),
                             n,
                             0,
                             1,

@@ -80,7 +80,7 @@ namespace
 
         std::string GetChannelName(std::size_t channel) const override
         {
-            return "CPU" + std::to_string(channel);
+            return std::to_string(channel);
         }
 
         std::string GetHumanName() const override
