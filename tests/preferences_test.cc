@@ -990,12 +990,19 @@ TEST_CASE("CombinedPreferences::GetAll enumerates overridden keys exactly once")
     map2->SetString("c", "3");
 
     auto combined = CreateCombinedPreferences({map1, map2});
-    const std::set<std::string> all = combined->GetAll();
+    const auto all = combined->GetAll();
 
     CHECK(all.size() == 3);
-    CHECK(all.count("a") == 1);
-    CHECK(all.count("b") == 1);
-    CHECK(all.count("c") == 1);
+    auto contains = [&](const std::string& name)
+    {
+        for (const auto& v : all)
+            if (v->GetName() == name)
+                return true;
+        return false;
+    };
+    CHECK(contains("a"));
+    CHECK(contains("b"));
+    CHECK(contains("c"));
     CHECK(combined->GetString("a").value() == "1");
     CHECK(combined->GetString("b").value() == "override");
     CHECK(combined->GetString("c").value() == "3");

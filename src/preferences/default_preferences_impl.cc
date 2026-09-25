@@ -41,11 +41,11 @@ namespace
             return CreateStringValue(key, it->second);
         }
 
-        std::set<std::string> GetAll() const override
+        std::set<std::unique_ptr<Value>> GetAll() const override
         {
-            std::set<std::string> result;
-            for (const auto& [key, _] : _values)
-                result.insert(key);
+            std::set<std::unique_ptr<Value>> result;
+            for (const auto& [key, value] : _values)
+                result.insert(CreateStringValue(key, value));
             return result;
         }
 

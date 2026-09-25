@@ -29,14 +29,18 @@ namespace
             return nullptr;
         }
 
-        std::set<std::string> GetAll() const override
+        std::set<std::unique_ptr<Value>> GetAll() const override
         {
-            std::set<std::string> result;
+            std::set<std::string> names;
             for (const auto& source : _sources)
             {
-                const std::set<std::string> keys = source->GetAll();
-                result.insert(keys.begin(), keys.end());
+                for (const auto& v : source->GetAll())
+                    names.insert(v->GetName());
             }
+            std::set<std::unique_ptr<Value>> result;
+            for (const auto& name : names)
+                if (auto v = Get(name))
+                    result.insert(std::move(v));
             return result;
         }
 

@@ -198,10 +198,13 @@ namespace
             return std::make_unique<TomlValue>(&_table, key);
         }
 
-        std::set<std::string> GetAll() const override
+        std::set<std::unique_ptr<Value>> GetAll() const override
         {
-            std::set<std::string> result;
-            CollectKeys(_table, "", result);
+            std::set<std::string> keys;
+            CollectKeys(_table, "", keys);
+            std::set<std::unique_ptr<Value>> result;
+            for (const auto& key : keys)
+                result.insert(std::make_unique<TomlValue>(&_table, key));
             return result;
         }
 
@@ -250,11 +253,9 @@ void WriteTomlPreferences(const Preferences& prefs)
 
     toml::table table;
 
-    for (const std::string& key : prefs.GetAll())
+    for (const auto& v : prefs.GetAll())
     {
-        auto v = prefs.Get(key);
-        if (!v)
-            continue;
+        const std::string& key = v->GetName();
 
         switch (v->GetType())
         {

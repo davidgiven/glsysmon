@@ -62,6 +62,23 @@ public:
     }
 };
 
+namespace std
+{
+    template <>
+    struct less<std::unique_ptr<Value>>
+    {
+        bool operator()(const std::unique_ptr<Value>& a,
+            const std::unique_ptr<Value>& b) const noexcept
+        {
+            if (!a)
+                return static_cast<bool>(b);
+            if (!b)
+                return false;
+            return *a < *b;
+        }
+    };
+}
+
 // Saved-preferences backend interface. Implementations live in their own
 // <name>_preferences_impl.cc files. Missing keys return nullopt.
 class Preferences
@@ -80,7 +97,7 @@ public:
     std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
 
-    virtual std::set<std::string> GetAll() const = 0;
+    virtual std::set<std::unique_ptr<Value>> GetAll() const = 0;
 
     virtual void SetString(const std::string& key, const std::string& value)
     {
