@@ -337,6 +337,7 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = map->Get("plain");
         REQUIRE(v);
+        CHECK(v->GetName() == "plain");
         CHECK(v->GetType() == Value::Type::String);
         CHECK(v->GetString().value() == "hello");
         CHECK(v->GetStringList().value() == std::vector<std::string>{"hello"});
@@ -346,6 +347,7 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = map->Get("int_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "int_val");
         CHECK(v->GetType() == Value::Type::Integer);
         CHECK(v->GetInteger().value() == 42);
         CHECK(v->GetString().value() == "42");
@@ -354,18 +356,21 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = map->Get("dbl_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "dbl_val");
         CHECK(v->GetType() == Value::Type::Double);
         CHECK(v->GetDouble().value() == doctest::Approx(3.14));
     }
     {
         auto v = map->Get("b_true");
         REQUIRE(v);
+        CHECK(v->GetName() == "b_true");
         CHECK(v->GetType() == Value::Type::Boolean);
         CHECK(v->GetBoolean().value() == true);
     }
     {
         auto v = map->Get("list_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "list_val");
         CHECK(v->GetType() == Value::Type::StringList);
         CHECK(v->GetStringList().value() == std::vector<std::string>{"a", "b"});
         CHECK(v->GetStringSet().value() == std::set<std::string>{"a", "b"});
@@ -374,6 +379,32 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
               v->GetStringList().value());
         CHECK(
             map->GetStringSet("list_val").value() == v->GetStringSet().value());
+    }
+    // Values are comparable by name (dotted key)
+    {
+        auto a = map->Get("plain");
+        auto b = map->Get("plain");
+        auto c = map->Get("int_val");
+        REQUIRE(a);
+        REQUIRE(b);
+        REQUIRE(c);
+        CHECK(*a == *b);
+        CHECK_FALSE(*a == *c);
+        CHECK_FALSE(*a != *b);
+        CHECK(*a != *c);
+        CHECK_FALSE(*a < *a);
+        CHECK((*a < *c) == (a->GetName() < c->GetName()));
+        CHECK((*c < *a) == (c->GetName() < a->GetName()));
+        // Dotted keys sort lexicographically
+        map->SetString("a.b", "1");
+        map->SetString("a.c", "2");
+        auto ab = map->Get("a.b");
+        auto ac = map->Get("a.c");
+        REQUIRE(ab);
+        REQUIRE(ac);
+        CHECK(ab->GetName() == "a.b");
+        CHECK(*ab < *ac);
+        CHECK(*ac > *ab);
     }
 
     // Toml native types via Value
@@ -389,6 +420,7 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = toml->Get("str_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "str_val");
         CHECK(v->GetType() == Value::Type::String);
         CHECK(v->GetString().value() == "hello");
         CHECK_FALSE(v->GetStringList().has_value());
@@ -396,24 +428,28 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = toml->Get("int_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "int_val");
         CHECK(v->GetType() == Value::Type::Integer);
         CHECK(v->GetInteger().value() == 42);
     }
     {
         auto v = toml->Get("dbl_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "dbl_val");
         CHECK(v->GetType() == Value::Type::Double);
         CHECK(v->GetDouble().value() == doctest::Approx(3.14));
     }
     {
         auto v = toml->Get("b_true");
         REQUIRE(v);
+        CHECK(v->GetName() == "b_true");
         CHECK(v->GetType() == Value::Type::Boolean);
         CHECK(v->GetBoolean().value() == true);
     }
     {
         auto v = toml->Get("list_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "list_val");
         CHECK(v->GetType() == Value::Type::StringList);
         CHECK(v->GetStringList().value() ==
               std::vector<std::string>{"a", "b", "a"});
@@ -423,6 +459,24 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
               v->GetStringList().value());
         CHECK(toml->GetStringSet("list_val").value() ==
               v->GetStringSet().value());
+        // Dotted key name preserved
+        {
+            const std::string tmp2 = MakeTempDir();
+            ScopedEnv env2("XDG_CONFIG_HOME", tmp2);
+            WriteConfig(tmp2, "cpu.update_interval = 7\n");
+            auto toml2 = CreateTomlPreferences();
+            auto vd = toml2->Get("cpu.update_interval");
+            REQUIRE(vd);
+            CHECK(vd->GetName() == "cpu.update_interval");
+            CHECK(vd->GetType() == Value::Type::Integer);
+            std::filesystem::remove_all(tmp2);
+        }
+        // Values comparable by name across backends
+        auto vm = map->Get("plain");
+        auto vt = toml->Get("str_val");
+        CHECK_FALSE(*vm == *vt);
+        CHECK(*vm != *vt);
+        CHECK((*vm < *vt) == (vm->GetName() < vt->GetName()));
     }
     // Missing via Value
     CHECK_FALSE(toml->Get("missing"));
@@ -435,10 +489,16 @@ TEST_CASE("Value Get is source of truth and Type reflects stored type")
     {
         auto v = combined->Get("list_val");
         REQUIRE(v);
+        CHECK(v->GetName() == "list_val");
         CHECK(v->GetType() == Value::Type::StringList);
         CHECK(v->GetStringList().value() ==
               std::vector<std::string>{"a", "b", "a"});
         CHECK(v->GetStringSet().value() == std::set<std::string>{"a", "b"});
+        CHECK(combined->GetString("list_val") == std::nullopt);
+        // Name preserved via combined
+        auto vc = combined->Get("cpu.update_interval");
+        if (vc)
+            CHECK(vc->GetName() == "cpu.update_interval");
     }
     std::filesystem::remove_all(tmp);
 }

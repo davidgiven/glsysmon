@@ -59,6 +59,11 @@ namespace
         {
         }
 
+        std::string GetName() const override
+        {
+            return _key;
+        }
+
         Type GetType() const override
         {
             const auto node = _table->at_path(_key);

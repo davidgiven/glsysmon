@@ -70,6 +70,7 @@ SRC_OBJS := \
 	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/string_value.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
@@ -129,6 +130,7 @@ TEST_OBJS := \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
 	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/string_value.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \

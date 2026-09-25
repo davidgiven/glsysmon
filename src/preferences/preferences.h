@@ -27,6 +27,7 @@ public:
         StringList
     };
 
+    virtual std::string GetName() const = 0;
     virtual Type GetType() const = 0;
     virtual std::optional<std::string> GetString() const = 0;
     virtual std::optional<int> GetInteger() const = 0;
@@ -34,6 +35,31 @@ public:
     virtual std::optional<bool> GetBoolean() const = 0;
     virtual std::optional<std::vector<std::string>> GetStringList() const = 0;
     virtual std::optional<std::set<std::string>> GetStringSet() const = 0;
+
+    bool operator==(const Value& other) const
+    {
+        return GetName() == other.GetName();
+    }
+    bool operator!=(const Value& other) const
+    {
+        return !(*this == other);
+    }
+    bool operator<(const Value& other) const
+    {
+        return GetName() < other.GetName();
+    }
+    bool operator<=(const Value& other) const
+    {
+        return !(other < *this);
+    }
+    bool operator>(const Value& other) const
+    {
+        return other < *this;
+    }
+    bool operator>=(const Value& other) const
+    {
+        return !(*this < other);
+    }
 };
 
 // Saved-preferences backend interface. Implementations live in their own
@@ -45,13 +71,13 @@ public:
 
     virtual std::unique_ptr<Value> Get(const std::string& key) const = 0;
 
-    virtual std::optional<std::string> GetString(const std::string& key) const;
-    virtual std::optional<int> GetInteger(const std::string& key) const;
-    virtual std::optional<double> GetDouble(const std::string& key) const;
-    virtual std::optional<bool> GetBoolean(const std::string& key) const;
-    virtual std::optional<std::vector<std::string>> GetStringList(
+    std::optional<std::string> GetString(const std::string& key) const;
+    std::optional<int> GetInteger(const std::string& key) const;
+    std::optional<double> GetDouble(const std::string& key) const;
+    std::optional<bool> GetBoolean(const std::string& key) const;
+    std::optional<std::vector<std::string>> GetStringList(
         const std::string& key) const;
-    virtual std::optional<std::set<std::string>> GetStringSet(
+    std::optional<std::set<std::string>> GetStringSet(
         const std::string& key) const;
 
     virtual std::set<std::string> GetAll() const = 0;
@@ -85,7 +111,8 @@ extern std::shared_ptr<Preferences> CreateMapPreferences();
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(
     std::initializer_list<std::shared_ptr<Preferences>> sources);
 
-extern std::unique_ptr<Value> CreateStringValue(const std::string& s);
+extern std::unique_ptr<Value> CreateStringValue(
+    const std::string& name, const std::string& s);
 
 // Typed accessors for the known preference keys.
 class GlobalPreferencesFetcher

@@ -38,7 +38,7 @@ namespace
             const auto it = _values.find(key);
             if (it == _values.end())
                 return nullptr;
-            return CreateStringValue(it->second);
+            return CreateStringValue(key, it->second);
         }
 
         std::set<std::string> GetAll() const override
