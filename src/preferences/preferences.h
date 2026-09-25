@@ -13,6 +13,29 @@ struct CliArgs
     std::vector<std::string> values;
 };
 
+class Value
+{
+public:
+    virtual ~Value() = default;
+
+    enum class Type
+    {
+        String,
+        Integer,
+        Double,
+        Boolean,
+        StringList
+    };
+
+    virtual Type GetType() const = 0;
+    virtual std::optional<std::string> GetString() const = 0;
+    virtual std::optional<int> GetInteger() const = 0;
+    virtual std::optional<double> GetDouble() const = 0;
+    virtual std::optional<bool> GetBoolean() const = 0;
+    virtual std::optional<std::vector<std::string>> GetStringList() const = 0;
+    virtual std::optional<std::set<std::string>> GetStringSet() const = 0;
+};
+
 // Saved-preferences backend interface. Implementations live in their own
 // <name>_preferences_impl.cc files. Missing keys return nullopt.
 class Preferences
@@ -20,8 +43,9 @@ class Preferences
 public:
     virtual ~Preferences() = default;
 
-    virtual std::optional<std::string> GetString(
-        const std::string& key) const = 0;
+    virtual std::unique_ptr<Value> Get(const std::string& key) const = 0;
+
+    virtual std::optional<std::string> GetString(const std::string& key) const;
     virtual std::optional<int> GetInteger(const std::string& key) const;
     virtual std::optional<double> GetDouble(const std::string& key) const;
     virtual std::optional<bool> GetBoolean(const std::string& key) const;
@@ -60,6 +84,8 @@ extern std::shared_ptr<Preferences> CreateMapPreferences();
 
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(
     std::initializer_list<std::shared_ptr<Preferences>> sources);
+
+extern std::unique_ptr<Value> CreateStringValue(const std::string& s);
 
 // Typed accessors for the known preference keys.
 class GlobalPreferencesFetcher

@@ -46,8 +46,6 @@ namespace
             const int yMax =
                 _prefs.GetDouble("temperature.maximum").value_or(100);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
-            for (auto val : *allowedSet)
-                printf("%s\n", val.c_str());
             const int graphHeight =
                 _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
 

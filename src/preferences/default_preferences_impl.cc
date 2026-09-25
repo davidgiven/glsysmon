@@ -33,13 +33,12 @@ namespace
         {
         }
 
-        std::optional<std::string> GetString(
-            const std::string& key) const override
+        std::unique_ptr<Value> Get(const std::string& key) const override
         {
             const auto it = _values.find(key);
             if (it == _values.end())
-                return std::nullopt;
-            return it->second;
+                return nullptr;
+            return CreateStringValue(it->second);
         }
 
         std::set<std::string> GetAll() const override

@@ -202,6 +202,247 @@ TEST_CASE("CombinedPreferences falls back to default fps when TOML missing")
     std::filesystem::remove_all(tmp);
 }
 
+TEST_CASE("TomlPreferences reads string list from TOML array")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "views = [\"A\", \"B\", \"C\"]\n");
+
+    auto prefs = CreateTomlPreferences();
+    REQUIRE(prefs->GetStringList("views").has_value());
+    CHECK(prefs->GetStringList("views").value() ==
+          std::vector<std::string>{"A", "B", "C"});
+    CHECK_FALSE(prefs->GetString("views").has_value());
+    CHECK_FALSE(prefs->GetInteger("views").has_value());
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("TomlPreferences reads string set deduplicates and sorts")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "views = [\"b\", \"a\", \"b\", \"c\"]\n");
+
+    auto prefs = CreateTomlPreferences();
+    REQUIRE(prefs->GetStringSet("views").has_value());
+    CHECK(prefs->GetStringSet("views").value() ==
+          std::set<std::string>{"a", "b", "c"});
+    // GetStringList preserves duplicates and order
+    REQUIRE(prefs->GetStringList("views").has_value());
+    CHECK(prefs->GetStringList("views").value() ==
+          std::vector<std::string>{"b", "a", "b", "c"});
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("TomlPreferences returns nullopt for missing list and set")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "[cpu]\nupdate_interval = 2\n");
+
+    auto prefs = CreateTomlPreferences();
+    CHECK_FALSE(prefs->GetStringList("views").has_value());
+    CHECK_FALSE(prefs->GetStringSet("views").has_value());
+    CHECK_FALSE(prefs->GetStringList("missing").has_value());
+    CHECK_FALSE(prefs->GetStringSet("missing").has_value());
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("TomlPreferences handles temperature.sensors as list and set")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "temperature.sensors = [\"CPU\", \"GPU\"]\n");
+
+    auto prefs = CreateTomlPreferences();
+    REQUIRE(prefs->GetStringList("temperature.sensors").has_value());
+    CHECK(prefs->GetStringList("temperature.sensors").value() ==
+          std::vector<std::string>{"CPU", "GPU"});
+    REQUIRE(prefs->GetStringSet("temperature.sensors").has_value());
+    CHECK(prefs->GetStringSet("temperature.sensors").value() ==
+          std::set<std::string>{"CPU", "GPU"});
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("CombinedPreferences prefers TOML list and set over default")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    WriteConfig(tmp, "views = [\"A\", \"B\", \"A\"]\n");
+
+    CliArgs args;
+    auto prefs = CreatePreferences(args);
+    REQUIRE(prefs->GetStringList("views").has_value());
+    CHECK(prefs->GetStringList("views").value() ==
+          std::vector<std::string>{"A", "B", "A"});
+    REQUIRE(prefs->GetStringSet("views").has_value());
+    CHECK(prefs->GetStringSet("views").value() ==
+          std::set<std::string>{"A", "B"});
+    // Still a set, deduplicated
+    CHECK(prefs->GetStringSet("views").value().size() == 2);
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE(
+    "CombinedPreferences falls back to default list and set when TOML missing")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+
+    std::filesystem::create_directories(
+        std::filesystem::path(tmp) / "glsysmon");
+
+    CliArgs args;
+    auto prefs = CreatePreferences(args);
+    REQUIRE(prefs->GetStringList("views").has_value());
+    CHECK(prefs->GetStringList("views").value() ==
+          std::vector<std::string>{
+              "HostnameView", "ClockView", "CpuView", "TemperatureView"});
+    REQUIRE(prefs->GetStringSet("views").has_value());
+    CHECK(prefs->GetStringSet("views").value() ==
+          std::set<std::string>{
+              "ClockView", "CpuView", "HostnameView", "TemperatureView"});
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("Value Get is source of truth and Type reflects stored type")
+{
+    // String-backed Value (Map) infers Type from string content
+    auto map = CreateMapPreferences();
+    map->SetString("plain", "hello");
+    map->SetInteger("int_val", 42);
+    map->SetDouble("dbl_val", 3.14);
+    map->SetBoolean("b_true", true);
+    map->SetStringList("list_val", {"a", "b"});
+
+    // Missing key: Get returns nullptr, all typed getters via alias return
+    // nullopt
+    CHECK_FALSE(map->Get("missing"));
+    CHECK_FALSE(map->GetString("missing").has_value());
+    CHECK_FALSE(map->GetStringList("missing").has_value());
+    CHECK_FALSE(map->GetStringSet("missing").has_value());
+
+    // Existing key: Get returns Value whose methods are aliases
+    {
+        auto v = map->Get("plain");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::String);
+        CHECK(v->GetString().value() == "hello");
+        CHECK(v->GetStringList().value() == std::vector<std::string>{"hello"});
+        // Alias via Preferences
+        CHECK(map->GetString("plain").value() == v->GetString().value());
+    }
+    {
+        auto v = map->Get("int_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Integer);
+        CHECK(v->GetInteger().value() == 42);
+        CHECK(v->GetString().value() == "42");
+        CHECK(map->GetInteger("int_val").value() == v->GetInteger().value());
+    }
+    {
+        auto v = map->Get("dbl_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Double);
+        CHECK(v->GetDouble().value() == doctest::Approx(3.14));
+    }
+    {
+        auto v = map->Get("b_true");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Boolean);
+        CHECK(v->GetBoolean().value() == true);
+    }
+    {
+        auto v = map->Get("list_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::StringList);
+        CHECK(v->GetStringList().value() == std::vector<std::string>{"a", "b"});
+        CHECK(v->GetStringSet().value() == std::set<std::string>{"a", "b"});
+        // Alias
+        CHECK(map->GetStringList("list_val").value() ==
+              v->GetStringList().value());
+        CHECK(
+            map->GetStringSet("list_val").value() == v->GetStringSet().value());
+    }
+
+    // Toml native types via Value
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+    WriteConfig(tmp,
+        "str_val = \"hello\"\n"
+        "int_val = 42\n"
+        "dbl_val = 3.14\n"
+        "b_true = true\n"
+        "list_val = [\"a\", \"b\", \"a\"]\n");
+    auto toml = CreateTomlPreferences();
+    {
+        auto v = toml->Get("str_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::String);
+        CHECK(v->GetString().value() == "hello");
+        CHECK_FALSE(v->GetStringList().has_value());
+    }
+    {
+        auto v = toml->Get("int_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Integer);
+        CHECK(v->GetInteger().value() == 42);
+    }
+    {
+        auto v = toml->Get("dbl_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Double);
+        CHECK(v->GetDouble().value() == doctest::Approx(3.14));
+    }
+    {
+        auto v = toml->Get("b_true");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::Boolean);
+        CHECK(v->GetBoolean().value() == true);
+    }
+    {
+        auto v = toml->Get("list_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::StringList);
+        CHECK(v->GetStringList().value() ==
+              std::vector<std::string>{"a", "b", "a"});
+        CHECK(v->GetStringSet().value() == std::set<std::string>{"a", "b"});
+        // Alias via Preferences must match Value
+        CHECK(toml->GetStringList("list_val").value() ==
+              v->GetStringList().value());
+        CHECK(toml->GetStringSet("list_val").value() ==
+              v->GetStringSet().value());
+    }
+    // Missing via Value
+    CHECK_FALSE(toml->Get("missing"));
+    CHECK_FALSE(toml->GetString("missing").has_value());
+
+    // Combined delegates Get source of truth
+    CliArgs args;
+    auto combined = CreatePreferences(args);
+    // Should prefer TOML list
+    {
+        auto v = combined->Get("list_val");
+        REQUIRE(v);
+        CHECK(v->GetType() == Value::Type::StringList);
+        CHECK(v->GetStringList().value() ==
+              std::vector<std::string>{"a", "b", "a"});
+        CHECK(v->GetStringSet().value() == std::set<std::string>{"a", "b"});
+    }
+    std::filesystem::remove_all(tmp);
+}
+
 TEST_CASE("MapPreferences string parsing and serialising for integers")
 {
     auto prefs = CreateMapPreferences();

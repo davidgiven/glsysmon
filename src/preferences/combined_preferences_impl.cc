@@ -19,56 +19,14 @@ namespace
         {
         }
 
-        std::optional<std::string> GetString(
-            const std::string& key) const override
+        std::unique_ptr<Value> Get(const std::string& key) const override
         {
             for (const auto& source : _sources)
             {
-                if (auto value = source->GetString(key))
-                    return value;
+                if (auto v = source->Get(key))
+                    return v;
             }
-            return std::nullopt;
-        }
-
-        std::optional<int> GetInteger(const std::string& key) const override
-        {
-            for (const auto& source : _sources)
-            {
-                if (source->GetString(key).has_value())
-                    return source->GetInteger(key);
-            }
-            return std::nullopt;
-        }
-
-        std::optional<double> GetDouble(const std::string& key) const override
-        {
-            for (const auto& source : _sources)
-            {
-                if (source->GetString(key).has_value())
-                    return source->GetDouble(key);
-            }
-            return std::nullopt;
-        }
-
-        std::optional<bool> GetBoolean(const std::string& key) const override
-        {
-            for (const auto& source : _sources)
-            {
-                if (source->GetString(key).has_value())
-                    return source->GetBoolean(key);
-            }
-            return std::nullopt;
-        }
-
-        std::optional<std::vector<std::string>> GetStringList(
-            const std::string& key) const override
-        {
-            for (const auto& source : _sources)
-            {
-                if (source->GetString(key).has_value())
-                    return source->GetStringList(key);
-            }
-            return std::nullopt;
+            return nullptr;
         }
 
         std::set<std::string> GetAll() const override

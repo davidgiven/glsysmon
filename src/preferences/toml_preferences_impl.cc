@@ -50,6 +50,119 @@ namespace
         }
     }
 
+    class TomlValue : public Value
+    {
+    public:
+        TomlValue(const toml::table* table, std::string key):
+            _table(table),
+            _key(std::move(key))
+        {
+        }
+
+        Type GetType() const override
+        {
+            const auto node = _table->at_path(_key);
+            if (node.as_array() != nullptr)
+                return Type::StringList;
+            if (node.as_boolean() != nullptr)
+                return Type::Boolean;
+            if (node.as_integer() != nullptr)
+                return Type::Integer;
+            if (node.as_floating_point() != nullptr)
+                return Type::Double;
+            if (node.as_string() != nullptr)
+                return Type::String;
+            return Type::String;
+        }
+
+        std::optional<std::string> GetString() const override
+        {
+            if (auto value = _table->at_path(_key).value<std::string>())
+                return value;
+            if (auto node = _table->at_path(_key).as_boolean())
+                return node->get() ? "true" : "false";
+            if (auto node = _table->at_path(_key).as_integer())
+                return std::to_string(node->get());
+            if (auto node = _table->at_path(_key).as_floating_point())
+                return std::to_string(node->get());
+            return std::nullopt;
+        }
+
+        std::optional<int> GetInteger() const override
+        {
+            if (auto node = _table->at_path(_key).as_integer())
+                return static_cast<int>(node->get());
+            return std::nullopt;
+        }
+
+        std::optional<double> GetDouble() const override
+        {
+            if (auto node = _table->at_path(_key).as_floating_point())
+                return node->get();
+            if (auto node = _table->at_path(_key).as_integer())
+                return static_cast<double>(node->get());
+            return std::nullopt;
+        }
+
+        std::optional<bool> GetBoolean() const override
+        {
+            if (auto node = _table->at_path(_key).as_boolean())
+                return node->get();
+            if (auto node = _table->at_path(_key).as_integer())
+            {
+                const int64_t v = node->get();
+                if (v == 1)
+                    return true;
+                if (v == 0)
+                    return false;
+                return std::nullopt;
+            }
+            if (auto value = _table->at_path(_key).value<std::string>())
+            {
+                if (*value == "true" || *value == "1")
+                    return true;
+                if (*value == "false" || *value == "0")
+                    return false;
+                return std::nullopt;
+            }
+            return std::nullopt;
+        }
+
+        std::optional<std::vector<std::string>> GetStringList() const override
+        {
+            const toml::array* array = _table->at_path(_key).as_array();
+            if (array == nullptr)
+                return std::nullopt;
+            std::vector<std::string> result;
+            for (const toml::node& item : *array)
+            {
+                const toml::value<std::string>* value = item.as_string();
+                if (value != nullptr)
+                    result.push_back(value->get());
+            }
+            return result;
+        }
+
+        std::optional<std::set<std::string>> GetStringSet() const override
+        {
+            const toml::array* array = _table->at_path(_key).as_array();
+            if (array == nullptr)
+                return std::nullopt;
+            std::set<std::string> result;
+            for (const toml::node& item : *array)
+            {
+                const toml::value<std::string>* value = item.as_string();
+                if (value != nullptr)
+                    result.insert(value->get());
+            }
+            return result;
+        }
+
+    private:
+        const toml::table* _table;
+        std::string _key;
+    };
+
     class TomlPreferencesImpl : public Preferences
     {
     public:
@@ -70,74 +183,14 @@ namespace
             }
         }
 
-        std::optional<std::string> GetString(
-            const std::string& key) const override
+        std::unique_ptr<Value> Get(const std::string& key) const override
         {
-            if (auto value = _table.at_path(key).value<std::string>())
-                return value;
-            if (auto node = _table.at_path(key).as_boolean())
-                return node->get() ? "true" : "false";
-            if (auto node = _table.at_path(key).as_integer())
-                return std::to_string(node->get());
-            if (auto node = _table.at_path(key).as_floating_point())
-                return std::to_string(node->get());
-            return std::nullopt;
-        }
-
-        std::optional<int> GetInteger(const std::string& key) const override
-        {
-            if (auto node = _table.at_path(key).as_integer())
-                return static_cast<int>(node->get());
-            return std::nullopt;
-        }
-
-        std::optional<double> GetDouble(const std::string& key) const override
-        {
-            if (auto node = _table.at_path(key).as_floating_point())
-                return node->get();
-            if (auto node = _table.at_path(key).as_integer())
-                return static_cast<double>(node->get());
-            return std::nullopt;
-        }
-
-        std::optional<bool> GetBoolean(const std::string& key) const override
-        {
-            if (auto node = _table.at_path(key).as_boolean())
-                return node->get();
-            if (auto node = _table.at_path(key).as_integer())
-            {
-                const int64_t v = node->get();
-                if (v == 1)
-                    return true;
-                if (v == 0)
-                    return false;
-                return std::nullopt;
-            }
-            if (auto value = _table.at_path(key).value<std::string>())
-            {
-                if (*value == "true" || *value == "1")
-                    return true;
-                if (*value == "false" || *value == "0")
-                    return false;
-                return std::nullopt;
-            }
-            return std::nullopt;
-        }
-
-        std::optional<std::vector<std::string>> GetStringList(
-            const std::string& key) const override
-        {
-            const toml::array* array = _table.at_path(key).as_array();
-            if (array == nullptr)
-                return std::nullopt;
-            std::vector<std::string> result;
-            for (const toml::node& item : *array)
-            {
-                const toml::value<std::string>* value = item.as_string();
-                if (value != nullptr)
-                    result.push_back(value->get());
-            }
-            return result;
+            auto node = _table.at_path(key);
+            if (!node)
+                return nullptr;
+            if (node.is_table())
+                return nullptr;
+            return std::make_unique<TomlValue>(&_table, key);
         }
 
         std::set<std::string> GetAll() const override
@@ -194,44 +247,64 @@ void WriteTomlPreferences(const Preferences& prefs)
 
     for (const std::string& key : prefs.GetAll())
     {
-        const std::optional<std::string> strOpt = prefs.GetString(key);
-        if (!strOpt)
+        auto v = prefs.Get(key);
+        if (!v)
             continue;
-        const std::string& str = *strOpt;
 
-        const bool hasComma = str.find(',') != std::string::npos;
-        if (hasComma)
+        switch (v->GetType())
         {
-            if (auto listOpt = prefs.GetStringList(key))
+            case Value::Type::StringList:
             {
-                toml::array arr;
-                for (const std::string& s : *listOpt)
-                    arr.emplace_back(s);
-                InsertDotted(table, key, std::move(arr));
-                continue;
+                if (auto listOpt = v->GetStringList())
+                {
+                    toml::array arr;
+                    for (const std::string& s : *listOpt)
+                        arr.emplace_back(s);
+                    InsertDotted(table, key, std::move(arr));
+                    continue;
+                }
+                break;
             }
-        }
-
-        if (auto iv = prefs.GetInteger(key))
-        {
-            InsertDotted(table, key, static_cast<int64_t>(*iv));
-            continue;
-        }
-        if (auto dv = prefs.GetDouble(key))
-        {
-            InsertDotted(table, key, *dv);
-            continue;
-        }
-        if (auto bv = prefs.GetBoolean(key))
-        {
-            if (str == "true" || str == "false")
+            case Value::Type::Integer:
             {
-                InsertDotted(table, key, *bv);
-                continue;
+                if (auto iv = v->GetInteger())
+                {
+                    InsertDotted(table, key, static_cast<int64_t>(*iv));
+                    continue;
+                }
+                break;
             }
+            case Value::Type::Double:
+            {
+                if (auto dv = v->GetDouble())
+                {
+                    InsertDotted(table, key, *dv);
+                    continue;
+                }
+                break;
+            }
+            case Value::Type::Boolean:
+            {
+                if (auto bv = v->GetBoolean())
+                {
+                    // Only write as boolean if GetString would be
+                    // "true"/"false" to avoid writing integer 1/0 as boolean
+                    auto str = v->GetString();
+                    if (str && (*str == "true" || *str == "false"))
+                    {
+                        InsertDotted(table, key, *bv);
+                        continue;
+                    }
+                }
+                break;
+            }
+            case Value::Type::String:
+            default:
+                break;
         }
 
-        InsertDotted(table, key, str);
+        if (auto strOpt = v->GetString())
+            InsertDotted(table, key, *strOpt);
     }
 
     std::ofstream out(path);
