@@ -27,4 +27,7 @@ public:
 
     static void DrawCentredText(const char* text);
     static void DrawCentredText(const std::string& text);
+
+    static bool DrawToggleButton(const char* text, bool* state);
+    static bool DrawToggleButton(const std::string& text, bool* state);
 };

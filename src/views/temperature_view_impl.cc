@@ -41,13 +41,13 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int minimum =
-                _prefs.GetInteger("temperature.minimum").value_or(0);
-            const int maximum =
-                _prefs.GetInteger("temperature.maximum").value_or(100);
-            const double yMin = static_cast<double>(minimum);
-            const double yMax = static_cast<double>(maximum);
+            const int yMin =
+                _prefs.GetDouble("temperature.minimum").value_or(0);
+            const int yMax =
+                _prefs.GetDouble("temperature.maximum").value_or(100);
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
+            for (auto val : *allowedSet)
+                printf("%s\n", val.c_str());
             const int graphHeight =
                 _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
 
@@ -117,6 +117,43 @@ namespace
                 preferences.SetInteger(
                     GetPrefName() + ".maximum", static_cast<int>(minMax[1]));
             }
+
+            auto allowedSet =
+                *preferences.GetStringSet(GetPrefName() + ".sensors");
+            bool changed = false;
+            ImGuiStyle& style = ImGui::GetStyle();
+            float window_visible_x2 =
+                ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+            for (size_t i = 0; i < _sensor->GetChannels(); i++)
+            {
+                auto name = _sensor->GetChannelName(i);
+                ImGui::PushID(static_cast<int>(i));
+                bool state = allowedSet.contains(name);
+                float width = ImGui::CalcTextSize(name.c_str()).x +
+                              style.FramePadding.x * 2.0f;
+                if (ImGui::Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
+                {
+                    if (state)
+                        allowedSet.erase(name);
+                    else
+                        allowedSet.insert(name);
+                    changed = true;
+                }
+                ImGui::PopID();
+                if (i + 1 < _sensor->GetChannels())
+                {
+                    std::string nextName = _sensor->GetChannelName(i + 1);
+                    float nextWidth = ImGui::CalcTextSize(nextName.c_str()).x +
+                                      style.FramePadding.x * 2.0f;
+                    float last_x2 = ImGui::GetItemRectMax().x;
+                    float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
+                    if (next_x2 < window_visible_x2)
+                        ImGui::SameLine();
+                }
+            }
+            if (changed)
+                preferences.SetStringSet(
+                    GetPrefName() + ".sensors", allowedSet);
         }
 
     private:

@@ -87,3 +87,33 @@ void Style::DrawCentredText(const std::string& text)
 {
     DrawCentredText(text.c_str());
 }
+
+bool Style::DrawToggleButton(const char* label, bool* v)
+{
+    bool clicked = false;
+
+    bool oldv = *v;
+    if (oldv)
+    {
+        ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_ButtonActive];
+        ImGui::PushStyleColor(ImGuiCol_Button, color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+    }
+
+    if (ImGui::Button(label))
+    {
+        *v = !*v;
+        clicked = true;
+    }
+
+    if (oldv)
+        ImGui::PopStyleColor(3);
+
+    return clicked;
+}
+
+bool Style::DrawToggleButton(const std::string& text, bool* state)
+{
+    return DrawToggleButton(text.c_str(), state);
+}
