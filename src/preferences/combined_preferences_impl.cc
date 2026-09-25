@@ -51,13 +51,6 @@ namespace
             return result;
         }
 
-        void SetString(
-            const std::string& key, const std::string& value) override
-        {
-            if (!_sources.empty())
-                _sources.front()->SetString(key, value);
-        }
-
         void ClearAll() override
         {
             if (!_sources.empty())

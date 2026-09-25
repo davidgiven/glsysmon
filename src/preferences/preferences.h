@@ -107,13 +107,13 @@ public:
 
     virtual std::set<std::unique_ptr<Value>> GetAll() const = 0;
 
-    virtual void SetString(const std::string& key, const std::string& value);
-    virtual void SetInteger(const std::string& key, int value);
-    virtual void SetDouble(const std::string& key, double value);
-    virtual void SetBoolean(const std::string& key, bool value);
-    virtual void SetStringList(
+    void SetString(const std::string& key, const std::string& value);
+    void SetInteger(const std::string& key, int value);
+    void SetDouble(const std::string& key, double value);
+    void SetBoolean(const std::string& key, bool value);
+    void SetStringList(
         const std::string& key, const std::vector<std::string>& value);
-    virtual void SetStringSet(
+    void SetStringSet(
         const std::string& key, const std::set<std::string>& value);
 
     virtual void ClearAll();

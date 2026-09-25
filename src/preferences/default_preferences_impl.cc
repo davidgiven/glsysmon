@@ -184,14 +184,6 @@ namespace
             return result;
         }
 
-        void SetString(
-            const std::string& key, const std::string& value) override
-        {
-            (void)key;
-            (void)value;
-            throw std::runtime_error("unsupported operation");
-        }
-
     private:
         std::map<std::string, std::string> _values;
     };
