@@ -62,14 +62,6 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        std::vector<double> rx(n);
-                        std::vector<double> tx(n);
-                        for (int i = 0; i < n; ++i)
-                        {
-                            rx[i] = samples[i].rxBps;
-                            tx[i] = samples[i].txBps;
-                        }
-
                         double yMax =
                             _prefs.GetDouble(GetPrefName() + ".maximum")
                                 .value_or(0);
@@ -77,11 +69,41 @@ namespace
                         {
                             double maxVal = 0;
                             for (int i = 0; i < n; ++i)
-                                maxVal = std::max({maxVal, rx[i], tx[i]});
+                                maxVal = std::max({maxVal,
+                                    samples[i].rxBps,
+                                    samples[i].txBps});
                             if (maxVal <= 0)
                                 maxVal = 1;
                             yMax = maxVal * 1.1;
                         }
+
+                        auto plot = [&](const char* label,
+                                        const double* values,
+                                        int colIdx)
+                        {
+                            const ImVec4 col = ImPlot::GetColormapColor(colIdx);
+                            ImPlot::PlotShaded(label,
+                                values,
+                                n,
+                                0.0,
+                                1,
+                                0,
+                                ImPlotSpec(ImPlotProp_LineColor,
+                                    col,
+                                    ImPlotProp_FillColor,
+                                    col,
+                                    ImPlotProp_Stride,
+                                    sizeof(NetworkSample)));
+                            ImPlot::PlotLine(label,
+                                values,
+                                n,
+                                1,
+                                0,
+                                ImPlotSpec(ImPlotProp_LineColor,
+                                    col,
+                                    ImPlotProp_Stride,
+                                    sizeof(NetworkSample)));
+                        };
 
                         ImVec2 startPos = ImGui::GetCursorPos();
                         Style::DrawGraph(
@@ -91,23 +113,7 @@ namespace
                             yMax,
                             [&]
                             {
-                                const ImVec4 col = ImPlot::GetColormapColor(0);
-                                ImPlot::PlotShaded("rx",
-                                    rx.data(),
-                                    n,
-                                    0.0,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor,
-                                        col,
-                                        ImPlotProp_FillColor,
-                                        col));
-                                ImPlot::PlotLine("rx",
-                                    rx.data(),
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
+                                plot("rx", &samples[0].rxBps, 0);
                             },
                             static_cast<float>(graphHeight));
                         ImGui::SetCursorPos(startPos);
@@ -118,23 +124,7 @@ namespace
                             0,
                             [&]
                             {
-                                const ImVec4 col = ImPlot::GetColormapColor(1);
-                                ImPlot::PlotShaded("tx",
-                                    tx.data(),
-                                    n,
-                                    0.0,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor,
-                                        col,
-                                        ImPlotProp_FillColor,
-                                        col));
-                                ImPlot::PlotLine("tx",
-                                    tx.data(),
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
+                                plot("tx", &samples[0].txBps, 1);
                             },
                             static_cast<float>(graphHeight));
                     }
