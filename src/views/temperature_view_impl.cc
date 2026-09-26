@@ -21,13 +21,7 @@ namespace
 
     bool GetShowValue(const Preferences& prefs, const std::string& prefName)
     {
-        if (auto v = prefs.GetBoolean(prefName + ".show_value"))
-            return *v;
-        if (auto v = prefs.GetBoolean(prefName + ".show_temperature"))
-            return *v;
-        if (auto v = prefs.GetBoolean(prefName + ".show_numeric"))
-            return *v;
-        return true;
+        return prefs.GetBoolean(prefName + ".show_value").value_or(true);
     }
 
     class TemperatureViewImpl : public ViewGraphMixin
@@ -83,7 +77,8 @@ namespace
                                 std::to_string(static_cast<long long>(
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
-                        Style::DrawGraph(
+                        DrawGraph(
+                            _prefs,
                             title,
                             n,
                             yMin,

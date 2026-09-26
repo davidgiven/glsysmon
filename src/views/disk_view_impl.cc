@@ -98,7 +98,8 @@ namespace
                         };
 
                         ImVec2 startPos = ImGui::GetCursorPos();
-                        Style::DrawGraph(
+                        DrawGraph(
+                            _prefs,
                             channelName,
                             n,
                             0,
@@ -109,7 +110,8 @@ namespace
                             },
                             static_cast<float>(graphHeight));
                         ImGui::SetCursorPos(startPos);
-                        Style::DrawGraph(
+                        DrawGraph(
+                            _prefs,
                             channelName,
                             n,
                             yMax,

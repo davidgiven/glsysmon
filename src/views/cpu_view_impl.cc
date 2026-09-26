@@ -65,7 +65,8 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        Style::DrawGraph(
+                        DrawGraph(
+                            _prefs,
                             _sensor->GetChannelName(cpu),
                             n,
                             0,

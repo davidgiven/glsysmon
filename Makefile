@@ -94,6 +94,7 @@ SRC_OBJS := \
 	$(BUILD)/views/style.o \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
 	$(DROIDSANS_GEN_OBJ) \
 	$(CODICON_GEN_OBJ)
@@ -152,6 +153,7 @@ TEST_OBJS := \
 	$(BUILD)/views/style.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
