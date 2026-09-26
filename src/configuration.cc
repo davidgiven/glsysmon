@@ -1,6 +1,7 @@
 #include <imgui.h>
 #include "dep/codicons/codicons.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <csetjmp>
 
@@ -64,14 +65,17 @@ void ConfigurationWindow::Draw(bool* open)
                 if (!seen.contains(v->GetPrefName()))
                     viewOrder.push_back(v->GetPrefName());
         }
+        viewOrder.erase(std::remove_if(viewOrder.begin(),
+                            viewOrder.end(),
+                            [&](const std::string& name)
+                            {
+                                return _views.Get(name) == nullptr;
+                            }),
+            viewOrder.end());
 
         for (size_t i = 0; i < viewOrder.size(); ++i)
         {
             View* view = _views.Get(viewOrder[i]);
-            if (view == nullptr)
-            {
-                continue;
-            }
             ImGui::PushID(view->GetPrefName().c_str());
             std::string enabledKey = view->GetPrefName() + ".enabled";
             bool enabled =
