@@ -6,6 +6,8 @@
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlgpu3.h>
 
+#include "bfm_gpu_bridge.h"
+
 #include <memory>
 
 extern const unsigned int DroidSansFont_compressed_size;
@@ -64,6 +66,7 @@ namespace
             init_info.ColorTargetFormat = color_format;
             init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
             ImGui_ImplSDLGPU3_Init(&init_info);
+            BfmSetGpuDevice(device);
             return true;
         }
 
@@ -119,6 +122,7 @@ namespace
             ImGui_ImplSDL3_Shutdown();
             ImGui_ImplSDLGPU3_Shutdown();
             ImGui::DestroyContext(_context);
+            BfmSetGpuDevice(nullptr);
             _context = nullptr;
             _plotContext = nullptr;
         }

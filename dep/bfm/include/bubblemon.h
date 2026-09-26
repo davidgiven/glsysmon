@@ -19,8 +19,18 @@
 #ifndef _BUBBLEMON_H_
 #define _BUBBLEMON_H_
 
+#ifdef GLSYSMON_BFM
+#include <sys/types.h>
+#ifndef u_int64_t
+#include <stdint.h>
+typedef uint64_t u_int64_t;
+#endif
+#endif
+
+#ifndef GLSYSMON_BFM
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
+#endif
 
 /* CPU load alpha-blending: smaller values = ligher text
  * minblend = mouseout
@@ -69,6 +79,7 @@ typedef struct {
 #include "fishmon.h"
 
 typedef struct {
+#ifndef GLSYSMON_BFM
     /* X11 stuff */
     Display *display;
     GdkWindow *win;		/* main window */
@@ -76,6 +87,7 @@ typedef struct {
     GdkGC *gc;			/* drawing GC */
     GdkPixmap *pixmap;		/* main dockapp pixmap */
     GdkBitmap *mask;		/* dockapp mask */
+#endif
 
     /* main image buffer */
     unsigned char rgb_buf[56 * 56 * 3 + 1];
@@ -152,4 +164,33 @@ typedef struct {
 
 #endif
 } BubbleMonData;
+
+#ifdef GLSYSMON_BFM
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern BubbleMonData bm;
+extern int bubble_state_change;
+extern int duck_enabled;
+extern int fish_enabled;
+extern int cpu_enabled;
+#ifdef ENABLE_FISH
+void prepare_sprites(void);
+void fishmon_update(void);
+#endif
+void bfm_glsysmon_init(void);
+void bfm_glsysmon_update(int proximity);
+unsigned char *bfm_get_rgb_buf(void);
+void bubblemon_setup_samples(void);
+void bubblemon_setup_colors(void);
+void bubblemon_allocate_buffers(void);
+void bubblemon_update(int proximity);
+void get_memory_load_percentage(void);
+void bubblemon_session_defaults(void);
+void make_new_bubblemon_dockapp(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif				/* _BUBBLEMON_H_ */

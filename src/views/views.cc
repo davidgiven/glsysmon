@@ -3,12 +3,13 @@
 #include "views/view.h"
 
 const std::map<std::string, Views::Factory> Views::_factories{
-    {"ClockView",       static_cast<Factory>(&CreateClockView)      },
-    {"CpuView",         static_cast<Factory>(&CreateCpuView)        },
-    {"DiskView",        static_cast<Factory>(&CreateDiskView)       },
-    {"HostnameView",    static_cast<Factory>(&CreateHostnameView)   },
-    {"NetworkView",     static_cast<Factory>(&CreateNetworkView)    },
-    {"TemperatureView", static_cast<Factory>(&CreateTemperatureView)},
+    {"BubbleFishyMonView", static_cast<Factory>(&CreateBubbleFishyMonView)},
+    {"ClockView",          static_cast<Factory>(&CreateClockView)         },
+    {"CpuView",            static_cast<Factory>(&CreateCpuView)           },
+    {"DiskView",           static_cast<Factory>(&CreateDiskView)          },
+    {"HostnameView",       static_cast<Factory>(&CreateHostnameView)      },
+    {"NetworkView",        static_cast<Factory>(&CreateNetworkView)       },
+    {"TemperatureView",    static_cast<Factory>(&CreateTemperatureView)   },
 };
 
 Views::Views(const Preferences& prefs, Sensors& sensors):
@@ -24,6 +25,15 @@ std::vector<View*> Views::GetAllViews() const
     for (const auto& [name, _] : _factories)
         views.push_back(Get(name));
     return views;
+}
+
+std::vector<std::string> Views::GetAvailableNames() const
+{
+    std::vector<std::string> names;
+    names.reserve(_factories.size());
+    for (const auto& [name, _] : _factories)
+        names.push_back(name);
+    return names;
 }
 
 View* Views::Get(const std::string& name) const

@@ -87,17 +87,27 @@
 #include <string.h>
 
 /* x11 includes */
+#ifndef GLSYSMON_BFM
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #include <X11/Xresource.h>
 #include <gtk/gtk.h>
+#endif
 
 #ifndef GKRELLM_BFM
+#ifndef GLSYSMON_BFM
 #include "include/master.xpm"
+#endif
 #endif
 
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
+
+#ifdef GLSYSMON_BFM
+#define BFM_STATIC
+#else
+#define BFM_STATIC static
+#endif
 
 #ifdef ENABLE_DUCK
 #include "include/ducks.h"
@@ -117,14 +127,14 @@ static int get_screen_selection(void);
 #endif
 
 /* local prototypes *INDENT-OFF* */
-static void bubblemon_setup_samples(void);
-static void bubblemon_setup_colors(void);
-static void bubblemon_allocate_buffers(void);
-static void bubblemon_update(int proximity);
-static void make_new_bubblemon_dockapp(void);
-static void get_memory_load_percentage(void);
-static void bubblemon_session_defaults(void);
-#ifndef GKRELLM_BFM
+BFM_STATIC void bubblemon_setup_samples(void);
+BFM_STATIC void bubblemon_setup_colors(void);
+BFM_STATIC void bubblemon_allocate_buffers(void);
+BFM_STATIC void bubblemon_update(int proximity);
+BFM_STATIC void make_new_bubblemon_dockapp(void);
+BFM_STATIC void get_memory_load_percentage(void);
+BFM_STATIC void bubblemon_session_defaults(void);
+#if !defined(GKRELLM_BFM) && !defined(GLSYSMON_BFM)
 static int get_screen_selection(void);
 #endif
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
@@ -207,8 +217,28 @@ void time_update(void);
 int bubble_state_change = (YMAX / 4);
  
 
-static void bubblemon_session_defaults(void)
+BFM_STATIC void bubblemon_session_defaults(void)
 {
+#ifdef GLSYSMON_BFM
+    /* glsysmon: skip Xresources, use compiled defaults */
+    bm.samples = 16;
+    bm.air_noswap = 0x2299ff;
+    bm.liquid_noswap = 0x0055ff;
+    bm.air_maxswap = 0xff0000;
+    bm.liquid_maxswap = 0xaa0000;
+    bm.maxbubbles = 100;
+    bm.ripples = 0.2;
+    bm.gravity = 0.01;
+    bm.volatility = 1.0;
+    bm.viscosity = 0.98;
+    bm.speed_limit = 1.0;
+    bm.ripples_int = MAKE_INTEGER(bm.ripples);
+    bm.gravity_int = MAKE_INTEGER(bm.gravity);
+    bm.volatility_int = MAKE_INTEGER(bm.volatility);
+    bm.viscosity_int = MAKE_INTEGER(bm.viscosity);
+    bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
+    return;
+#else
     /* handy way to collect all this stuff in one place */
     typedef struct {
 	char *name;		/* name as appears in Xdefaults */
@@ -310,6 +340,7 @@ static void bubblemon_session_defaults(void)
     bm.volatility_int = MAKE_INTEGER(bm.volatility);
     bm.viscosity_int = MAKE_INTEGER(bm.viscosity);
     bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
+#endif
 }
 
 #undef INT_VAL
@@ -356,11 +387,14 @@ static void print_usage(void)
 /* *INDENT-ON* */
 #endif
 
-#ifdef GKRELLM_BFM
+#if defined(GLSYSMON_BFM)
+/* glsysmon: main is in src/main.cc, not here */
+#elif defined(GKRELLM_BFM)
 int bfm_main()
 #else
 int main(int argc, char **argv)
 #endif
+#ifndef GLSYSMON_BFM
 {
     char execute[256];
 #ifndef GKRELLM_BFM
@@ -617,6 +651,7 @@ int main(int argc, char **argv)
 #endif
     return 0;
 }				/* main */
+#endif /* !GLSYSMON_BFM */
 
 #ifdef GKRELLM_BFM
 void
@@ -641,7 +676,7 @@ gkrellm_update(GtkWidget *widget, GdkDrawable *drawable, int start_x, int proxim
 /*
  * This determines if the left or right shift keys are depressed.
  */
-#ifndef GKRELLM_BFM
+#if !defined(GKRELLM_BFM) && !defined(GLSYSMON_BFM)
 static int get_screen_selection(void)
 {
     static KeyCode lshift_code, rshift_code;
@@ -685,8 +720,15 @@ static int get_screen_selection(void)
 #endif
 
 /* This is the function that actually creates the display widgets */
-static void make_new_bubblemon_dockapp(void)
+BFM_STATIC void make_new_bubblemon_dockapp(void)
 {
+#ifdef GLSYSMON_BFM
+    bm.n_bubbles = 0;
+    bubblemon_allocate_buffers();
+    bubblemon_setup_samples();
+    bubblemon_setup_colors();
+    return;
+#else
 #define MASK GDK_BUTTON_PRESS_MASK | \
     GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK
 
@@ -781,6 +823,7 @@ static void make_new_bubblemon_dockapp(void)
 
     bubblemon_setup_colors();
 #undef MASK
+#endif
 }				/* make_new_bubblemon_dockapp */
 
 /* Pigeon
@@ -791,7 +834,7 @@ unsigned int real_waterlevel_min, real_waterlevel_max;
  * This function, bubblemon_update, gets the CPU usage and updates
  * the bubble array and main rgb buffer.
  */
-static void bubblemon_update(int proximity)
+BFM_STATIC void bubblemon_update(int proximity)
 {
     Bubble *bubbles = bm.bubbles;
     unsigned int i, loadPercentage, *col, x, y;
@@ -1608,7 +1651,7 @@ static void duck_swimmer(int posy)
 }
 #endif				/* ENABLE_DUCK */
 
-static void bubblemon_setup_samples(void)
+BFM_STATIC void bubblemon_setup_samples(void)
 {
     int i;
     u_int64_t load = 0, total = 0;
@@ -1632,7 +1675,7 @@ static void bubblemon_setup_samples(void)
     }
 }
 
-static void bubblemon_setup_colors(void)
+BFM_STATIC void bubblemon_setup_colors(void)
 {
 #define NUM_COLORS 99
     int i, j, *col;
@@ -1709,7 +1752,7 @@ static void bubblemon_setup_colors(void)
 #undef NUM_COLORS
 }
 
-static void bubblemon_allocate_buffers(void)
+BFM_STATIC void bubblemon_allocate_buffers(void)
 {
     int i;
 
@@ -1738,7 +1781,7 @@ static void bubblemon_allocate_buffers(void)
     bm.waterlevels_dy = calloc(56, sizeof(int));
 }
 
-static void get_memory_load_percentage(void)
+BFM_STATIC void get_memory_load_percentage(void)
 {
     /* system_memory() will return true on initial run so that we get
      * correct memory info, but may subsequently return 0 if memory
@@ -1754,5 +1797,29 @@ static void get_memory_load_percentage(void)
 	}
     }
 }
+
+#ifdef GLSYSMON_BFM
+void bfm_glsysmon_init(void)
+{
+    memset(&bm, 0, sizeof(bm));
+    bubblemon_session_defaults();
+    make_new_bubblemon_dockapp();
+#ifdef ENABLE_FISH
+    if (fish_enabled)
+        prepare_sprites();
+#endif
+}
+
+void bfm_glsysmon_update(int proximity)
+{
+    get_memory_load_percentage();
+    bubblemon_update(proximity);
+}
+
+unsigned char *bfm_get_rgb_buf(void)
+{
+    return bm.rgb_buf;
+}
+#endif
 
 /* ex:set ts=8: */

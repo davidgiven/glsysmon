@@ -20,6 +20,8 @@ public:
 
     std::vector<View*> GetAllViews() const;
 
+    std::vector<std::string> GetAvailableNames() const;
+
     View* Get(const std::string& name) const;
 
     void Inject(const std::string& name, std::unique_ptr<View> view);

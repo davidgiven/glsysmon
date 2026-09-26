@@ -60,3 +60,5 @@ extern std::unique_ptr<View> CreateDiskView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateDiskView(
     const Preferences& prefs, std::unique_ptr<DiskSensor> sensor);
+extern std::unique_ptr<View> CreateBubbleFishyMonView(
+    const Preferences& prefs, Sensors& sensors);

@@ -34,9 +34,11 @@
 #include <getopt.h>
 
 /* x11 includes */
+#ifndef GLSYSMON_BFM
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #include <X11/Xresource.h>
+#endif
 
 #include "include/sprites.h"
 #include "include/fishmon.h"

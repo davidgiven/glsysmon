@@ -59,8 +59,12 @@ LITEHTML_OBJS := $(patsubst $(LITEHTML_DIR)/src/%.cpp,$(BUILD)/litehtml/%.o,$(LI
 GUMBO_SRCS := $(wildcard $(LITEHTML_DIR)/src/gumbo/*.c)
 GUMBO_OBJS := $(patsubst $(LITEHTML_DIR)/src/gumbo/%.c,$(BUILD)/gumbo/%.o,$(GUMBO_SRCS))
 
+BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -I$(CURDIR)/dep/bfm/include -I$(CURDIR)/dep/bfm
+BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
+
 SRC_OBJS := \
 	$(BUILD)/configuration.o \
+	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/display/dock.o \
 	$(BUILD)/display/fallback_dock_impl.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
@@ -87,6 +91,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
+	$(BUILD)/views/bubble_fishy_mon_view_impl.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
@@ -97,6 +102,7 @@ SRC_OBJS := \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
+	$(BFM_OBJS) \
 	$(DROIDSANS_GEN_OBJ) \
 	$(CODICON_GEN_OBJ)
 
@@ -142,6 +148,7 @@ TEST_UTILS := $(TEST_BUILD)/utils_test
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
 	$(BUILD)/configuration.o \
+	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
 	$(BUILD)/preferences/preferences.o \
@@ -158,6 +165,7 @@ TEST_OBJS := \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
+	$(BUILD)/views/bubble_fishy_mon_view_impl.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
@@ -172,6 +180,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BFM_OBJS) \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/render_frame.d \
@@ -233,6 +242,10 @@ $(GEN)/xdg-shell-client-protocol.c: $(XDG_SHELL_XML)
 
 $(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
 	$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
+
+$(BUILD)/bfm/%.o: dep/bfm/%.c $(WAYLAND_PROTOCOL_HEADER)
+	@mkdir -p $(dir $@)
+	$(CC) $(COMMON_CFLAGS) $(BFM_CFLAGS) -c -o $@ $<
 
 $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
 	@mkdir -p $(dir $@)

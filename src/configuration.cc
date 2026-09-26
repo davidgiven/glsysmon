@@ -70,9 +70,9 @@ void ConfigurationWindow::Draw(bool* open)
             GlobalPreferencesFetcher::GetViews(*_pendingPreferences);
         {
             std::set<std::string> seen(viewOrder.begin(), viewOrder.end());
-            for (View* v : _views.GetAllViews())
-                if (!seen.contains(v->GetPrefName()))
-                    viewOrder.push_back(v->GetPrefName());
+            for (const std::string& name : _views.GetAvailableNames())
+                if (!seen.contains(name))
+                    viewOrder.push_back(name);
         }
         viewOrder.erase(std::remove_if(viewOrder.begin(),
                             viewOrder.end(),

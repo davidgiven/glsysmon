@@ -1,8 +1,10 @@
 #ifndef _FISHMON_H_
 #define _FISHMON_H_
 
+#ifndef GLSYSMON_BFM
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
+#endif
 
 #define POWER2 12
 #define REALY(y) ((y) >> POWER2)
