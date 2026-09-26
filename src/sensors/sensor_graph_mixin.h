@@ -26,6 +26,13 @@ protected:
 
     std::uint64_t _delta = 0;
     double _interval = 1;
+
+private:
+    double GetUpdateInterval(const Preferences& prefs,
+        const std::string& prefPrefix,
+        double defaultInterval) const;
+    void SetUpdateInterval(
+        Preferences& prefs, const std::string& prefPrefix, double value) const;
 };
 
 template <typename T>

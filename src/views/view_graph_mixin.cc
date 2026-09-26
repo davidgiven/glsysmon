@@ -19,7 +19,7 @@ void ViewGraphMixin::DrawConfiguration(Preferences& preferences)
 
     bool show = GetShowChannelName(preferences);
     if (ImGui::Checkbox("Show labels", &show))
-        preferences.SetBoolean(GetPrefName() + ".show_labels", show);
+        SetShowChannelName(preferences, show);
 }
 
 int ViewGraphMixin::GetGraphHeight(const Preferences& prefs) const
@@ -37,6 +37,11 @@ void ViewGraphMixin::SetGraphHeight(Preferences& prefs, int height) const
 bool ViewGraphMixin::GetShowChannelName(const Preferences& prefs) const
 {
     return prefs.GetBoolean(GetPrefName() + ".show_labels").value_or(true);
+}
+
+void ViewGraphMixin::SetShowChannelName(Preferences& prefs, bool value) const
+{
+    prefs.SetBoolean(GetPrefName() + ".show_labels", value);
 }
 
 std::string ViewGraphMixin::FilterTitle(

@@ -60,6 +60,7 @@ protected:
 
 private:
     bool GetShowChannelName(const Preferences& prefs) const;
+    void SetShowChannelName(Preferences& prefs, bool value) const;
     std::string FilterTitle(const std::string& title, bool show) const;
     std::vector<std::string> FilterTitles(
         const std::vector<std::string>& titles, bool show) const;

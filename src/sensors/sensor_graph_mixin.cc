@@ -13,8 +13,7 @@ void SensorGraphMixinBase::InitGraphBase(const Preferences& prefs,
     if (size <= 0)
         size = 1;
     sampleCount = static_cast<std::size_t>(size);
-    double interval = prefs.GetDouble(prefPrefix + ".update_interval")
-                          .value_or(defaultInterval);
+    double interval = GetUpdateInterval(prefs, prefPrefix, defaultInterval);
     if (interval <= 0)
         interval = defaultInterval;
     _interval = interval;
@@ -24,10 +23,24 @@ void SensorGraphMixinBase::InitGraphBase(const Preferences& prefs,
 void SensorGraphMixinBase::DrawIntervalConfiguration(
     Preferences& preferences, const std::string& prefPrefix)
 {
-    float interval = static_cast<float>(
-        preferences.GetDouble(prefPrefix + ".update_interval").value_or(2.0));
+    float interval =
+        static_cast<float>(GetUpdateInterval(preferences, prefPrefix, 2.0));
     if (ImGui::InputFloat("Update interval (Hz)", &interval))
     {
-        preferences.SetDouble(prefPrefix + ".update_interval", interval);
+        SetUpdateInterval(preferences, prefPrefix, interval);
     }
+}
+
+double SensorGraphMixinBase::GetUpdateInterval(const Preferences& prefs,
+    const std::string& prefPrefix,
+    double defaultInterval) const
+{
+    return prefs.GetDouble(prefPrefix + ".update_interval")
+        .value_or(defaultInterval);
+}
+
+void SensorGraphMixinBase::SetUpdateInterval(
+    Preferences& prefs, const std::string& prefPrefix, double value) const
+{
+    prefs.SetDouble(prefPrefix + ".update_interval", value);
 }
