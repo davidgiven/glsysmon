@@ -38,7 +38,8 @@ void Style::DrawGraph(const char* title,
     double yMin,
     double yMax,
     std::function<void()> body,
-    float height)
+    float height,
+    bool yAuto)
 {
     std::string plotId = std::string("##") + title;
     const bool inverted = yMin > yMax;
@@ -60,9 +61,14 @@ void Style::DrawGraph(const char* title,
         ImPlotAxisFlags yFlags = ImPlotAxisFlags_NoDecorations;
         if (inverted)
             yFlags |= ImPlotAxisFlags_Invert;
+        if (yAuto)
+            yFlags |= ImPlotAxisFlags_AutoFit;
         ImPlot::SetupAxes(
             nullptr, nullptr, ImPlotAxisFlags_NoDecorations, yFlags);
-        ImPlot::SetupAxesLimits(0, n, yMin, yMax, ImPlotCond_Always);
+        if (yAuto)
+            ImPlot::SetupAxisLimits(ImAxis_X1, 0, n, ImPlotCond_Always);
+        else
+            ImPlot::SetupAxesLimits(0, n, yMin, yMax, ImPlotCond_Always);
         ImPlot::SetupFinish();
         body();
         ImVec2 pos = ImPlot::GetPlotPos();
@@ -82,9 +88,10 @@ void Style::DrawGraph(const std::string& title,
     double yMin,
     double yMax,
     std::function<void()> body,
-    float height)
+    float height,
+    bool yAuto)
 {
-    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height);
+    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height, yAuto);
 }
 
 void Style::DrawCentredText(const char* text)

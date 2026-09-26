@@ -65,19 +65,7 @@ namespace
                         double yMax =
                             _prefs.GetDouble(GetPrefName() + ".maximum")
                                 .value_or(0);
-                        if (yMax <= 0)
-                        {
-                            double maxVal = 0;
-                            for (int i = 0; i < n; ++i)
-                            {
-                                maxVal = std::max({maxVal,
-                                    samples[i].rxBps,
-                                    samples[i].txBps});
-                            }
-                            if (maxVal <= 0)
-                                maxVal = 1;
-                            yMax = maxVal * 1.1;
-                        }
+                        const bool yAuto = yMax <= 0;
 
                         std::vector<double> rx(n);
                         std::vector<double> tx(n);
@@ -92,7 +80,7 @@ namespace
                             channelName,
                             n,
                             0,
-                            yMax,
+                            yAuto ? 1 : yMax,
                             [&]
                             {
                                 const ImVec4 col = ImPlot::GetColormapColor(0);
@@ -113,12 +101,13 @@ namespace
                                     0,
                                     ImPlotSpec(ImPlotProp_LineColor, col));
                             },
-                            static_cast<float>(graphHeight));
+                            static_cast<float>(graphHeight),
+                            yAuto);
                         ImGui::SetCursorPos(startPos);
                         Style::DrawGraph(
                             channelName,
                             n,
-                            yMax,
+                            yAuto ? 1 : yMax,
                             0,
                             [&]
                             {
@@ -140,7 +129,8 @@ namespace
                                     0,
                                     ImPlotSpec(ImPlotProp_LineColor, col));
                             },
-                            static_cast<float>(graphHeight));
+                            static_cast<float>(graphHeight),
+                            yAuto);
                     }
                 });
         }
@@ -171,9 +161,9 @@ namespace
 
             // Y-axis maximum
             static constexpr const char* kMaximumLabels[] = {
-                "1MBps", "10Mbps", "100Mbps", "1GBps"};
+                "Auto", "1MBps", "10Mbps", "100Mbps", "1GBps"};
             static constexpr double kMaximumValues[] = {
-                1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
+                0, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
             double currentMaximum =
                 preferences.GetDouble(GetPrefName() + ".maximum").value_or(0);
             int maximumIndex = static_cast<int>(
@@ -181,7 +171,7 @@ namespace
             if (ImGui::SliderInt("Maximum (B/s)",
                     &maximumIndex,
                     0,
-                    3,
+                    4,
                     kMaximumLabels[maximumIndex]))
             {
                 preferences.SetDouble(

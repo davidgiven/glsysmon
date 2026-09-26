@@ -17,13 +17,15 @@ public:
         double yMin,
         double yMax,
         std::function<void()> body,
-        float height = 40);
+        float height = 40,
+        bool yAuto = false);
     static void DrawGraph(const std::string& title,
         int n,
         double yMin,
         double yMax,
         std::function<void()> body,
-        float height = 40);
+        float height = 40,
+        bool yAuto = false);
 
     static void DrawCentredText(const char* text);
     static void DrawCentredText(const std::string& text);
