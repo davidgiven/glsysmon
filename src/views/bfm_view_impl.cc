@@ -12,6 +12,7 @@
 
 #include "display/bfm_gpu_bridge.h"
 #include "preferences/preferences.h"
+#include "sensors/memory_poller.h"
 #include "sensors/sensors.h"
 #include "timer.h"
 
@@ -32,9 +33,10 @@ namespace
     {
     public:
         explicit BubbleFishyMonViewImpl(
-            const Preferences& prefs, Sensors& /*sensors*/, Timer& timer):
+            const Preferences& prefs, Sensors& sensors, Timer& timer):
             _prefs(prefs),
-            _timer(timer)
+            _timer(timer),
+            _memoryPoller(sensors.CreateMemoryPoller())
         {
             srand(0);
             bfm_glsysmon_init();
@@ -225,7 +227,22 @@ namespace
 
         void Tick(Timer::Time t)
         {
-            bfm_glsysmon_update(0);
+            auto data = _memoryPoller->PollCached();
+            auto it = data.find("mem");
+            if (it != data.end())
+            {
+                bm.mem_used = static_cast<u_int64_t>(it->second.usedRam);
+                bm.mem_max = static_cast<u_int64_t>(it->second.totalRam);
+                if (bm.mem_max != 0)
+                    bm.mem_percent =
+                        static_cast<unsigned int>((100 * bm.mem_used) / bm.mem_max);
+                else
+                    bm.mem_percent = 0;
+                bm.swap_used = 0;
+                bm.swap_max = 0;
+                bm.swap_percent = 0;
+            }
+            bubblemon_update(0);
             _scheduled = _timer.Schedule(t + _delta,
                 [this](Timer::Time nt)
                 {
@@ -343,6 +360,7 @@ namespace
 
         const Preferences& _prefs;
         Timer& _timer;
+        std::shared_ptr<MemoryPoller> _memoryPoller;
         double _interval = 10.0;
         Timer::Time _delta = 100'000'000;
         Timer::Time _scheduled = 0;
