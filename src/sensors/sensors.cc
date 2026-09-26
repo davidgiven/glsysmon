@@ -4,6 +4,7 @@
 
 #include "preferences/preferences.h"
 #include "sensors/clock_sensor.h"
+#include "sensors/cpu_poller.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/disk_sensor.h"
 #include "sensors/hostname_sensor.h"
@@ -27,7 +28,8 @@ std::unique_ptr<ClockSensor> Sensors::CreateClockSensor(
 std::unique_ptr<CpuSensor> Sensors::CreateCpuSensor(
     const std::string& a, const std::string& b) const
 {
-    return ::CreateCpuSensor(_prefs, _timer, a, b);
+    auto poller = CreateCpuPoller(b);
+    return ::CreateCpuSensor(_prefs, _timer, a, poller);
 }
 
 std::unique_ptr<HostnameSensor> Sensors::CreateHostnameSensor(
@@ -87,4 +89,21 @@ std::shared_ptr<MemoryPoller> Sensors::CreateMemoryPoller(
             GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
     }
     return _memoryPoller;
+}
+
+std::shared_ptr<CpuPoller> Sensors::CreateCpuPoller(
+    const std::string& procStatPath) const
+{
+    if (!_cpuPoller)
+    {
+        _cpuPoller = ::CreateCpuPoller(procStatPath);
+        _cpuPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
+    else
+    {
+        _cpuPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
+    return _cpuPoller;
 }

@@ -201,7 +201,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", path);
+    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", CreateCpuPoller(path));
     const int cpuInterval =
         prefs->GetInteger("cpu.update_interval").value_or(5);
     uint64_t delta = 1'000'000'000ULL / static_cast<uint64_t>(cpuInterval);
@@ -298,7 +298,8 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     const std::string missing = ".obj/nonexistent_cpu_stat";
     std::remove(missing.c_str());
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", missing);
+    auto sensor =
+        CreateCpuSensor(*prefs, *timer, "cpu", CreateCpuPoller(missing));
     CHECK(sensor->GetChannels() == 0);
     CHECK(sensor->GetSampleCount() == 0);
     const int cpuInterval =

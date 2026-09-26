@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "clock_sensor.h"
+#include "cpu_poller.h"
 #include "cpu_sensor.h"
 #include "disk_sensor.h"
 #include "hostname_sensor.h"
@@ -46,6 +47,8 @@ public:
         const std::string& procNetDevPath = "/proc/net/dev") const;
     virtual std::shared_ptr<MemoryPoller> CreateMemoryPoller(
         const std::string& procMemInfoPath = "/proc/meminfo") const;
+    virtual std::shared_ptr<CpuPoller> CreateCpuPoller(
+        const std::string& procStatPath = "/proc/stat") const;
 
     Timer& GetTimer() const
     {
@@ -57,4 +60,5 @@ private:
     Timer& _timer;
     mutable std::shared_ptr<NetworkPoller> _networkPoller;
     mutable std::shared_ptr<MemoryPoller> _memoryPoller;
+    mutable std::shared_ptr<CpuPoller> _cpuPoller;
 };
