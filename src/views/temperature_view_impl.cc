@@ -71,15 +71,16 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
                         std::string title = channelName;
+                        std::string subtitle;
                         if (showValue)
-                            title +=
-                                "\n" +
+                            subtitle =
                                 std::to_string(static_cast<long long>(
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
                         DrawGraph(
                             _prefs,
                             title,
+                            subtitle,
                             n,
                             yMin,
                             yMax,

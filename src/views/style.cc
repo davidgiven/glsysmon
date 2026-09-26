@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -10,19 +11,19 @@
 namespace
 {
 
-    std::vector<std::string> splitLines(const char* title)
+    std::vector<std::string> splitLines(const std::string& s)
     {
         std::vector<std::string> lines;
         std::string cur;
-        for (const char* p = title; *p; ++p)
+        for (char c : s)
         {
-            if (*p == '\n')
+            if (c == '\n')
             {
                 lines.push_back(cur);
                 cur.clear();
             }
             else
-                cur.push_back(*p);
+                cur.push_back(c);
         }
         lines.push_back(cur);
         return lines;
@@ -42,7 +43,7 @@ namespace
 
 } // namespace
 
-void Style::GraphGroup(const char* title, std::function<void()> body)
+void Style::GraphGroup(const std::string& title, std::function<void()> body)
 {
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.5f));
     DrawCentredText(title);
@@ -54,19 +55,11 @@ void Style::GraphGroup(const char* title, std::function<void()> body)
     ImGui::PopStyleVar(2);
 }
 
-void Style::GraphGroup(const std::string& title, std::function<void()> body)
+void Style::DrawGraph(const std::string& title,
+    const std::string& subtitle,
+    std::function<void()> body)
 {
-    GraphGroup(title.c_str(), std::move(body));
-}
-
-void Style::DrawGraph(const char* title, std::function<void()> body)
-{
-    DrawGraph(title, 60, 0, 1, std::move(body));
-}
-
-void Style::DrawGraph(const std::string& title, std::function<void()> body)
-{
-    DrawGraph(title.c_str(), std::move(body));
+    DrawGraph(title, subtitle, 60, 0, 1, std::move(body));
 }
 
 void Style::DrawGraph(
@@ -75,24 +68,25 @@ void Style::DrawGraph(
     DrawGraph(titles, 60, 0, 1, std::move(body));
 }
 
-void Style::DrawGraph(const char* title,
-    int n,
-    double yMin,
-    double yMax,
-    std::function<void()> body,
-    float height)
-{
-    DrawGraph(splitLines(title), n, yMin, yMax, std::move(body), height);
-}
-
 void Style::DrawGraph(const std::string& title,
+    const std::string& subtitle,
     int n,
     double yMin,
     double yMax,
     std::function<void()> body,
     float height)
 {
-    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height);
+    std::vector<std::string> titles;
+    titles.reserve((title.empty() ? 0 : 1) +
+                   std::count(subtitle.begin(), subtitle.end(), '\n') + 1);
+    if (!title.empty())
+        titles.push_back(title);
+    if (!subtitle.empty())
+    {
+        std::vector<std::string> subLines = splitLines(subtitle);
+        titles.insert(titles.end(), subLines.begin(), subLines.end());
+    }
+    DrawGraph(titles, n, yMin, yMax, std::move(body), height);
 }
 
 void Style::DrawGraph(const std::vector<std::string>& titles,
@@ -149,20 +143,15 @@ void Style::DrawGraph(const std::vector<std::string>& titles,
         ImPlot::PopStyleColor(2);
 }
 
-void Style::DrawCentredText(const char* text)
-{
-    const float avail = ImGui::GetContentRegionAvail().x;
-    const float textWidth = ImGui::CalcTextSize(text).x;
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-    ImGui::TextUnformatted(text);
-}
-
 void Style::DrawCentredText(const std::string& text)
 {
-    DrawCentredText(text.c_str());
+    const float avail = ImGui::GetContentRegionAvail().x;
+    const float textWidth = ImGui::CalcTextSize(text.c_str()).x;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
+    ImGui::TextUnformatted(text.c_str());
 }
 
-bool Style::DrawToggleButton(const char* label, bool* v)
+bool Style::DrawToggleButton(const std::string& text, bool* v)
 {
     bool clicked = false;
 
@@ -175,7 +164,7 @@ bool Style::DrawToggleButton(const char* label, bool* v)
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
     }
 
-    if (ImGui::Button(label))
+    if (ImGui::Button(text.c_str()))
     {
         *v = !*v;
         clicked = true;
@@ -185,9 +174,4 @@ bool Style::DrawToggleButton(const char* label, bool* v)
         ImGui::PopStyleColor(3);
 
     return clicked;
-}
-
-bool Style::DrawToggleButton(const std::string& text, bool* state)
-{
-    return DrawToggleButton(text.c_str(), state);
 }

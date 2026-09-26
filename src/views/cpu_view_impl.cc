@@ -68,6 +68,7 @@ namespace
                         DrawGraph(
                             _prefs,
                             _sensor->GetChannelName(cpu),
+                            "",
                             n,
                             0,
                             1,

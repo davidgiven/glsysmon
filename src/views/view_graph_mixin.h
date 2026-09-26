@@ -14,12 +14,7 @@ public:
 
 protected:
     void DrawGraph(const std::string& title,
-        int n,
-        double yMin,
-        double yMax,
-        std::function<void()> body,
-        float height = 40);
-    void DrawGraph(const char* title,
+        const std::string& subtitle,
         int n,
         double yMin,
         double yMax,
@@ -31,20 +26,15 @@ protected:
         double yMax,
         std::function<void()> body,
         float height = 40);
-    void DrawGraph(const std::string& title, std::function<void()> body);
-    void DrawGraph(const char* title, std::function<void()> body);
+    void DrawGraph(const std::string& title,
+        const std::string& subtitle,
+        std::function<void()> body);
     void DrawGraph(
         const std::vector<std::string>& titles, std::function<void()> body);
 
     void DrawGraph(const Preferences& prefs,
         const std::string& title,
-        int n,
-        double yMin,
-        double yMax,
-        std::function<void()> body,
-        float height = 40) const;
-    void DrawGraph(const Preferences& prefs,
-        const char* title,
+        const std::string& subtitle,
         int n,
         double yMin,
         double yMax,
@@ -59,9 +49,7 @@ protected:
         float height = 40) const;
     void DrawGraph(const Preferences& prefs,
         const std::string& title,
-        std::function<void()> body) const;
-    void DrawGraph(const Preferences& prefs,
-        const char* title,
+        const std::string& subtitle,
         std::function<void()> body) const;
     void DrawGraph(const Preferences& prefs,
         const std::vector<std::string>& titles,

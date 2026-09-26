@@ -37,9 +37,6 @@ std::string ViewGraphMixin::FilterTitle(
 {
     if (show)
         return title;
-    const std::size_t pos = title.find('\n');
-    if (pos != std::string::npos)
-        return title.substr(pos + 1);
     return "";
 }
 
@@ -56,23 +53,14 @@ std::vector<std::string> ViewGraphMixin::FilterTitles(
 }
 
 void ViewGraphMixin::DrawGraph(const std::string& title,
+    const std::string& subtitle,
     int n,
     double yMin,
     double yMax,
     std::function<void()> body,
     float height)
 {
-    Style::DrawGraph(title, n, yMin, yMax, std::move(body), height);
-}
-
-void ViewGraphMixin::DrawGraph(const char* title,
-    int n,
-    double yMin,
-    double yMax,
-    std::function<void()> body,
-    float height)
-{
-    Style::DrawGraph(title, n, yMin, yMax, std::move(body), height);
+    Style::DrawGraph(title, subtitle, n, yMin, yMax, std::move(body), height);
 }
 
 void ViewGraphMixin::DrawGraph(const std::vector<std::string>& titles,
@@ -85,15 +73,11 @@ void ViewGraphMixin::DrawGraph(const std::vector<std::string>& titles,
     Style::DrawGraph(titles, n, yMin, yMax, std::move(body), height);
 }
 
-void ViewGraphMixin::DrawGraph(
-    const std::string& title, std::function<void()> body)
+void ViewGraphMixin::DrawGraph(const std::string& title,
+    const std::string& subtitle,
+    std::function<void()> body)
 {
-    Style::DrawGraph(title, std::move(body));
-}
-
-void ViewGraphMixin::DrawGraph(const char* title, std::function<void()> body)
-{
-    Style::DrawGraph(title, std::move(body));
+    Style::DrawGraph(title, subtitle, std::move(body));
 }
 
 void ViewGraphMixin::DrawGraph(
@@ -104,6 +88,7 @@ void ViewGraphMixin::DrawGraph(
 
 void ViewGraphMixin::DrawGraph(const Preferences& prefs,
     const std::string& title,
+    const std::string& subtitle,
     int n,
     double yMin,
     double yMax,
@@ -112,19 +97,8 @@ void ViewGraphMixin::DrawGraph(const Preferences& prefs,
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
-    Style::DrawGraph(filtered, n, yMin, yMax, std::move(body), height);
-}
-
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
-    const char* title,
-    int n,
-    double yMin,
-    double yMax,
-    std::function<void()> body,
-    float height) const
-{
-    DrawGraph(
-        prefs, std::string(title), n, yMin, yMax, std::move(body), height);
+    Style::DrawGraph(
+        filtered, subtitle, n, yMin, yMax, std::move(body), height);
 }
 
 void ViewGraphMixin::DrawGraph(const Preferences& prefs,
@@ -142,18 +116,12 @@ void ViewGraphMixin::DrawGraph(const Preferences& prefs,
 
 void ViewGraphMixin::DrawGraph(const Preferences& prefs,
     const std::string& title,
+    const std::string& subtitle,
     std::function<void()> body) const
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
-    Style::DrawGraph(filtered, std::move(body));
-}
-
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
-    const char* title,
-    std::function<void()> body) const
-{
-    DrawGraph(prefs, std::string(title), std::move(body));
+    Style::DrawGraph(filtered, subtitle, std::move(body));
 }
 
 void ViewGraphMixin::DrawGraph(const Preferences& prefs,

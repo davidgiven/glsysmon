@@ -101,6 +101,7 @@ namespace
                         DrawGraph(
                             _prefs,
                             channelName,
+                            "",
                             n,
                             0,
                             yMax,
@@ -113,6 +114,7 @@ namespace
                         DrawGraph(
                             _prefs,
                             channelName,
+                            "",
                             n,
                             yMax,
                             0,
