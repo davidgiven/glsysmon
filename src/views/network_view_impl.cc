@@ -62,11 +62,6 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax =
-                            _prefs.GetDouble(GetPrefName() + ".maximum")
-                                .value_or(0);
-                        const bool yAuto = yMax <= 0;
-
                         std::vector<double> rx(n);
                         std::vector<double> tx(n);
                         for (int i = 0; i < n; ++i)
@@ -75,12 +70,25 @@ namespace
                             tx[i] = samples[i].txBps;
                         }
 
+                        double yMax =
+                            _prefs.GetDouble(GetPrefName() + ".maximum")
+                                .value_or(0);
+                        if (yMax <= 0)
+                        {
+                            double maxVal = 0;
+                            for (int i = 0; i < n; ++i)
+                                maxVal = std::max({maxVal, rx[i], tx[i]});
+                            if (maxVal <= 0)
+                                maxVal = 1;
+                            yMax = maxVal * 1.1;
+                        }
+
                         ImVec2 startPos = ImGui::GetCursorPos();
                         Style::DrawGraph(
                             channelName,
                             n,
                             0,
-                            yAuto ? 1 : yMax,
+                            yMax,
                             [&]
                             {
                                 const ImVec4 col = ImPlot::GetColormapColor(0);
@@ -101,13 +109,12 @@ namespace
                                     0,
                                     ImPlotSpec(ImPlotProp_LineColor, col));
                             },
-                            static_cast<float>(graphHeight),
-                            yAuto);
+                            static_cast<float>(graphHeight));
                         ImGui::SetCursorPos(startPos);
                         Style::DrawGraph(
                             channelName,
                             n,
-                            yAuto ? 1 : yMax,
+                            yMax,
                             0,
                             [&]
                             {
@@ -129,8 +136,7 @@ namespace
                                     0,
                                     ImPlotSpec(ImPlotProp_LineColor, col));
                             },
-                            static_cast<float>(graphHeight),
-                            yAuto);
+                            static_cast<float>(graphHeight));
                     }
                 });
         }
