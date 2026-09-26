@@ -61,30 +61,41 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax =
-                            _prefs.GetDouble(GetPrefName() + ".maximum")
-                                .value_or(0);
-                        if (yMax <= 0)
-                        {
-                            double maxVal = 0;
-                            for (int i = 0; i < n; ++i)
-                            {
-                                maxVal = std::max({maxVal,
-                                    samples[i].rxBps,
-                                    samples[i].txBps});
-                            }
-                            if (maxVal <= 0)
-                                maxVal = 1;
-                            yMax = maxVal * 1.1;
-                        }
-
-                        std::vector<double> rx(n);
-                        std::vector<double> tx(n);
+                        double maxVal = 0;
                         for (int i = 0; i < n; ++i)
+                            maxVal = std::max(
+                                {maxVal, samples[i].rxBps, samples[i].txBps});
+                        if (maxVal <= 0)
+                            maxVal = 1;
+                        double yMax = maxVal * 1.1;
+
+                        auto plot = [&](const char* label,
+                                        const double* values,
+                                        int colIdx)
                         {
-                            rx[i] = samples[i].rxBps;
-                            tx[i] = samples[i].txBps;
-                        }
+                            const ImVec4 col = ImPlot::GetColormapColor(colIdx);
+                            ImPlot::PlotShaded(label,
+                                values,
+                                n,
+                                0.0,
+                                1,
+                                0,
+                                ImPlotSpec(ImPlotProp_LineColor,
+                                    col,
+                                    ImPlotProp_FillColor,
+                                    col,
+                                    ImPlotProp_Stride,
+                                    sizeof(DiskSample)));
+                            ImPlot::PlotLine(label,
+                                values,
+                                n,
+                                1,
+                                0,
+                                ImPlotSpec(ImPlotProp_LineColor,
+                                    col,
+                                    ImPlotProp_Stride,
+                                    sizeof(DiskSample)));
+                        };
 
                         ImVec2 startPos = ImGui::GetCursorPos();
                         Style::DrawGraph(
@@ -94,23 +105,7 @@ namespace
                             yMax,
                             [&]
                             {
-                                const ImVec4 col = ImPlot::GetColormapColor(0);
-                                ImPlot::PlotShaded("rx",
-                                    rx.data(),
-                                    n,
-                                    0.0,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor,
-                                        col,
-                                        ImPlotProp_FillColor,
-                                        col));
-                                ImPlot::PlotLine("rx",
-                                    rx.data(),
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
+                                plot("rx", &samples[0].rxBps, 0);
                             },
                             static_cast<float>(graphHeight));
                         ImGui::SetCursorPos(startPos);
@@ -121,23 +116,7 @@ namespace
                             0,
                             [&]
                             {
-                                const ImVec4 col = ImPlot::GetColormapColor(1);
-                                ImPlot::PlotShaded("tx",
-                                    tx.data(),
-                                    n,
-                                    0.0,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor,
-                                        col,
-                                        ImPlotProp_FillColor,
-                                        col));
-                                ImPlot::PlotLine("tx",
-                                    tx.data(),
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
+                                plot("tx", &samples[0].txBps, 1);
                             },
                             static_cast<float>(graphHeight));
                     }
@@ -167,25 +146,6 @@ namespace
         void DrawConfiguration(Preferences& preferences) override
         {
             ViewGraphMixin::DrawConfiguration(preferences);
-
-            // Y-axis maximum
-            static constexpr const char* kMaximumLabels[] = {
-                "1MBps", "10Mbps", "100Mbps", "1GBps"};
-            static constexpr double kMaximumValues[] = {
-                1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
-            double currentMaximum =
-                preferences.GetDouble(GetPrefName() + ".maximum").value_or(0);
-            int maximumIndex = static_cast<int>(
-                indexOf(kMaximumValues, currentMaximum).value_or(0));
-            if (ImGui::SliderInt("Maximum (B/s)",
-                    &maximumIndex,
-                    0,
-                    3,
-                    kMaximumLabels[maximumIndex]))
-            {
-                preferences.SetDouble(
-                    GetPrefName() + ".maximum", kMaximumValues[maximumIndex]);
-            }
 
             // Visible devices
             auto allowedSet =
