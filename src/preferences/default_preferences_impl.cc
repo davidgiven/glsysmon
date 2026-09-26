@@ -46,6 +46,8 @@ namespace
         {"disk.show_labels",               "true"                                 },
         {"clock.format",                   "<center>%Y-%m-%d<br>%H:%M:%S</center>"},
         {"bubbleFishyMon.update_interval", "10"                                   },
+        {"bubbleFishyMon.width",           "56"                                   },
+        {"bubbleFishyMon.height",          "56"                                   },
     };
 
     class DefaultValue : public Value

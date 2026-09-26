@@ -38,6 +38,19 @@ namespace
         {
             srand(0);
             bfm_glsysmon_init();
+            {
+                int w = _prefs.GetInteger("bubbleFishyMon.width").value_or(56);
+                int h = _prefs.GetInteger("bubbleFishyMon.height").value_or(56);
+                if (w < 10)
+                    w = 10;
+                if (w > 256)
+                    w = 256;
+                if (h < 10)
+                    h = 10;
+                if (h > 256)
+                    h = 256;
+                bfm_set_size(w, h);
+            }
             _inited = true;
             double interval = _prefs.GetDouble("bubbleFishyMon.update_interval")
                                   .value_or(10.0);
@@ -64,6 +77,8 @@ namespace
                 _transfer = nullptr;
                 _texture = nullptr;
                 _device = nullptr;
+                _texWidth = 0;
+                _texHeight = 0;
             }
         }
 
@@ -72,6 +87,23 @@ namespace
             SDL_GPUDevice* device = BfmGetGpuDevice();
             if (device == nullptr)
                 return;
+
+            int width = _prefs.GetInteger("bubbleFishyMon.width").value_or(56);
+            int height =
+                _prefs.GetInteger("bubbleFishyMon.height").value_or(56);
+            if (width < 10)
+                width = 10;
+            if (width > 256)
+                width = 256;
+            if (height < 10)
+                height = 10;
+            if (height > 256)
+                height = 256;
+            int curW = 0;
+            int curH = 0;
+            bfm_get_size(&curW, &curH);
+            if (curW != width || curH != height)
+                bfm_set_size(width, height);
 
             EnsureGpuResources(device);
             if (_texture == nullptr || _transfer == nullptr)
@@ -83,10 +115,10 @@ namespace
             if (availWidth <= 0)
                 return;
 
-            int scale = (int)(availWidth / 56.0f);
+            int scale = (int)(availWidth / (float)width);
             if (scale < 1)
                 scale = 1;
-            ImVec2 imgSize((float)(56 * scale), (float)(56 * scale));
+            ImVec2 imgSize((float)(width * scale), (float)(height * scale));
             float cursorX = ImGui::GetCursorPosX();
             ImGui::SetCursorPosX(cursorX + (availWidth - imgSize.x) * 0.5f);
 
@@ -139,9 +171,66 @@ namespace
                         Tick(t);
                     });
             }
+
+            float size[2] = {static_cast<float>(GetWidth(preferences)),
+                static_cast<float>(GetHeight(preferences))};
+            if (ImGui::DragFloat2("Size", size, 1.0f, 10.0f, 256.0f))
+            {
+                int w = static_cast<int>(std::lround(size[0]));
+                int h = static_cast<int>(std::lround(size[1]));
+                if (w < 10)
+                    w = 10;
+                if (w > 256)
+                    w = 256;
+                if (h < 10)
+                    h = 10;
+                if (h > 256)
+                    h = 256;
+                SetWidth(preferences, w);
+                SetHeight(preferences, h);
+                bfm_set_size(w, h);
+            }
         }
 
     private:
+        int GetWidth(const Preferences& prefs) const
+        {
+            int v = prefs.GetInteger(GetPrefName() + ".width").value_or(56);
+            if (v < 10)
+                v = 10;
+            if (v > 256)
+                v = 256;
+            return v;
+        }
+
+        int GetHeight(const Preferences& prefs) const
+        {
+            int v = prefs.GetInteger(GetPrefName() + ".height").value_or(56);
+            if (v < 10)
+                v = 10;
+            if (v > 256)
+                v = 256;
+            return v;
+        }
+
+        void SetWidth(Preferences& prefs, int value) const
+        {
+            if (value < 10)
+                value = 10;
+            if (value > 256)
+                value = 256;
+            prefs.SetInteger(GetPrefName() + ".width", value);
+        }
+
+        void SetHeight(Preferences& prefs, int value) const
+        {
+            if (value < 10)
+                value = 10;
+            if (value > 256)
+                value = 256;
+            prefs.SetInteger(GetPrefName() + ".height", value);
+        }
+
         void Tick(Timer::Time t)
         {
             bfm_glsysmon_update(0);
@@ -153,10 +242,28 @@ namespace
         }
         void EnsureGpuResources(SDL_GPUDevice* device)
         {
+            int width = GetWidth(_prefs);
+            int height = GetHeight(_prefs);
             if (device != _device)
             {
                 DestroyGpuResources();
                 _device = device;
+            }
+            if (_texture != nullptr &&
+                (_texWidth != width || _texHeight != height))
+            {
+                if (_transfer)
+                {
+                    SDL_ReleaseGPUTransferBuffer(_device, _transfer);
+                    _transfer = nullptr;
+                }
+                if (_texture)
+                {
+                    SDL_ReleaseGPUTexture(_device, _texture);
+                    _texture = nullptr;
+                }
+                _texWidth = 0;
+                _texHeight = 0;
             }
             if (_texture != nullptr)
                 return;
@@ -165,8 +272,8 @@ namespace
             tci.type = SDL_GPU_TEXTURETYPE_2D;
             tci.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
             tci.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-            tci.width = 56;
-            tci.height = 56;
+            tci.width = static_cast<Uint32>(width);
+            tci.height = static_cast<Uint32>(height);
             tci.layer_count_or_depth = 1;
             tci.num_levels = 1;
             tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
@@ -174,8 +281,10 @@ namespace
 
             SDL_GPUTransferBufferCreateInfo tbi{};
             tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-            tbi.size = 56 * 56 * 4;
+            tbi.size = static_cast<Uint32>(width * height * 4);
             _transfer = SDL_CreateGPUTransferBuffer(device, &tbi);
+            _texWidth = width;
+            _texHeight = height;
         }
 
         void DestroyGpuResources()
@@ -192,16 +301,22 @@ namespace
                 SDL_ReleaseGPUTexture(_device, _texture);
                 _texture = nullptr;
             }
+            _texWidth = 0;
+            _texHeight = 0;
         }
 
         void Upload(SDL_GPUDevice* device)
         {
+            int width = _texWidth;
+            int height = _texHeight;
+            if (width <= 0 || height <= 0)
+                return;
             unsigned char* rgb = bfm_get_rgb_buf();
             void* mapped = SDL_MapGPUTransferBuffer(device, _transfer, false);
             if (mapped == nullptr)
                 return;
             unsigned char* dst = static_cast<unsigned char*>(mapped);
-            for (int i = 0; i < 56 * 56; ++i)
+            for (int i = 0; i < width * height; ++i)
             {
                 dst[i * 4 + 0] = rgb[i * 3 + 0];
                 dst[i * 4 + 1] = rgb[i * 3 + 1];
@@ -217,8 +332,8 @@ namespace
             SDL_GPUTextureTransferInfo src{};
             src.transfer_buffer = _transfer;
             src.offset = 0;
-            src.pixels_per_row = 56;
-            src.rows_per_layer = 56;
+            src.pixels_per_row = static_cast<Uint32>(width);
+            src.rows_per_layer = static_cast<Uint32>(height);
             SDL_GPUTextureRegion dstReg{};
             dstReg.texture = _texture;
             dstReg.mip_level = 0;
@@ -226,8 +341,8 @@ namespace
             dstReg.x = 0;
             dstReg.y = 0;
             dstReg.z = 0;
-            dstReg.w = 56;
-            dstReg.h = 56;
+            dstReg.w = static_cast<Uint32>(width);
+            dstReg.h = static_cast<Uint32>(height);
             dstReg.d = 1;
             SDL_UploadToGPUTexture(cp, &src, &dstReg, false);
             SDL_EndGPUCopyPass(cp);
@@ -243,6 +358,8 @@ namespace
         SDL_GPUDevice* _device = nullptr;
         SDL_GPUTexture* _texture = nullptr;
         SDL_GPUTransferBuffer* _transfer = nullptr;
+        int _texWidth = 0;
+        int _texHeight = 0;
     };
 
 } // namespace

@@ -214,7 +214,9 @@ void time_update(void);
 
 #include "include/fishmon.h"
 
-int bubble_state_change = (YMAX / 4);
+int bfm_width = 56;
+int bfm_height = 56;
+int bubble_state_change = 14;
  
 
 BFM_STATIC void bubblemon_session_defaults(void)
@@ -849,7 +851,7 @@ BFM_STATIC void bubblemon_update(int proximity)
     unsigned int real_waterlevel_min, real_waterlevel_max;
 
     /* These values are for keeping track how deep the duck is inside water */
-    unsigned int action_min = 56;
+    unsigned int action_min = bfm_height;
     static unsigned int last_action_min = 0;
 
     /* Find out the CPU load */
@@ -874,18 +876,18 @@ BFM_STATIC void bubblemon_update(int proximity)
     col = bm.colors;
 
     waterlevel_max = 0;
-    waterlevel_min = MAKEY(56);
+    waterlevel_min = MAKEY(bfm_height);
 
     /* Move the water level with the current memory usage. */
-    waterlevels_goal = MAKEY(56) - ((bm.mem_percent * MAKEY(56)) / 100);
+    waterlevels_goal = MAKEY(bfm_height) - ((bm.mem_percent * MAKEY(bfm_height)) / 100);
 
     /* Guard against boundary errors */
     waterlevels_goal -= (1 << (POWER2 - 1));
 
     bm.waterlevels[0] = waterlevels_goal;
-    bm.waterlevels[55] = waterlevels_goal;
+    bm.waterlevels[bfm_width - 1] = waterlevels_goal;
 
-    for (x = 1; x < 55; x++) {
+    for (x = 1; x < bfm_width - 1; x++) {
 	/* Accelerate the current waterlevel towards its correct value */
 	bm.waterlevels_dy[x] +=
 	    (((bm.waterlevels[x - 1] + bm.waterlevels[x + 1] -
@@ -901,13 +903,13 @@ BFM_STATIC void bubblemon_update(int proximity)
 	    bm.waterlevels_dy[x] = -bm.speed_limit_int;
     }
 
-    for (x = 1; x < 55; x++) {
+    for (x = 1; x < bfm_width - 1; x++) {
 	/* Move the current water level */
 	bm.waterlevels[x] = bm.waterlevels[x] + bm.waterlevels_dy[x];
 
-	if (bm.waterlevels[x] > MAKEY(56)) {
+	if (bm.waterlevels[x] > MAKEY(bfm_height)) {
 	    /* Stop the wave if it hits the floor... */
-	    bm.waterlevels[x] = MAKEY(56);
+	    bm.waterlevels[x] = MAKEY(bfm_height);
 	    bm.waterlevels_dy[x] = 0;
 	} else if (bm.waterlevels[x] < 0) {
 	    /* ... or the ceiling. */
@@ -952,23 +954,23 @@ BFM_STATIC void bubblemon_update(int proximity)
      */
 
     /* Air only */
-    memset(buf, aircolor, real_waterlevel_min * 56);
+    memset(buf, aircolor, real_waterlevel_min * bfm_width);
 
     /* Air and water */
-    for (x = 0; x < 56; x++) {
+    for (x = 0; x < bfm_width; x++) {
 	/* Air... */
 	for (y = real_waterlevel_min;
 	     (signed) y < REALY(bm.waterlevels[x]); y++)
-	    buf[y * 56 + x] = aircolor;
+	    buf[y * bfm_width + x] = aircolor;
 
 	/* ... and water */
 	for (; y < real_waterlevel_max; y++)
-	    buf[y * 56 + x] = watercolor;
+	    buf[y * bfm_width + x] = watercolor;
     }
 
     /* Water only */
-    memset(buf + real_waterlevel_max * 56, watercolor,
-	   (56 - real_waterlevel_max) * 56);
+    memset(buf + real_waterlevel_max * bfm_width, watercolor,
+	   (bfm_height - real_waterlevel_max) * bfm_width);
 
     /*
        Here comes the bubble magic.  Pixels are drawn by setting values in
@@ -979,8 +981,8 @@ BFM_STATIC void bubblemon_update(int proximity)
     if ((bm.n_bubbles < bm.maxbubbles)
 	&& ((rand() % 101) <= loadPercentage)) {
 	/* We don't allow bubbles on the edges 'cause we'd have to clip them */
-	bubbles[bm.n_bubbles].x = (rand() % 54) + 1;
-	bubbles[bm.n_bubbles].y = MAKEY(56) - 256;
+	bubbles[bm.n_bubbles].x = (rand() % (bfm_width - 2)) + 1;
+	bubbles[bm.n_bubbles].y = MAKEY(bfm_height) - 256;
 	bubbles[bm.n_bubbles].dy = 0;
 #ifdef DEBUG_DUCK
 	fprintf (stderr, "new bubble:  bubbles[bm.n_bubbles].x = %i\n",
@@ -995,7 +997,7 @@ BFM_STATIC void bubblemon_update(int proximity)
 	    bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
 	    bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
 	    bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
-	    if (bubbles[bm.n_bubbles].x < 53)
+	    if (bubbles[bm.n_bubbles].x < bfm_width - 3)
 		bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -=
 		    bm.ripples_int;
 	}
@@ -1013,8 +1015,8 @@ BFM_STATIC void bubblemon_update(int proximity)
 	bubbles[i].y += bubbles[i].dy;
 
 	/* is the bubble grossly out of bounds? */
-	if (bubbles[i].x < 1 || bubbles[i].x > 54 ||
-			bubbles[i].y > MAKEY(56)) {
+	if (bubbles[i].x < 1 || bubbles[i].x > bfm_width - 2 ||
+			bubbles[i].y > MAKEY(bfm_height)) {
 #ifdef DEBUG_DUCK
 		fprintf (stderr, "bubble out of bounds "
 				"bubbles[%i].x=%i, bubbles[%i].y=%i\n", 
@@ -1070,7 +1072,7 @@ BFM_STATIC void bubblemon_update(int proximity)
 	 */
 
 	/* Top row */
-	buf_ptr = &(buf[(((REALY(y) - 1) * 56) + 56) + x - 1]);
+	buf_ptr = &(buf[(((REALY(y) - 1) * bfm_width) + bfm_width) + x - 1]);
 	if (y > bm.waterlevels[x]) {
 	    if (*buf_ptr != aircolor) {
 		(*buf_ptr)++;
@@ -1083,9 +1085,9 @@ BFM_STATIC void bubblemon_update(int proximity)
 	    if (*buf_ptr != aircolor) {
 		(*buf_ptr)++;
 	    }
-	    buf_ptr += 54;
+	    buf_ptr += bfm_width - 2;
 	} else {
-	    buf_ptr += 56;
+	    buf_ptr += bfm_width;
 	}
 
 	/* Middle row - no clipping necessary */
@@ -1097,7 +1099,7 @@ BFM_STATIC void bubblemon_update(int proximity)
 	buf_ptr += 54;
 
 	/* Bottom row */
-	if (y < (MAKEY(56) - 256)) {
+	if (y < (MAKEY(bfm_height) - 256)) {
 	    if (*buf_ptr != aircolor) {
 		(*buf_ptr)++;
 	    }
@@ -1115,7 +1117,7 @@ BFM_STATIC void bubblemon_update(int proximity)
     /* Drawing magic resides below this point */
     ptr = bm.rgb_buf;
     buf_ptr = buf;
-    i = 56 * 56;
+    i = bfm_width * bfm_height;
 
     while (i--) {
 	unsigned char *rgb = (unsigned char *) &col[*buf_ptr++];
@@ -1486,7 +1488,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	kitptr = kit;
 	for (y = 0; y < 9; y++) {
 	    unsigned char src;
-	    pos = (y + POSY) * 56 * 3 + (POSX * 3);
+	    pos = (y + POSY) * bfm_width * 3 + (POSX * 3);
 	    bob = 75;		/* 25 * 3 */
 	    while (bob--) {
 		src = bm.rgb_buf[pos];
@@ -1507,7 +1509,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	unsigned char *ptr, *ptr2, src;
 	ptr = bm.mem_buf;
 	ptr2 = bm.rgb_buf;
-	bob = 9408;		/* 56 * 56 * 3 */
+	bob = bfm_width * bfm_height * 3;
 	while (bob--) {
 	    src = *ptr2;
 	    *ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
@@ -1538,17 +1540,17 @@ static void duck_set(int x, int y, int nr, int rev, int upsidedown)
     if (y < 0)
 	ds = -(y);
     dh = 17;
-    if ((y + 17) > 56)
-	dh = 56 - y;
+    if ((y + 17) > bfm_height)
+	dh = bfm_height - y;
     dw = 18;
-    if (x > 38)
-	dw = 18 - (x - 38);
+    if (x > bfm_width - 18)
+	dw = 18 - (x - (bfm_width - 18));
     di = 0;
     if (x < 0)
 	di = -(x);
     for (h = ds; h < dh; h++) {
 	/* calculate this only once */
-	int ypos = (h + y) * 56;
+	int ypos = (h + y) * bfm_width;
 #ifdef UPSIDE_DOWN_DUCK
 	rh = (upsidedown && upside_down_duck_enabled) ? 16 - h : h;
 #endif
@@ -1642,7 +1644,7 @@ static void duck_swimmer(int posy)
 	    rev = 1;
 	}
     } else {
-	if (tx++ > 57) {
+	if (tx++ > bfm_width + 1) {
 	    tx = 57;
 	    rev = 0;
 	}
@@ -1757,28 +1759,30 @@ BFM_STATIC void bubblemon_allocate_buffers(void)
     int i;
 
     /* storage for bubbles */
+    if (bm.bubbles)
+        free(bm.bubbles);
     bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
 
     /* Allocate (zeroed) bubble memory */
     if (bm.bubblebuf)
 	free(bm.bubblebuf);
 
-    bm.bubblebuf = calloc(56 * 60, sizeof(char));
+    bm.bubblebuf = calloc((size_t)bfm_width * (size_t)(bfm_height + 4), sizeof(char));
 
     /* Allocate water level memory */
     if (bm.waterlevels)
 	free(bm.waterlevels);
 
-    bm.waterlevels = malloc(56 * sizeof(int));
-    for (i = 0; i < 56; i++) {
-	bm.waterlevels[i] = MAKEY(56);
+    bm.waterlevels = malloc((size_t)bfm_width * sizeof(int));
+    for (i = 0; i < bfm_width; i++) {
+	bm.waterlevels[i] = MAKEY(bfm_height);
     }
 
     /* Allocate water level velocity memory */
     if (bm.waterlevels_dy)
 	free(bm.waterlevels_dy);
 
-    bm.waterlevels_dy = calloc(56, sizeof(int));
+    bm.waterlevels_dy = calloc((size_t)bfm_width, sizeof(int));
 }
 
 BFM_STATIC void get_memory_load_percentage(void)
@@ -1819,6 +1823,34 @@ void bfm_glsysmon_update(int proximity)
 unsigned char *bfm_get_rgb_buf(void)
 {
     return bm.rgb_buf;
+}
+
+void bfm_set_size(int width, int height)
+{
+    if (width < 10)
+        width = 10;
+    if (width > BFM_MAX_WIDTH)
+        width = BFM_MAX_WIDTH;
+    if (height < 10)
+        height = 10;
+    if (height > BFM_MAX_HEIGHT)
+        height = BFM_MAX_HEIGHT;
+    if (width == bfm_width && height == bfm_height)
+        return;
+    bfm_width = width;
+    bfm_height = height;
+    bubble_state_change = bfm_height / 4;
+    if (bubble_state_change < 1)
+        bubble_state_change = 1;
+    bubblemon_allocate_buffers();
+}
+
+void bfm_get_size(int *width, int *height)
+{
+    if (width)
+        *width = bfm_width;
+    if (height)
+        *height = bfm_height;
 }
 #endif
 

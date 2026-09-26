@@ -15,8 +15,10 @@
 
 /* perform clipping outside this range, also this is the size of the
  * drawing area */
-#define XMAX 56
-#define YMAX 56
+extern int bfm_width;
+extern int bfm_height;
+#define XMAX bfm_width
+#define YMAX bfm_height
 /* this is the max size of the RGB buffer: 56 * 56 * 3
  * used for memcpy, memset, etc operations */
 #define RGBSIZE (XMAX * YMAX * 3)

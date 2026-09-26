@@ -78,6 +78,11 @@ typedef struct {
 
 #include "fishmon.h"
 
+#define BFM_MAX_WIDTH 256
+#define BFM_MAX_HEIGHT 256
+#define BFM_MAX_RGB_SIZE (BFM_MAX_WIDTH * BFM_MAX_HEIGHT * 3 + 1)
+#define BFM_MAX_CMAP_SIZE (BFM_MAX_WIDTH * BFM_MAX_HEIGHT)
+
 typedef struct {
 #ifndef GLSYSMON_BFM
     /* X11 stuff */
@@ -90,7 +95,7 @@ typedef struct {
 #endif
 
     /* main image buffer */
-    unsigned char rgb_buf[56 * 56 * 3 + 1];
+    unsigned char rgb_buf[BFM_MAX_RGB_SIZE];
 
 #ifdef ENABLE_MEMSCREEN
     /* memory / swap screen buffer */
@@ -160,7 +165,7 @@ typedef struct {
     int nr_bubbles;		/* current bubble count */
 
     /* cmap based buffer for sprites, etc - notice not RGB buffer */
-    unsigned char image[CMAPSIZE];
+    unsigned char image[BFM_MAX_CMAP_SIZE];
 
 #endif
 } BubbleMonData;
@@ -174,6 +179,8 @@ extern int bubble_state_change;
 extern int duck_enabled;
 extern int fish_enabled;
 extern int cpu_enabled;
+extern int bfm_width;
+extern int bfm_height;
 #ifdef ENABLE_FISH
 void prepare_sprites(void);
 void fishmon_update(void);
@@ -181,6 +188,8 @@ void fishmon_update(void);
 void bfm_glsysmon_init(void);
 void bfm_glsysmon_update(int proximity);
 unsigned char *bfm_get_rgb_buf(void);
+void bfm_set_size(int width, int height);
+void bfm_get_size(int *width, int *height);
 void bubblemon_setup_samples(void);
 void bubblemon_setup_colors(void);
 void bubblemon_allocate_buffers(void);
