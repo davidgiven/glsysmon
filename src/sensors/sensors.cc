@@ -7,6 +7,7 @@
 #include "sensors/cpu_sensor.h"
 #include "sensors/disk_sensor.h"
 #include "sensors/hostname_sensor.h"
+#include "sensors/memory_poller.h"
 #include "sensors/network_poller.h"
 #include "sensors/network_sensor.h"
 #include "sensors/temperature_sensor.h"
@@ -60,4 +61,12 @@ std::shared_ptr<NetworkPoller> Sensors::CreateNetworkPoller(
     if (!_networkPoller)
         _networkPoller = ::CreateNetworkPoller(procNetDevPath);
     return _networkPoller;
+}
+
+std::shared_ptr<MemoryPoller> Sensors::CreateMemoryPoller(
+    const std::string& procMemInfoPath) const
+{
+    if (!_memoryPoller)
+        _memoryPoller = ::CreateMemoryPoller(procMemInfoPath);
+    return _memoryPoller;
 }
