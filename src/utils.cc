@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
@@ -76,4 +77,16 @@ std::string FormatBinary(
     std::uint64_t value, const std::string& unit, int precision)
 {
     return FormatBinary(static_cast<double>(value), unit, precision);
+}
+
+std::string Trim(const std::string& s)
+{
+    std::size_t start = 0;
+    while (
+        start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
+        start++;
+    std::size_t end = s.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
+        end--;
+    return s.substr(start, end - start);
 }

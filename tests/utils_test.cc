@@ -112,3 +112,53 @@ TEST_CASE("FormatBinary trims trailing zeros")
     CHECK(FormatBinary(1280, "B", 2) == "1.25 KiB");
     CHECK(FormatBinary(1126.4, "B", 2) == "1.1 KiB");
 }
+
+TEST_CASE("Trim empty and no whitespace")
+{
+    CHECK(Trim("") == "");
+    CHECK(Trim("hello") == "hello");
+    CHECK(Trim("a") == "a");
+}
+
+TEST_CASE("Trim leading and trailing spaces")
+{
+    CHECK(Trim("  hello") == "hello");
+    CHECK(Trim("hello  ") == "hello");
+    CHECK(Trim("  hello  ") == "hello");
+    CHECK(Trim("   hello   ") == "hello");
+}
+
+TEST_CASE("Trim only whitespace")
+{
+    CHECK(Trim("   ") == "");
+    CHECK(Trim("\t") == "");
+    CHECK(Trim("\n") == "");
+    CHECK(Trim(" \t\n\r\f\v ") == "");
+}
+
+TEST_CASE("Trim mixed whitespace characters")
+{
+    CHECK(Trim("\thello") == "hello");
+    CHECK(Trim("\nhello\n") == "hello");
+    CHECK(Trim("\r\nhello\r\n") == "hello");
+    CHECK(Trim("\t\n hello \n\t") == "hello");
+    CHECK(Trim(" \t hello \t ") == "hello");
+    CHECK(Trim("\f\vhello\f\v") == "hello");
+}
+
+TEST_CASE("Trim preserves internal whitespace")
+{
+    CHECK(Trim("  hello world  ") == "hello world");
+    CHECK(Trim("\thello world\t") == "hello world");
+    CHECK(Trim("  hello  world  ") == "hello  world");
+    CHECK(Trim(" \n hello \t world \n ") == "hello \t world");
+    CHECK(Trim("a b") == "a b");
+    CHECK(Trim(" a b ") == "a b");
+}
+
+TEST_CASE("Trim single character with whitespace")
+{
+    CHECK(Trim(" a ") == "a");
+    CHECK(Trim("  a  ") == "a");
+    CHECK(Trim("\ta\t") == "a");
+}

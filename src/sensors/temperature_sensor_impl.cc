@@ -3,7 +3,6 @@
 #include <imgui.h>
 
 #include <algorithm>
-#include <cctype>
 #include <cstdint>
 #include <fstream>
 #include <functional>
@@ -17,22 +16,10 @@
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
+#include "utils.h"
 
 namespace
 {
-
-    std::string Trim(const std::string& s)
-    {
-        std::size_t start = 0;
-        while (start < s.size() &&
-               std::isspace(static_cast<unsigned char>(s[start])))
-            start++;
-        std::size_t end = s.size();
-        while (
-            end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
-            end--;
-        return s.substr(start, end - start);
-    }
 
     std::string ExtractTempBase(const std::string& inputPath)
     {
