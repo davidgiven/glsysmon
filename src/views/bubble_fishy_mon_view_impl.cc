@@ -13,6 +13,7 @@
 #include "display/bfm_gpu_bridge.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
+#include "timer.h"
 
 extern "C"
 {
@@ -31,17 +32,31 @@ namespace
     {
     public:
         explicit BubbleFishyMonViewImpl(
-            const Preferences& prefs, Sensors& /*sensors*/):
-            _prefs(prefs)
+            const Preferences& prefs, Sensors& /*sensors*/, Timer& timer):
+            _prefs(prefs),
+            _timer(timer)
         {
-        }
-
-        explicit BubbleFishyMonViewImpl(const Preferences& prefs): _prefs(prefs)
-        {
+            srand(0);
+            bfm_glsysmon_init();
+            _inited = true;
+            double interval = _prefs.GetDouble("bubbleFishyMon.update_interval")
+                                  .value_or(10.0);
+            if (interval <= 0)
+                interval = 10.0;
+            _interval = interval;
+            _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
+            Timer::Time now = _timer.Now();
+            _scheduled = _timer.Schedule(now + _delta,
+                [this](Timer::Time t)
+                {
+                    Tick(t);
+                });
         }
 
         ~BubbleFishyMonViewImpl() override
         {
+            if (_scheduled != 0)
+                _timer.Cancel(_scheduled);
             if (BfmGetGpuDevice() != nullptr && BfmGetGpuDevice() == _device)
                 DestroyGpuResources();
             else
@@ -62,14 +77,6 @@ namespace
             if (_texture == nullptr || _transfer == nullptr)
                 return;
 
-            if (!_inited)
-            {
-                srand(0);
-                bfm_glsysmon_init();
-                _inited = true;
-            }
-
-            bfm_glsysmon_update(0);
             Upload(device);
 
             float availWidth = ImGui::GetContentRegionAvail().x;
@@ -111,7 +118,39 @@ namespace
             return {};
         }
 
+        void DrawConfiguration(Preferences& preferences) override
+        {
+            float interval = static_cast<float>(
+                preferences.GetDouble("bubbleFishyMon.update_interval")
+                    .value_or(_interval));
+            if (ImGui::InputFloat("Update frequency", &interval))
+            {
+                if (interval <= 0)
+                    interval = 1;
+                preferences.SetDouble(
+                    "bubbleFishyMon.update_interval", interval);
+                if (_scheduled != 0)
+                    _timer.Cancel(_scheduled);
+                _interval = interval;
+                _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
+                _scheduled = _timer.Schedule(_timer.Now() + _delta,
+                    [this](Timer::Time t)
+                    {
+                        Tick(t);
+                    });
+            }
+        }
+
     private:
+        void Tick(Timer::Time t)
+        {
+            bfm_glsysmon_update(0);
+            _scheduled = _timer.Schedule(t + _delta,
+                [this](Timer::Time nt)
+                {
+                    Tick(nt);
+                });
+        }
         void EnsureGpuResources(SDL_GPUDevice* device)
         {
             if (device != _device)
@@ -196,6 +235,10 @@ namespace
         }
 
         const Preferences& _prefs;
+        Timer& _timer;
+        double _interval = 10.0;
+        Timer::Time _delta = 100'000'000;
+        Timer::Time _scheduled = 0;
         bool _inited = false;
         SDL_GPUDevice* _device = nullptr;
         SDL_GPUTexture* _texture = nullptr;
@@ -205,12 +248,7 @@ namespace
 } // namespace
 
 std::unique_ptr<View> CreateBubbleFishyMonView(
-    const Preferences& prefs, Sensors& sensors)
+    const Preferences& prefs, Sensors& sensors, Timer& timer)
 {
-    return std::make_unique<BubbleFishyMonViewImpl>(prefs, sensors);
-}
-
-std::unique_ptr<View> CreateBubbleFishyMonView(const Preferences& prefs)
-{
-    return std::make_unique<BubbleFishyMonViewImpl>(prefs);
+    return std::make_unique<BubbleFishyMonViewImpl>(prefs, sensors, timer);
 }

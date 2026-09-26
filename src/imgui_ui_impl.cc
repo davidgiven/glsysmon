@@ -25,7 +25,7 @@ namespace
             _prefs(prefs),
             _ownedSensors(std::make_unique<Sensors>(prefs, timer)),
             _sensors(*_ownedSensors),
-            _views(prefs, _sensors),
+            _views(prefs, _sensors, timer),
             _app(app),
             _configurationWindow(_views, _app)
         {
@@ -43,7 +43,7 @@ namespace
             const Preferences& prefs, Sensors& sensors, App& app):
             _prefs(prefs),
             _sensors(sensors),
-            _views(prefs, _sensors),
+            _views(prefs, _sensors, sensors.GetTimer()),
             _app(app),
             _configurationWindow(_views, _app)
         {

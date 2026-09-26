@@ -114,7 +114,7 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     Sensors sensors(*prefs, *timer);
-    Views views(*prefs, sensors);
+    Views views(*prefs, sensors, *timer);
     View* view = views.Get("HostnameView");
     REQUIRE(view != nullptr);
     CHECK(views.Get("UnknownView") == nullptr);

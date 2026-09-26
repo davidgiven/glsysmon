@@ -41,6 +41,11 @@ public:
         const std::string& prefPrefix,
         const std::string& procDiskStatsPath = "/proc/diskstats") const;
 
+    Timer& GetTimer() const
+    {
+        return _timer;
+    }
+
 private:
     const Preferences& _prefs;
     Timer& _timer;
