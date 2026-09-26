@@ -102,6 +102,7 @@ namespace
         {
             ViewGraphMixin::DrawConfiguration(preferences);
 
+            // Temperature range
             float minMax[2] = {static_cast<float>(preferences
                                        .GetInteger(GetPrefName() + ".minimum")
                                        .value_or(20)),
@@ -116,6 +117,7 @@ namespace
                     GetPrefName() + ".maximum", static_cast<int>(minMax[1]));
             }
 
+            // Visible sensors
             auto allowedSet =
                 *preferences.GetStringSet(GetPrefName() + ".sensors");
             bool changed = false;

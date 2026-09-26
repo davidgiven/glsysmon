@@ -168,6 +168,7 @@ namespace
         {
             ViewGraphMixin::DrawConfiguration(preferences);
 
+            // Y-axis maximum
             static constexpr const char* kMaximumLabels[] = {
                 "1MBps", "10Mbps", "100Mbps", "1GBps"};
             static constexpr double kMaximumValues[] = {
@@ -195,6 +196,7 @@ namespace
                     GetPrefName() + ".maximum", kMaximumValues[maximumIndex]);
             }
 
+            // Visible interfaces
             auto allowedSet =
                 preferences.GetStringSet(GetPrefName() + ".interfaces")
                     .value_or(std::set<std::string>());

@@ -79,6 +79,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
+            // Update interval
             float interval = static_cast<float>(
                 preferences.GetDouble(_prefPrefix + ".update_interval")
                     .value_or(2.0));

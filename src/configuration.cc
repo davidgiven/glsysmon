@@ -24,12 +24,14 @@ ConfigurationWindow::ConfigurationWindow(const Views& views, App& app):
 
 void ConfigurationWindow::DrawGlobalConfiguration()
 {
+    // Panel width
     int size = _pendingPreferences->GetInteger("size").value_or(100);
     if (ImGui::SliderInt("Width", &size, 1, 300))
     {
         _pendingPreferences->SetInteger("size", size);
     }
 
+    // Dock side
     static constexpr const char* kSideLabels[] = {"left", "right"};
     static constexpr const char* kSideValues[] = {"left", "right"};
     std::string currentSide =

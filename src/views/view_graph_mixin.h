@@ -13,6 +13,8 @@ public:
     void DrawConfiguration(Preferences& preferences) override
     {
         View::DrawConfiguration(preferences);
+
+        // Graph height
         std::string key = GetPrefName() + ".graph_height";
         int height = preferences.GetInteger(key).value_or(40);
         if (ImGui::InputInt("Graph height", &height))
