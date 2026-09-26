@@ -47,6 +47,13 @@ namespace
         return CreateTemperatureView(prefs, sensors);
     }
 
+    std::unique_ptr<View> CreateMemoryViewWithTimer(
+        const Preferences& prefs, Sensors& sensors, Timer& timer)
+    {
+        (void)timer;
+        return CreateMemoryView(prefs, sensors);
+    }
+
 } // namespace
 
 const std::map<std::string, Views::Factory> Views::_factories{
@@ -55,6 +62,7 @@ const std::map<std::string, Views::Factory> Views::_factories{
     {"CpuView",            &CreateCpuViewWithTimer        },
     {"DiskView",           &CreateDiskViewWithTimer       },
     {"HostnameView",       &CreateHostnameViewWithTimer   },
+    {"MemoryView",         &CreateMemoryViewWithTimer     },
     {"NetworkView",        &CreateNetworkViewWithTimer    },
     {"TemperatureView",    &CreateTemperatureViewWithTimer},
 };

@@ -11,6 +11,7 @@ class ClockSensor;
 class CpuSensor;
 class DiskSensor;
 class HostnameSensor;
+class MemorySensor;
 class NetworkSensor;
 class TemperatureSensor;
 
@@ -60,5 +61,9 @@ extern std::unique_ptr<View> CreateDiskView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateDiskView(
     const Preferences& prefs, std::unique_ptr<DiskSensor> sensor);
+extern std::unique_ptr<View> CreateMemoryView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateMemoryView(
+    const Preferences& prefs, std::unique_ptr<MemorySensor> sensor);
 extern std::unique_ptr<View> CreateBubbleFishyMonView(
     const Preferences& prefs, Sensors& sensors, class Timer& timer);

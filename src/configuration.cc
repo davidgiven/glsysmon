@@ -81,6 +81,7 @@ void ConfigurationWindow::Draw(bool* open)
                                 return _views.Get(name) == nullptr;
                             }),
             viewOrder.end());
+        _pendingPreferences->SetStringList("views", viewOrder);
 
         for (size_t i = 0; i < viewOrder.size(); ++i)
         {

@@ -154,7 +154,8 @@ TEST_CASE("CLI preferences default to left / 100 / monitor 0")
               "CpuView",
               "TemperatureView",
               "NetworkView",
-              "DiskView"});
+              "DiskView",
+              "MemoryView"});
 }
 
 TEST_CASE("CLI --views= parses a comma-separated list")

@@ -20,11 +20,15 @@ namespace
             "CpuView,"
             "TemperatureView,"
             "NetworkView,"
-            "DiskView"                                                            },
+            "DiskView,"
+            "MemoryView"                                                          },
         {"fps",                            "30"                                   },
         {"cpu.graph_height",               "40"                                   },
         {"cpu.update_interval",            "2"                                    },
         {"cpu.show_labels",                "true"                                 },
+        {"memory.graph_height",            "40"                                   },
+        {"memory.update_interval",         "1"                                    },
+        {"memory.show_labels",             "true"                                 },
         {"temperature.graph_height",       "40"                                   },
         {"temperature.update_interval",    "1"                                    },
         {"temperature.minimum",            "20"                                   },

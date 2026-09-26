@@ -311,13 +311,15 @@ TEST_CASE(
               "CpuView",
               "TemperatureView",
               "NetworkView",
-              "DiskView"});
+              "DiskView",
+              "MemoryView"});
     REQUIRE(prefs->GetStringSet("views").has_value());
     CHECK(prefs->GetStringSet("views").value() ==
           std::set<std::string>{"ClockView",
               "CpuView",
               "DiskView",
               "HostnameView",
+              "MemoryView",
               "NetworkView",
               "TemperatureView"});
 

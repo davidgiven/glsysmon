@@ -100,6 +100,7 @@ SRC_OBJS := \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/memory_view_impl.o \
 	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/style.o \
 	$(BUILD)/views/temperature_view_impl.o \
@@ -177,6 +178,7 @@ TEST_OBJS := \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/memory_view_impl.o \
 	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
