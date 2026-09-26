@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+class NetworkPoller;
 class Preferences;
 class Timer;
 
@@ -24,3 +25,9 @@ extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(
     Timer& timer,
     const std::string& prefPrefix,
     const std::string& procNetDevPath = "/proc/net/dev");
+
+extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(
+    const Preferences& prefs,
+    Timer& timer,
+    const std::string& prefPrefix,
+    std::shared_ptr<NetworkPoller> poller);

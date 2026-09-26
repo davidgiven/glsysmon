@@ -7,6 +7,7 @@
 #include "sensors/cpu_sensor.h"
 #include "sensors/disk_sensor.h"
 #include "sensors/hostname_sensor.h"
+#include "sensors/network_poller.h"
 #include "sensors/network_sensor.h"
 #include "sensors/temperature_sensor.h"
 
@@ -43,11 +44,20 @@ std::unique_ptr<TemperatureSensor> Sensors::CreateTemperatureSensor(
 std::unique_ptr<NetworkSensor> Sensors::CreateNetworkSensor(
     const std::string& a, const std::string& b) const
 {
-    return ::CreateNetworkSensor(_prefs, _timer, a, b);
+    auto poller = CreateNetworkPoller(b);
+    return ::CreateNetworkSensor(_prefs, _timer, a, poller);
 }
 
 std::unique_ptr<DiskSensor> Sensors::CreateDiskSensor(
     const std::string& a, const std::string& b) const
 {
     return ::CreateDiskSensor(_prefs, _timer, a, b);
+}
+
+std::shared_ptr<NetworkPoller> Sensors::CreateNetworkPoller(
+    const std::string& procNetDevPath) const
+{
+    if (!_networkPoller)
+        _networkPoller = ::CreateNetworkPoller(procNetDevPath);
+    return _networkPoller;
 }

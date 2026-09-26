@@ -8,6 +8,7 @@
 #include "cpu_sensor.h"
 #include "disk_sensor.h"
 #include "hostname_sensor.h"
+#include "network_poller.h"
 #include "network_sensor.h"
 #include "temperature_sensor.h"
 
@@ -40,6 +41,8 @@ public:
     virtual std::unique_ptr<DiskSensor> CreateDiskSensor(
         const std::string& prefPrefix,
         const std::string& procDiskStatsPath = "/proc/diskstats") const;
+    virtual std::shared_ptr<NetworkPoller> CreateNetworkPoller(
+        const std::string& procNetDevPath = "/proc/net/dev") const;
 
     Timer& GetTimer() const
     {
@@ -49,4 +52,5 @@ public:
 private:
     const Preferences& _prefs;
     Timer& _timer;
+    mutable std::shared_ptr<NetworkPoller> _networkPoller;
 };
