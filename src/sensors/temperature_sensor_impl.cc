@@ -73,16 +73,6 @@ namespace
             _timer(timer),
             _hwmonRoot(hwmonRoot)
         {
-            int size = GlobalPreferencesFetcher::GetSize(prefs);
-            if (size <= 0)
-                size = 1;
-            std::size_t sampleCount = static_cast<std::size_t>(size);
-            double interval =
-                prefs.GetDouble(_prefPrefix + ".update_interval").value_or(1);
-            if (interval <= 0)
-                interval = 1;
-            _delta = 1'000'000'000ULL / interval;
-
             _inputPaths = DiscoverInputs(_hwmonRoot);
             std::vector<std::string> baseNames;
             baseNames.reserve(_inputPaths.size());
@@ -136,8 +126,9 @@ namespace
                     _names.push_back(base);
             }
 
-            InitGraph(_inputPaths.size(),
-                sampleCount,
+            InitGraph(prefs,
+                _prefPrefix,
+                _inputPaths.size(),
                 std::numeric_limits<double>::quiet_NaN());
             Tick(_timer.Now());
         }
@@ -209,7 +200,7 @@ namespace
                     AddSample(i, std::numeric_limits<double>::quiet_NaN());
                 }
             }
-            _timer.Schedule(t + _delta,
+            _timer.Schedule(t + this->_delta,
                 std::bind(
                     &TemperatureSensorImpl::Tick, this, std::placeholders::_1));
         }
@@ -218,7 +209,6 @@ namespace
         std::string _hwmonRoot;
         std::vector<std::string> _inputPaths;
         std::vector<std::string> _names;
-        uint64_t _delta = 0;
     };
 
 } // namespace

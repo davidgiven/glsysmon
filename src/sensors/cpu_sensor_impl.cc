@@ -45,16 +45,6 @@ namespace
             _timer(timer),
             _procStatPath(procStatPath)
         {
-            int size = GlobalPreferencesFetcher::GetSize(prefs);
-            if (size <= 0)
-                size = 1;
-            std::size_t sampleCount = static_cast<std::size_t>(size);
-            double interval =
-                prefs.GetDouble(_prefPrefix + ".update_interval").value_or(5);
-            if (interval <= 0)
-                interval = 5;
-            _delta = 1'000'000'000ULL / interval;
-
             std::ifstream file(_procStatPath);
             std::string line;
             std::size_t count = 0;
@@ -66,7 +56,7 @@ namespace
                     std::isdigit(static_cast<unsigned char>(line[3])))
                     count++;
             }
-            InitGraph(count, sampleCount, CpuSample{});
+            InitGraph(prefs, _prefPrefix, count, CpuSample{}, 5);
             _prev.resize(count);
             Tick(_timer.Now());
         }
@@ -195,7 +185,7 @@ namespace
                     _prev = cur;
                 }
             }
-            _timer.Schedule(t + _delta,
+            _timer.Schedule(t + this->_delta,
                 std::bind(&CpuSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -210,7 +200,6 @@ namespace
         std::string _procStatPath;
         std::vector<RawTimes> _prev;
         bool _first = true;
-        uint64_t _delta = 0;
     };
 
 } // namespace

@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <string>
 #include <vector>
+
+#include "preferences/preferences.h"
 
 template <typename T>
 class SensorGraphMixin
@@ -93,6 +96,28 @@ protected:
     {
         _samples.assign(channels, std::vector<T>(sampleCount, initial));
     }
+
+    void InitGraph(const Preferences& prefs,
+        const std::string& prefPrefix,
+        std::size_t channels,
+        const T& initial = T{},
+        double defaultInterval = 1)
+    {
+        int size = GlobalPreferencesFetcher::GetSize(prefs);
+        if (size <= 0)
+            size = 1;
+        std::size_t sampleCount = static_cast<std::size_t>(size);
+        double interval = prefs.GetDouble(prefPrefix + ".update_interval")
+                              .value_or(defaultInterval);
+        if (interval <= 0)
+            interval = defaultInterval;
+        _interval = interval;
+        _delta = static_cast<std::uint64_t>(1'000'000'000ULL / interval);
+        _samples.assign(channels, std::vector<T>(sampleCount, initial));
+    }
+
+    std::uint64_t _delta = 0;
+    double _interval = 1;
 
 private:
     std::vector<std::vector<T>> _samples;

@@ -36,19 +36,8 @@ namespace
             _timer(timer),
             _procDiskStatsPath(procDiskStatsPath)
         {
-            int size = GlobalPreferencesFetcher::GetSize(prefs);
-            if (size <= 0)
-                size = 1;
-            std::size_t sampleCount = static_cast<std::size_t>(size);
-            double interval =
-                prefs.GetDouble(_prefPrefix + ".update_interval").value_or(1);
-            if (interval <= 0)
-                interval = 1;
-            _interval = interval;
-            _delta = static_cast<std::uint64_t>(1'000'000'000ULL / interval);
-
             _deviceNames = DiscoverDevices(_procDiskStatsPath);
-            InitGraph(_deviceNames.size(), sampleCount, RxTxSample{});
+            InitGraph(prefs, _prefPrefix, _deviceNames.size(), RxTxSample{});
             _prev.resize(_deviceNames.size());
             Tick(_timer.Now());
         }
@@ -161,7 +150,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _timer.Schedule(t + _delta,
+                _timer.Schedule(t + this->_delta,
                     std::bind(
                         &DiskSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -190,17 +179,17 @@ namespace
                     if (now.rdSectors >= prev.rdSectors)
                         rxBps = static_cast<double>(
                                     now.rdSectors - prev.rdSectors) *
-                                512.0 * _interval;
+                                512.0 * this->_interval;
                     if (now.wrSectors >= prev.wrSectors)
                         txBps = static_cast<double>(
                                     now.wrSectors - prev.wrSectors) *
-                                512.0 * _interval;
+                                512.0 * this->_interval;
                     RxTxSample s{txBps, rxBps};
                     AddSample(i, s);
                 }
                 _prev = cur;
             }
-            _timer.Schedule(t + _delta,
+            _timer.Schedule(t + this->_delta,
                 std::bind(&DiskSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -216,8 +205,6 @@ namespace
         std::vector<std::string> _deviceNames;
         std::vector<RawDisk> _prev;
         bool _first = true;
-        std::uint64_t _delta = 0;
-        double _interval = 1;
     };
 
 } // namespace
