@@ -6,6 +6,7 @@
 
 #include "configuration.h"
 #include "app.h"
+#include "imgui_helpers.h"
 #include "preferences/preferences.h"
 #include "globals.h"
 #include "sensors/sensor.h"
@@ -86,18 +87,17 @@ void ConfigurationWindow::Draw(bool* open)
 
             bool upPressed = false;
             bool downPressed = false;
-            if (i == 0)
-                ImGui::BeginDisabled();
-            upPressed = ImGui::Button(ICON_CODICON_ARROW_UP, ImVec2(frameHeight, frameHeight));
-            if (i == 0)
-                ImGui::EndDisabled();
+            {
+                ImguiDisabled disabled(i == 0);
+                upPressed = ImGui::Button(
+                    ICON_CODICON_ARROW_UP, ImVec2(frameHeight, frameHeight));
+            }
             ImGui::SameLine(0, itemSpacing);
-            if (i + 1 >= viewOrder.size())
-                ImGui::BeginDisabled();
-            downPressed =
-                ImGui::Button(ICON_CODICON_ARROW_DOWN, ImVec2(frameHeight, frameHeight));
-            if (i + 1 >= viewOrder.size())
-                ImGui::EndDisabled();
+            {
+                ImguiDisabled disabled(i + 1 >= viewOrder.size());
+                downPressed = ImGui::Button(
+                    ICON_CODICON_ARROW_DOWN, ImVec2(frameHeight, frameHeight));
+            }
             ImGui::SameLine(0, itemSpacing);
             if (ImGui::Checkbox("##enabled", &enabled))
                 _pendingPreferences->SetBoolean(enabledKey, enabled);
