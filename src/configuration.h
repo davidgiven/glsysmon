@@ -18,6 +18,7 @@ private:
     App& _app;
     std::shared_ptr<Preferences> _pendingMapPreferences;
     std::unique_ptr<Preferences> _pendingPreferences;
+    int _openSection = 0;
 
     void DrawGlobalConfiguration();
 };

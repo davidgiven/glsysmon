@@ -52,9 +52,18 @@ void ConfigurationWindow::Draw(bool* open)
 
     if (ImGui::BeginChild("UpperArea", ImVec2(0, -buttonHeight), false))
     {
-        if (ImGui::CollapsingHeader("Global"))
+        ImGui::SetNextItemOpen(_openSection == 0);
+        bool globalOpen = ImGui::CollapsingHeader("Global");
+        if (globalOpen != (_openSection == 0))
         {
+            _openSection = globalOpen ? 0 : -1;
+        }
+        if (_openSection == 0)
+        {
+            float indent = ImGui::GetFontSize() * 2.0f;
+            ImGui::Indent(indent);
             DrawGlobalConfiguration();
+            ImGui::Unindent(indent);
         }
 
         std::vector<std::string> viewOrder =
@@ -80,8 +89,13 @@ void ConfigurationWindow::Draw(bool* open)
             std::string enabledKey = view->GetPrefName() + ".enabled";
             bool enabled =
                 _pendingPreferences->GetBoolean(enabledKey).value_or(true);
+            int section = static_cast<int>(i) + 1;
+            ImGui::SetNextItemOpen(_openSection == section);
             bool isOpen = ImGui::CollapsingHeader(
                 view->GetHumanName().c_str(), ImGuiTreeNodeFlags_AllowOverlap);
+            if (isOpen != (_openSection == section))
+                _openSection = isOpen ? section : -1;
+
             float frameHeight = ImGui::GetFrameHeight();
             float itemSpacing = ImGui::GetStyle().ItemSpacing.x;
             float framePadding = ImGui::GetStyle().FramePadding.x;
@@ -110,16 +124,26 @@ void ConfigurationWindow::Draw(bool* open)
                 std::vector<std::string> newOrder = viewOrder;
                 std::swap(newOrder[i], newOrder[i - 1]);
                 _pendingPreferences->SetStringList("views", newOrder);
+                if (_openSection == section)
+                    _openSection = section - 1;
+                else if (_openSection == section - 1)
+                    _openSection = section;
             }
             if (downPressed && i + 1 < viewOrder.size())
             {
                 std::vector<std::string> newOrder = viewOrder;
                 std::swap(newOrder[i], newOrder[i + 1]);
                 _pendingPreferences->SetStringList("views", newOrder);
+                if (_openSection == section)
+                    _openSection = section + 1;
+                else if (_openSection == section + 1)
+                    _openSection = section;
             }
 
-            if (isOpen)
+            if (_openSection == section)
             {
+                float indent = ImGui::GetFontSize() * 2.0f;
+                ImGui::Indent(indent);
                 view->DrawConfiguration(*_pendingPreferences);
 
                 ImGui::PushID("sensors");
@@ -131,6 +155,7 @@ void ConfigurationWindow::Draw(bool* open)
                 }
 
                 ImGui::PopID();
+                ImGui::Unindent(indent);
             }
             ImGui::PopID();
         }
