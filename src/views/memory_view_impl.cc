@@ -92,7 +92,6 @@ namespace
                         yMax,
                         [&]
                         {
-                            ImPlot::PlotShaded("used", values.data(), n);
                             ImPlot::PlotLine("used", values.data(), n);
                         },
                         static_cast<float>(graphHeight));
