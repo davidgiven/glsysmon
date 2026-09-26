@@ -180,7 +180,6 @@ namespace
                     h = 256;
                 SetWidth(preferences, w);
                 SetHeight(preferences, h);
-                bfm_set_size(w, h);
             }
         }
 
