@@ -19,7 +19,7 @@ namespace
             "ClockView,"
             "CpuView,"
             "TemperatureView,"
-            "NetworkView"
+            "NetworkView,"
             "DiskView"                        },
         {"fps",                         "30"  },
         {"cpu.graph_height",            "40"  },

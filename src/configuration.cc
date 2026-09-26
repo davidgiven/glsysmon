@@ -63,9 +63,20 @@ void ConfigurationWindow::Draw(bool* open)
         }
 
         for (View* view : _views.GetAllViews())
-            if (ImGui::CollapsingHeader(view->GetHumanName().c_str()))
+        {
+            ImGui::PushID(view->GetPrefName().c_str());
+            std::string enabledKey = view->GetPrefName() + ".enabled";
+            bool enabled =
+                _pendingPreferences->GetBoolean(enabledKey).value_or(true);
+            bool isOpen = ImGui::CollapsingHeader(
+                view->GetHumanName().c_str(), ImGuiTreeNodeFlags_AllowOverlap);
+            ImGui::SameLine(ImGui::GetContentRegionMax().x -
+                            ImGui::GetFrameHeight() -
+                            ImGui::GetStyle().FramePadding.x);
+            if (ImGui::Checkbox("##enabled", &enabled))
+                _pendingPreferences->SetBoolean(enabledKey, enabled);
+            if (isOpen)
             {
-                ImGui::PushID(view->GetPrefName().c_str());
                 view->DrawConfiguration(*_pendingPreferences);
 
                 ImGui::PushID("sensors");
@@ -77,8 +88,9 @@ void ConfigurationWindow::Draw(bool* open)
                 }
 
                 ImGui::PopID();
-                ImGui::PopID();
             }
+            ImGui::PopID();
+        }
     }
     ImGui::EndChild();
 
