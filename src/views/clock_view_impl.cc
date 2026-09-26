@@ -1,9 +1,10 @@
 #include "views/view.h"
 
 #include <imgui.h>
+#include <imhtml.hpp>
 
-#include "style.h"
-
+#include <algorithm>
+#include <cstdio>
 #include <ctime>
 #include <memory>
 #include <optional>
@@ -35,12 +36,70 @@ namespace
         void Draw() override
         {
             std::tm tm = _sensor->GetLocalTime();
-            char date[64];
-            char time[64];
-            std::strftime(date, sizeof(date), "%Y-%m-%d", &tm);
-            std::strftime(time, sizeof(time), "%H:%M:%S", &tm);
-            Style::DrawCentredText(date);
-            Style::DrawCentredText(time);
+            std::string format =
+                _prefs.GetString(GetPrefName() + ".format")
+                    .value_or("<center>%Y-%m-%d<br>%H:%M:%S</center>");
+            char buf[8192];
+            if (std::strftime(buf, sizeof(buf), format.c_str(), &tm) == 0)
+                buf[0] = '\0';
+            ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_Text];
+            char style[64];
+            std::snprintf(style,
+                sizeof(style),
+                "color: #%02X%02X%02X;",
+                static_cast<int>(col.x * 255),
+                static_cast<int>(col.y * 255),
+                static_cast<int>(col.z * 255));
+            std::string html = "<div style=\"";
+            html += style;
+            html += "\">";
+            html += buf;
+            html += "</div>";
+            ImHTML::Canvas("clock", html.c_str());
+        }
+
+        void DrawConfiguration(Preferences& preferences) override
+        {
+            std::string key = GetPrefName() + ".format";
+            std::string current = preferences.GetString(key).value_or(
+                "<center>%Y-%m-%d<br>%H:%M:%S</center>");
+
+            struct Callback
+            {
+                static int Resize(ImGuiInputTextCallbackData* data)
+                {
+                    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+                    {
+                        std::string* str =
+                            static_cast<std::string*>(data->UserData);
+                        str->resize(static_cast<std::size_t>(data->BufTextLen));
+                        data->Buf = str->data();
+                    }
+                    return 0;
+                }
+            };
+
+            std::string buf = current;
+            buf.reserve(8192);
+
+            int lines = 1;
+            for (char c : buf)
+                if (c == '\n')
+                    ++lines;
+            float line_h = ImGui::GetTextLineHeight();
+            float h =
+                line_h * static_cast<float>(std::clamp(lines + 1, 3, 10)) +
+                ImGui::GetStyle().FramePadding.y * 2.0f;
+            ImVec2 size(-FLT_MIN, h);
+
+            if (ImGui::InputTextMultiline("Format",
+                    buf.data(),
+                    buf.capacity() + 1,
+                    size,
+                    ImGuiInputTextFlags_CallbackResize,
+                    Callback::Resize,
+                    &buf))
+                preferences.SetString(key, buf);
         }
 
         std::string GetHumanName() const override
