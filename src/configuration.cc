@@ -1,10 +1,10 @@
-#include "configuration.h"
-
 #include <imgui.h>
+#include "dep/codicons/codicons.h"
 
 #include <cstdio>
 #include <csetjmp>
 
+#include "configuration.h"
 #include "app.h"
 #include "preferences/preferences.h"
 #include "globals.h"
@@ -88,14 +88,14 @@ void ConfigurationWindow::Draw(bool* open)
             bool downPressed = false;
             if (i == 0)
                 ImGui::BeginDisabled();
-            upPressed = ImGui::Button((const char*) u8"↑", ImVec2(frameHeight, frameHeight));
+            upPressed = ImGui::Button(ICON_CODICON_ARROW_UP, ImVec2(frameHeight, frameHeight));
             if (i == 0)
                 ImGui::EndDisabled();
             ImGui::SameLine(0, itemSpacing);
             if (i + 1 >= viewOrder.size())
                 ImGui::BeginDisabled();
             downPressed =
-                ImGui::Button((const char*) u8"↓", ImVec2(frameHeight, frameHeight));
+                ImGui::Button(ICON_CODICON_ARROW_DOWN, ImVec2(frameHeight, frameHeight));
             if (i + 1 >= viewOrder.size())
                 ImGui::EndDisabled();
             ImGui::SameLine(0, itemSpacing);

@@ -1,6 +1,6 @@
 CXX      ?= g++
 CC       ?= gcc
-CXXFLAGS ?= -std=c++20 -Wall -Wextra -O2 -g
+CXXFLAGS ?= -std=c++20 -Wall -Wextra -O2 -g -I.
 
 BUILD := .obj
 GEN   := $(BUILD)/wayland
@@ -33,10 +33,13 @@ STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb 2>/dev/null)
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
 IMGUI_BACKENDS_DIR := $(IMGUI_DIR)/backends
-FONT_TTF               := $(IMGUI_DIR)/misc/fonts/DroidSans.ttf
-FONT_TOOL              := $(BUILD)/binary_to_compressed_c
-FONT_GEN_CPP           := $(BUILD)/DroidSansFont.cpp
-FONT_GEN_OBJ           := $(BUILD)/DroidSansFont.o
+DROIDSANS_TTF               := $(IMGUI_DIR)/misc/fonts/DroidSans.ttf
+DROIDSANS_TOOL              := $(BUILD)/binary_to_compressed_c
+DROIDSANS_GEN_CPP           := $(BUILD)/DroidSansFont.cpp
+DROIDSANS_GEN_OBJ           := $(BUILD)/DroidSansFont.o
+CODICON_TTF            := dep/codicons/codicon.ttf
+CODICON_GEN_CPP        := $(BUILD)/CodiconFont.cpp
+CODICON_GEN_OBJ        := $(BUILD)/CodiconFont.o
 
 WAYLAND_XML               := third_party/wayland/wlr-layer-shell-unstable-v1.xml
 WAYLAND_PROTOCOL_HEADER   := $(GEN)/wlr-layer-shell-client-protocol.h
@@ -91,7 +94,8 @@ SRC_OBJS := \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/views.o \
-	$(FONT_GEN_OBJ)
+	$(DROIDSANS_GEN_OBJ) \
+	$(CODICON_GEN_OBJ)
 
 BACKEND_OBJS := \
 	$(BUILD)/imgui_impl_sdl3.o \
@@ -161,14 +165,14 @@ TEST_OBJS := \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
-	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(FONT_GEN_OBJ)
+	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
          $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
          $(BUILD)/imhtml.d \
-         $(FONT_GEN_CPP:.cpp=.d)
+         $(DROIDSANS_GEN_CPP:.cpp=.d) $(CODICON_GEN_CPP:.cpp=.d)
 
 TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
 	$(TEST_BUILD)/render_lib.o
@@ -179,16 +183,25 @@ $(BIN): $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
 		$(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
-$(FONT_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
+$(DROIDSANS_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) -O2 -o $@ $<
 
-$(FONT_GEN_CPP): $(FONT_TTF) $(FONT_TOOL)
+$(DROIDSANS_GEN_CPP): $(DROIDSANS_TTF) $(DROIDSANS_TOOL)
 	@mkdir -p $(dir $@)
-	$(FONT_TOOL) -nostatic $< DroidSansFont > $@
+	$(DROIDSANS_TOOL) -nostatic $< DroidSansFont > $@
 	sed -i 's/^const unsigned/extern const unsigned/' $@
 
-$(FONT_GEN_OBJ): $(FONT_GEN_CPP)
+$(DROIDSANS_GEN_OBJ): $(DROIDSANS_GEN_CPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+
+$(CODICON_GEN_CPP): $(CODICON_TTF) $(DROIDSANS_TOOL)
+	@mkdir -p $(dir $@)
+	$(DROIDSANS_TOOL) -nostatic $< CodiconFont > $@
+	sed -i 's/^const unsigned/extern const unsigned/' $@
+
+$(CODICON_GEN_OBJ): $(CODICON_GEN_CPP)
 	@mkdir -p $(dir $@)
 	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 

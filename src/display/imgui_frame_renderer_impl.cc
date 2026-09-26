@@ -10,6 +10,8 @@
 
 extern const unsigned int DroidSansFont_compressed_size;
 extern const unsigned char DroidSansFont_compressed_data[];
+extern const unsigned int CodiconFont_compressed_size;
+extern const unsigned char CodiconFont_compressed_data[];
 
 namespace
 {
@@ -44,6 +46,17 @@ namespace
                 DroidSansFont_compressed_data,
                 static_cast<int>(DroidSansFont_compressed_size),
                 16.0f);
+
+            static const ImWchar codicon_ranges[] = {0xEA60, 0xECE7, 0};
+            ImFontConfig codicon_config;
+            codicon_config.MergeMode = true;
+            codicon_config.PixelSnapH = true;
+            io.Fonts->AddFontFromMemoryCompressedTTF(
+                CodiconFont_compressed_data,
+                static_cast<int>(CodiconFont_compressed_size),
+                16.0f,
+                &codicon_config,
+                codicon_ranges);
 
             ImGui_ImplSDL3_InitForSDLGPU(window);
             ImGui_ImplSDLGPU3_InitInfo init_info = {};
