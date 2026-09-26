@@ -123,7 +123,7 @@ int main()
     CliArgs args;
     args.values = {
         "--views=TemperatureView", "--temperature.sensors=Tctl,temp1"};
-    auto prefs = CreatePreferences(args);
+    auto prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;

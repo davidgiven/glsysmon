@@ -113,12 +113,3 @@ std::unique_ptr<MemorySensor> CreateMemorySensor(const Preferences& prefs,
     return std::make_unique<MemorySensorImpl>(
         prefs, timer, prefPrefix, std::move(poller));
 }
-
-std::unique_ptr<MemorySensor> CreateMemorySensor(const Preferences& prefs,
-    Timer& timer,
-    const std::string& prefPrefix,
-    const std::string& procMemInfoPath)
-{
-    auto poller = CreateMemoryPoller(procMemInfoPath);
-    return CreateMemorySensor(prefs, timer, prefPrefix, std::move(poller));
-}

@@ -5,13 +5,17 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "display/imgui_frame_renderer.h"
+#include "preferences/preferences.h"
 #include "ui.h"
 
 namespace render_lib
 {
+
+    std::unique_ptr<Preferences> CreateTestPreferences(const CliArgs& args);
 
     int Run(const std::string& name,
         Ui& ui,

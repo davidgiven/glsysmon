@@ -118,7 +118,7 @@ int main()
 {
     CliArgs args;
     args.values = {"--views=CpuView"};
-    auto prefs = CreatePreferences(args);
+    auto prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;

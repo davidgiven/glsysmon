@@ -21,9 +21,4 @@ public:
 extern std::unique_ptr<MemorySensor> CreateMemorySensor(const Preferences& prefs,
     Timer& timer,
     const std::string& prefPrefix,
-    const std::string& procMemInfoPath = "/proc/meminfo");
-
-extern std::unique_ptr<MemorySensor> CreateMemorySensor(const Preferences& prefs,
-    Timer& timer,
-    const std::string& prefPrefix,
     std::shared_ptr<MemoryPoller> poller);

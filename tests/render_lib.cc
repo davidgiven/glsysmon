@@ -4,10 +4,18 @@
 
 #include <SDL3/SDL.h>
 
+#include "preferences/preferences.h"
 #include "render_frame.h"
 
 namespace render_lib
 {
+
+    std::unique_ptr<Preferences> CreateTestPreferences(const CliArgs& args)
+    {
+        return CreateCombinedPreferences(
+            {std::shared_ptr<Preferences>(CreateCliPreferences(args)),
+                std::shared_ptr<Preferences>(CreateDefaultPreferences())});
+    }
 
     int Run(const std::string& name,
         Ui& ui,

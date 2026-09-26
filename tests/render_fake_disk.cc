@@ -126,7 +126,7 @@ int main()
     CliArgs args;
     args.values = {
         "--views=DiskView", "--disk.devices=sda,sdb", "--disk.maximum=1000000"};
-    auto prefs = CreatePreferences(args);
+    auto prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;

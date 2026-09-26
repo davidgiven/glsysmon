@@ -127,7 +127,7 @@ int main()
     args.values = {"--views=NetworkView",
         "--network.interfaces=eth0,wlan0",
         "--network.maximum=1000000"};
-    auto prefs = CreatePreferences(args);
+    auto prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;
