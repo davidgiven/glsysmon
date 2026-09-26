@@ -38,6 +38,7 @@ namespace
         {"network.interfaces",          ""                                     },
         {"network.sensors",             ""                                     },
         {"network.show_labels",         "true"                                 },
+        {"network.show_numbers",        "true"                                 },
         {"disk.graph_height",           "40"                                   },
         {"disk.update_interval",        "1"                                    },
         {"disk.maximum",                "0"                                    },

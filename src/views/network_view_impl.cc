@@ -15,10 +15,16 @@
 #include "globals.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
+#include "utils.h"
 #include "views/style.h"
 
 namespace
 {
+
+    bool GetShowNumbers(const Preferences& prefs, const std::string& prefName)
+    {
+        return prefs.GetBoolean(prefName + ".show_numbers").value_or(true);
+    }
 
     class NetworkViewImpl : public ViewGraphMixin
     {
@@ -44,6 +50,7 @@ namespace
                 return;
             const int graphHeight =
                 _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
+            const bool showNumbers = GetShowNumbers(_prefs, GetPrefName());
             auto allowedSet =
                 _prefs.GetStringSet(GetPrefName() + ".interfaces");
 
@@ -105,11 +112,21 @@ namespace
                                     sizeof(NetworkSample)));
                         };
 
+                        std::string subtitle;
+                        if (showNumbers)
+                        {
+                            const NetworkSample& last =
+                                samples[sampleCount - 1];
+                            subtitle = FormatBinary(last.rxBps, "B/s") +
+                                       " RX\n" +
+                                       FormatBinary(last.txBps, "B/s") + " TX";
+                        }
+
                         ImVec2 startPos = ImGui::GetCursorPos();
                         DrawGraph(
                             _prefs,
                             channelName,
-                            "",
+                            subtitle,
                             n,
                             0,
                             yMax,
@@ -122,7 +139,7 @@ namespace
                         DrawGraph(
                             _prefs,
                             channelName,
-                            "",
+                            subtitle,
                             n,
                             yMax,
                             0,
@@ -158,6 +175,11 @@ namespace
         void DrawConfiguration(Preferences& preferences) override
         {
             ViewGraphMixin::DrawConfiguration(preferences);
+
+            bool showNumbers = GetShowNumbers(preferences, GetPrefName());
+            if (ImGui::Checkbox("Show numbers", &showNumbers))
+                preferences.SetBoolean(
+                    GetPrefName() + ".show_numbers", showNumbers);
 
             // Y-axis maximum
             static constexpr const char* kMaximumLabels[] = {
