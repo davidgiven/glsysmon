@@ -108,9 +108,9 @@ namespace
                         {
                             const NetworkSample& last =
                                 samples[sampleCount - 1];
-                            subtitle = FormatBinary(last.rxBps, "B/s") +
-                                       " RX\n" +
-                                       FormatBinary(last.txBps, "B/s") + " TX";
+                            subtitle = "RX " + FormatBinary(last.rxBps, "B/s") +
+                                       "\nTX " +
+                                       FormatBinary(last.txBps, "B/s");
                         }
 
                         ImVec2 startPos = ImGui::GetCursorPos();
