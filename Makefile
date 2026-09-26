@@ -91,7 +91,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
-	$(BUILD)/views/bubble_fishy_mon_view_impl.o \
+	$(BUILD)/views/bfm_view_impl.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
@@ -165,7 +165,7 @@ TEST_OBJS := \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
-	$(BUILD)/views/bubble_fishy_mon_view_impl.o \
+	$(BUILD)/views/bfm_view_impl.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
 	$(BUILD)/views/disk_view_impl.o \
