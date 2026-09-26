@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include <cmath>
 #include <cstdio>
 #include <memory>
 #include <optional>
@@ -64,7 +65,10 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
                         Style::DrawGraph(
-                            channelName,
+                            channelName + "\n" +
+                                std::to_string(static_cast<long long>(
+                                    std::llround(samples[sampleCount - 1]))) +
+                                "°C",
                             n,
                             yMin,
                             yMax,

@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 class Style
 {
@@ -12,6 +13,8 @@ public:
 
     static void DrawGraph(const char* title, std::function<void()> body);
     static void DrawGraph(const std::string& title, std::function<void()> body);
+    static void DrawGraph(
+        const std::vector<std::string>& titles, std::function<void()> body);
     static void DrawGraph(const char* title,
         int n,
         double yMin,
@@ -19,6 +22,12 @@ public:
         std::function<void()> body,
         float height = 40);
     static void DrawGraph(const std::string& title,
+        int n,
+        double yMin,
+        double yMax,
+        std::function<void()> body,
+        float height = 40);
+    static void DrawGraph(const std::vector<std::string>& titles,
         int n,
         double yMin,
         double yMax,

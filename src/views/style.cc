@@ -5,6 +5,42 @@
 
 #include <functional>
 #include <string>
+#include <vector>
+
+namespace
+{
+
+    std::vector<std::string> splitLines(const char* title)
+    {
+        std::vector<std::string> lines;
+        std::string cur;
+        for (const char* p = title; *p; ++p)
+        {
+            if (*p == '\n')
+            {
+                lines.push_back(cur);
+                cur.clear();
+            }
+            else
+                cur.push_back(*p);
+        }
+        lines.push_back(cur);
+        return lines;
+    }
+
+    std::string joinLines(const std::vector<std::string>& titles)
+    {
+        std::string s;
+        for (size_t i = 0; i < titles.size(); ++i)
+        {
+            if (i)
+                s.push_back('\n');
+            s += titles[i];
+        }
+        return s;
+    }
+
+} // namespace
 
 void Style::GraphGroup(const char* title, std::function<void()> body)
 {
@@ -33,6 +69,12 @@ void Style::DrawGraph(const std::string& title, std::function<void()> body)
     DrawGraph(title.c_str(), std::move(body));
 }
 
+void Style::DrawGraph(
+    const std::vector<std::string>& titles, std::function<void()> body)
+{
+    DrawGraph(titles, 60, 0, 1, std::move(body));
+}
+
 void Style::DrawGraph(const char* title,
     int n,
     double yMin,
@@ -40,7 +82,28 @@ void Style::DrawGraph(const char* title,
     std::function<void()> body,
     float height)
 {
-    std::string plotId = std::string("##") + title;
+    DrawGraph(splitLines(title), n, yMin, yMax, std::move(body), height);
+}
+
+void Style::DrawGraph(const std::string& title,
+    int n,
+    double yMin,
+    double yMax,
+    std::function<void()> body,
+    float height)
+{
+    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height);
+}
+
+void Style::DrawGraph(const std::vector<std::string>& titles,
+    int n,
+    double yMin,
+    double yMax,
+    std::function<void()> body,
+    float height)
+{
+    std::string joined = joinLines(titles);
+    std::string plotId = std::string("##") + joined;
     const bool inverted = yMin > yMax;
     if (inverted)
         plotId += "_inv";
@@ -66,25 +129,24 @@ void Style::DrawGraph(const char* title,
         ImPlot::SetupFinish();
         body();
         ImVec2 pos = ImPlot::GetPlotPos();
-        ImPlot::GetPlotDrawList()->AddText(ImGui::GetFont(),
-            ImGui::GetFontSize() * 2.0f / 3.0f,
-            ImVec2(pos.x + 2, pos.y + 2),
-            ImGui::GetColorU32(ImGuiCol_Text),
-            title);
+        const float fontSize = ImGui::GetFontSize() * 2.0f / 3.0f;
+        ImDrawList* drawList = ImPlot::GetPlotDrawList();
+        ImFont* font = ImGui::GetFont();
+        ImU32 col = ImGui::GetColorU32(ImGuiCol_Text);
+        for (size_t i = 0; i < titles.size(); ++i)
+        {
+            if (titles[i].empty())
+                continue;
+            drawList->AddText(font,
+                fontSize,
+                ImVec2(pos.x + 2, pos.y + 2 + fontSize * static_cast<float>(i)),
+                col,
+                titles[i].c_str());
+        }
         ImPlot::EndPlot();
     }
     if (inverted)
         ImPlot::PopStyleColor(2);
-}
-
-void Style::DrawGraph(const std::string& title,
-    int n,
-    double yMin,
-    double yMax,
-    std::function<void()> body,
-    float height)
-{
-    DrawGraph(title.c_str(), n, yMin, yMax, std::move(body), height);
 }
 
 void Style::DrawCentredText(const char* text)
