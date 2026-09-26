@@ -12,6 +12,7 @@
 #include "preferences/preferences.h"
 #include "render_lib.h"
 #include "sensors/cpu_sensor.h"
+#include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -76,6 +77,24 @@ namespace
         std::vector<std::vector<CpuSample>> _samples;
     };
 
+    class FakeSensors : public Sensors
+    {
+    public:
+        FakeSensors(const Preferences& prefs, Timer& timer):
+            Sensors(prefs, timer)
+        {
+        }
+
+        std::unique_ptr<CpuSensor> CreateCpuSensor(
+            const std::string& prefPrefix,
+            const std::string& procStatPath) const override
+        {
+            (void)prefPrefix;
+            (void)procStatPath;
+            return std::make_unique<FakeCpuSensor>();
+        }
+    };
+
     class FakeApp : public App
     {
     public:
@@ -101,9 +120,9 @@ int main()
     args.values = {"--views=CpuView"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto fakeSensor = std::make_unique<FakeCpuSensor>();
+    FakeSensors sensors(*prefs, *timer);
     FakeApp app;
-    auto ui = CreateUiWithFakeCpu(*prefs, *timer, std::move(fakeSensor), app);
+    auto ui = CreateUi(*prefs, sensors, app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_cpu", *ui, *renderer);
 }

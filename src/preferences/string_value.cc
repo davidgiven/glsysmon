@@ -139,9 +139,3 @@ void StringValue::SetStringSet(const std::set<std::string>& value)
     }
     _str = joined;
 }
-
-std::unique_ptr<Value> CreateStringValue(
-    const std::string& name, const std::string& s)
-{
-    return std::make_unique<StringValue>(name, s);
-}

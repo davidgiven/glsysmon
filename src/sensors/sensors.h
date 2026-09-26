@@ -19,23 +19,26 @@ class Sensors
 {
 public:
     explicit Sensors(const Preferences& prefs, Timer& timer);
+    virtual ~Sensors() = default;
 
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
 
-    std::unique_ptr<ClockSensor> CreateClockSensor(
+    virtual std::unique_ptr<ClockSensor> CreateClockSensor(
         const std::string& prefPrefix) const;
-    std::unique_ptr<CpuSensor> CreateCpuSensor(const std::string& prefPrefix,
+    virtual std::unique_ptr<CpuSensor> CreateCpuSensor(
+        const std::string& prefPrefix,
         const std::string& procStatPath = "/proc/stat") const;
-    std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+    virtual std::unique_ptr<HostnameSensor> CreateHostnameSensor(
         const std::string& prefPrefix) const;
-    std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
+    virtual std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
         const std::string& prefPrefix,
         const std::string& hwmonRoot = "/sys/class/hwmon") const;
-    std::unique_ptr<NetworkSensor> CreateNetworkSensor(
+    virtual std::unique_ptr<NetworkSensor> CreateNetworkSensor(
         const std::string& prefPrefix,
         const std::string& procNetDevPath = "/proc/net/dev") const;
-    std::unique_ptr<DiskSensor> CreateDiskSensor(const std::string& prefPrefix,
+    virtual std::unique_ptr<DiskSensor> CreateDiskSensor(
+        const std::string& prefPrefix,
         const std::string& procDiskStatsPath = "/proc/diskstats") const;
 
 private:

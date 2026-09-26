@@ -21,40 +21,32 @@ namespace
     class ImGuiUiImpl : public Ui
     {
     public:
-        explicit ImGuiUiImpl(const Preferences& prefs,
-            Timer& timer,
-            App& app,
-            std::unique_ptr<HostnameSensor> fakeHostnameSensor = nullptr,
-            std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
-            std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr,
-            std::unique_ptr<TemperatureSensor> fakeTemperatureSensor = nullptr,
-            std::unique_ptr<NetworkSensor> fakeNetworkSensor = nullptr,
-            std::unique_ptr<DiskSensor> fakeDiskSensor = nullptr):
+        explicit ImGuiUiImpl(const Preferences& prefs, Timer& timer, App& app):
             _prefs(prefs),
-            _sensors(prefs, timer),
+            _ownedSensors(std::make_unique<Sensors>(prefs, timer)),
+            _sensors(*_ownedSensors),
             _views(prefs, _sensors),
             _app(app),
             _configurationWindow(_views, _app)
         {
-            if (fakeHostnameSensor != nullptr)
-                _views.Inject("HostnameView",
-                    CreateHostnameView(prefs, std::move(fakeHostnameSensor)));
-            if (fakeClockSensor != nullptr)
-                _views.Inject("ClockView",
-                    CreateClockView(prefs, std::move(fakeClockSensor)));
-            if (fakeCpuSensor != nullptr)
-                _views.Inject(
-                    "CpuView", CreateCpuView(prefs, std::move(fakeCpuSensor)));
-            if (fakeTemperatureSensor != nullptr)
-                _views.Inject("TemperatureView",
-                    CreateTemperatureView(
-                        prefs, std::move(fakeTemperatureSensor)));
-            if (fakeNetworkSensor != nullptr)
-                _views.Inject("NetworkView",
-                    CreateNetworkView(prefs, std::move(fakeNetworkSensor)));
-            if (fakeDiskSensor != nullptr)
-                _views.Inject("DiskView",
-                    CreateDiskView(prefs, std::move(fakeDiskSensor)));
+            for (const std::string& name :
+                GlobalPreferencesFetcher::GetViews(prefs))
+            {
+                View* view = _views.Get(name);
+                if (view == nullptr)
+                    continue;
+                _activeViews.push_back(view);
+            }
+        }
+
+        explicit ImGuiUiImpl(
+            const Preferences& prefs, Sensors& sensors, App& app):
+            _prefs(prefs),
+            _sensors(sensors),
+            _views(prefs, _sensors),
+            _app(app),
+            _configurationWindow(_views, _app)
+        {
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
             {
@@ -131,7 +123,8 @@ namespace
 
     private:
         const Preferences& _prefs;
-        Sensors _sensors;
+        std::unique_ptr<Sensors> _ownedSensors;
+        Sensors& _sensors;
         Views _views;
         App& _app;
         std::vector<View*> _activeViews;
@@ -147,98 +140,8 @@ std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer, App& app)
     return std::make_unique<ImGuiUiImpl>(prefs, timer, app);
 }
 
-std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<HostnameSensor> fakeSensor,
-    App& app)
+std::unique_ptr<Ui> CreateUi(
+    const Preferences& prefs, Sensors& sensors, App& app)
 {
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        std::move(fakeSensor),
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr);
-}
-
-std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<ClockSensor> fakeSensor,
-    App& app)
-{
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        nullptr,
-        std::move(fakeSensor),
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr);
-}
-
-std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<CpuSensor> fakeSensor,
-    App& app)
-{
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        nullptr,
-        nullptr,
-        std::move(fakeSensor),
-        nullptr,
-        nullptr,
-        nullptr);
-}
-
-std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<TemperatureSensor> fakeSensor,
-    App& app)
-{
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        nullptr,
-        nullptr,
-        nullptr,
-        std::move(fakeSensor),
-        nullptr,
-        nullptr);
-}
-
-std::unique_ptr<Ui> CreateUiWithFakeNetwork(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<NetworkSensor> fakeSensor,
-    App& app)
-{
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        std::move(fakeSensor),
-        nullptr);
-}
-
-std::unique_ptr<Ui> CreateUiWithFakeDisk(const Preferences& prefs,
-    Timer& timer,
-    std::unique_ptr<DiskSensor> fakeSensor,
-    App& app)
-{
-    return std::make_unique<ImGuiUiImpl>(prefs,
-        timer,
-        app,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        std::move(fakeSensor));
+    return std::make_unique<ImGuiUiImpl>(prefs, sensors, app);
 }

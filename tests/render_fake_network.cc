@@ -12,6 +12,7 @@
 #include "preferences/preferences.h"
 #include "render_lib.h"
 #include "sensors/network_sensor.h"
+#include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -83,6 +84,24 @@ namespace
         std::vector<std::string> _names;
     };
 
+    class FakeSensors : public Sensors
+    {
+    public:
+        FakeSensors(const Preferences& prefs, Timer& timer):
+            Sensors(prefs, timer)
+        {
+        }
+
+        std::unique_ptr<NetworkSensor> CreateNetworkSensor(
+            const std::string& prefPrefix,
+            const std::string& procNetDevPath) const override
+        {
+            (void)prefPrefix;
+            (void)procNetDevPath;
+            return std::make_unique<FakeNetworkSensor>();
+        }
+    };
+
     class FakeApp : public App
     {
     public:
@@ -110,10 +129,9 @@ int main()
         "--network.maximum=1000000"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto fakeSensor = std::make_unique<FakeNetworkSensor>();
+    FakeSensors sensors(*prefs, *timer);
     FakeApp app;
-    auto ui =
-        CreateUiWithFakeNetwork(*prefs, *timer, std::move(fakeSensor), app);
+    auto ui = CreateUi(*prefs, sensors, app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_network", *ui, *renderer);
 }

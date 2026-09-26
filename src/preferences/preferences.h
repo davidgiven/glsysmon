@@ -132,9 +132,6 @@ extern std::shared_ptr<Preferences> CreateMapPreferences();
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(
     std::initializer_list<std::shared_ptr<Preferences>> sources);
 
-extern std::unique_ptr<Value> CreateStringValue(
-    const std::string& name, const std::string& s);
-
 // Typed accessors for the known preference keys.
 class GlobalPreferencesFetcher
 {

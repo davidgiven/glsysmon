@@ -11,6 +11,7 @@
 #include "display/imgui_frame_renderer.h"
 #include "preferences/preferences.h"
 #include "render_lib.h"
+#include "sensors/sensors.h"
 #include "sensors/temperature_sensor.h"
 #include "timer.h"
 #include "ui.h"
@@ -80,6 +81,24 @@ namespace
         std::vector<std::string> _names;
     };
 
+    class FakeSensors : public Sensors
+    {
+    public:
+        FakeSensors(const Preferences& prefs, Timer& timer):
+            Sensors(prefs, timer)
+        {
+        }
+
+        std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
+            const std::string& prefPrefix,
+            const std::string& hwmonRoot) const override
+        {
+            (void)prefPrefix;
+            (void)hwmonRoot;
+            return std::make_unique<FakeTemperatureSensor>();
+        }
+    };
+
     class FakeApp : public App
     {
     public:
@@ -106,10 +125,9 @@ int main()
         "--views=TemperatureView", "--temperature.sensors=Tctl,temp1"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto fakeSensor = std::make_unique<FakeTemperatureSensor>();
+    FakeSensors sensors(*prefs, *timer);
     FakeApp app;
-    auto ui =
-        CreateUiWithFakeTemperature(*prefs, *timer, std::move(fakeSensor), app);
+    auto ui = CreateUi(*prefs, sensors, app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_temperature", *ui, *renderer);
 }

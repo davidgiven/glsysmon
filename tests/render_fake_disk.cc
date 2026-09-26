@@ -12,6 +12,7 @@
 #include "preferences/preferences.h"
 #include "render_lib.h"
 #include "sensors/disk_sensor.h"
+#include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -83,6 +84,24 @@ namespace
         std::vector<std::string> _names;
     };
 
+    class FakeSensors : public Sensors
+    {
+    public:
+        FakeSensors(const Preferences& prefs, Timer& timer):
+            Sensors(prefs, timer)
+        {
+        }
+
+        std::unique_ptr<DiskSensor> CreateDiskSensor(
+            const std::string& prefPrefix,
+            const std::string& procDiskStatsPath) const override
+        {
+            (void)prefPrefix;
+            (void)procDiskStatsPath;
+            return std::make_unique<FakeDiskSensor>();
+        }
+    };
+
     class FakeApp : public App
     {
     public:
@@ -109,9 +128,9 @@ int main()
         "--views=DiskView", "--disk.devices=sda,sdb", "--disk.maximum=1000000"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto fakeSensor = std::make_unique<FakeDiskSensor>();
+    FakeSensors sensors(*prefs, *timer);
     FakeApp app;
-    auto ui = CreateUiWithFakeDisk(*prefs, *timer, std::move(fakeSensor), app);
+    auto ui = CreateUi(*prefs, sensors, app);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_disk", *ui, *renderer);
 }
