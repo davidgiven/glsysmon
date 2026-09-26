@@ -69,6 +69,7 @@ SRC_OBJS := \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/main.o \
+	$(BUILD)/utils.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/default_preferences_impl.o \
@@ -136,6 +137,7 @@ TEST_RENDER_TEMPERATURE := $(TEST_BUILD)/render_fake_temperature
 TEST_RENDER_NETWORK := $(TEST_BUILD)/render_fake_network
 TEST_RENDER_DISK := $(TEST_BUILD)/render_fake_disk
 TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK) $(TEST_RENDER_DISK)
+TEST_UTILS := $(TEST_BUILD)/utils_test
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
@@ -152,6 +154,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/style.o \
 	$(BUILD)/timer.o \
+	$(BUILD)/utils.o \
 	$(BUILD)/views/view.o \
 	$(BUILD)/views/view_graph_mixin.o \
 	$(BUILD)/views/views.o \
@@ -171,7 +174,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
-DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \
+DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
          $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
@@ -325,14 +328,18 @@ $(TEST_RENDER_DISK): $(TEST_BUILD)/render_fake_disk.o \
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
+$(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
+	$(CXX) -o $@ $^
+
 run: $(BIN)
 	./$(BIN)
 
-test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_RENDER)
+test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_RENDER)
 	./$(TEST_UNIT)
 	./$(TEST_TIMER)
 	./$(TEST_GRAPH_MIXIN)
 	./$(TEST_PREFERENCES)
+	./$(TEST_UTILS)
 	./$(TEST_RENDER_HOSTNAME)
 	./$(TEST_RENDER_CLOCK)
 	./$(TEST_RENDER_CPU)
