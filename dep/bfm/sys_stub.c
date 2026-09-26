@@ -13,17 +13,35 @@
 
 extern BubbleMonData bm;
 
+static int g_bfm_cpu_percent = 0;
+
+void bfm_set_cpu_percent(int percent)
+{
+    if (percent < 0)
+        percent = 0;
+    if (percent > 100)
+        percent = 100;
+    g_bfm_cpu_percent = percent;
+}
+
+void bfm_set_cpu_usage(int percent)
+{
+    bfm_set_cpu_percent(percent);
+}
+
+void bfm_set_cpu(int percent)
+{
+    bfm_set_cpu_percent(percent);
+}
+
+void bfm_set_cpu_load(int percent)
+{
+    bfm_set_cpu_percent(percent);
+}
+
 int system_cpu(void)
 {
-    static int phase = 0;
-    phase = (phase + 3) % 100;
-    int base = 25 + (rand() % 10);
-    int v = base + phase / 10;
-    if (v > 95)
-        v = 95;
-    if (v < 5)
-        v = 5;
-    return v;
+    return g_bfm_cpu_percent;
 }
 
 int system_memory(void)

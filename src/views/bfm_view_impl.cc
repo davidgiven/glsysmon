@@ -13,6 +13,7 @@
 
 #include "display/bfm_gpu_bridge.h"
 #include "preferences/preferences.h"
+#include "sensors/cpu_poller.h"
 #include "sensors/memory_poller.h"
 #include "sensors/network_poller.h"
 #include "sensors/sensors.h"
@@ -32,6 +33,7 @@ extern "C"
 {
     extern int fish_traffic;
     void bfm_set_network_speed(int rx, int tx);
+    void bfm_set_cpu_percent(int percent);
 }
 
 namespace
@@ -46,7 +48,8 @@ namespace
             _prefs(prefs),
             _timer(timer),
             _memoryPoller(sensors.CreateMemoryPoller()),
-            _networkPoller(sensors.CreateNetworkPoller())
+            _networkPoller(sensors.CreateNetworkPoller()),
+            _cpuPoller(sensors.CreateCpuPoller())
         {
             fish_traffic = 1;
             srand(0);
@@ -238,21 +241,24 @@ namespace
 
         void Tick(Timer::Time t)
         {
-            auto data = _memoryPoller->PollCached();
-            auto it = data.find("mem");
-            if (it != data.end())
             {
-                bm.mem_used = static_cast<u_int64_t>(it->second.usedRam);
-                bm.mem_max = static_cast<u_int64_t>(it->second.totalRam);
-                if (bm.mem_max != 0)
-                    bm.mem_percent = static_cast<unsigned int>(
-                        (100 * bm.mem_used) / bm.mem_max);
-                else
-                    bm.mem_percent = 0;
-                bm.swap_used = 0;
-                bm.swap_max = 0;
-                bm.swap_percent = 0;
+                auto data = _memoryPoller->PollCached();
+                auto it = data.find("mem");
+                if (it != data.end())
+                {
+                    bm.mem_used = static_cast<u_int64_t>(it->second.usedRam);
+                    bm.mem_max = static_cast<u_int64_t>(it->second.totalRam);
+                    if (bm.mem_max != 0)
+                        bm.mem_percent = static_cast<unsigned int>(
+                            (100 * bm.mem_used) / bm.mem_max);
+                    else
+                        bm.mem_percent = 0;
+                    bm.swap_used = 0;
+                    bm.swap_max = 0;
+                    bm.swap_percent = 0;
+                }
             }
+
             {
                 auto netData = _networkPoller->PollCached();
                 std::uint64_t sumRx = 0;
@@ -320,6 +326,22 @@ namespace
                 }
                 bfm_set_network_speed(rxSpeed, txSpeed);
             }
+
+            {
+                auto cpuData = _cpuPoller->PollCached();
+                float sum = 0.0f;
+                for (const auto& kv : cpuData)
+                    sum += kv.second.user + kv.second.system + kv.second.nice;
+                sum /= cpuData.size();
+
+                int cpuPercent = static_cast<int>(sum * 100.0f);
+                if (cpuPercent < 0)
+                    cpuPercent = 0;
+                if (cpuPercent > 100)
+                    cpuPercent = 100;
+                bfm_set_cpu_percent(cpuPercent);
+            }
+
             bubblemon_update(0);
             _scheduled = _timer.Schedule(t + _delta,
                 [this](Timer::Time nt)
@@ -440,6 +462,7 @@ namespace
         Timer& _timer;
         std::shared_ptr<MemoryPoller> _memoryPoller;
         std::shared_ptr<NetworkPoller> _networkPoller;
+        std::shared_ptr<CpuPoller> _cpuPoller;
         std::uint64_t _maxRx = 10;
         std::uint64_t _maxTx = 10;
         int _rxCnt = 0;
