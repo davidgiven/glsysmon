@@ -36,9 +36,7 @@ namespace
         void Draw() override
         {
             std::tm tm = _sensor->GetLocalTime();
-            std::string format =
-                _prefs.GetString(GetPrefName() + ".format")
-                    .value_or("<center>%Y-%m-%d<br>%H:%M:%S</center>");
+            std::string format = GetFormat(_prefs);
             char buf[8192];
             if (std::strftime(buf, sizeof(buf), format.c_str(), &tm) == 0)
                 buf[0] = '\0';
@@ -60,9 +58,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            std::string key = GetPrefName() + ".format";
-            std::string current = preferences.GetString(key).value_or(
-                "<center>%Y-%m-%d<br>%H:%M:%S</center>");
+            std::string current = GetFormat(preferences);
 
             struct Callback
             {
@@ -99,7 +95,7 @@ namespace
                     ImGuiInputTextFlags_CallbackResize,
                     Callback::Resize,
                     &buf))
-                preferences.SetString(key, buf);
+                SetFormat(preferences, buf);
         }
 
         std::string GetHumanName() const override
@@ -123,6 +119,17 @@ namespace
         }
 
     private:
+        std::string GetFormat(const Preferences& prefs) const
+        {
+            return prefs.GetString(GetPrefName() + ".format")
+                .value_or("<center>%Y-%m-%d<br>%H:%M:%S</center>");
+        }
+
+        void SetFormat(Preferences& prefs, const std::string& value) const
+        {
+            prefs.SetString(GetPrefName() + ".format", value);
+        }
+
         const Preferences& _prefs;
         std::unique_ptr<ClockSensor> _sensor;
     };

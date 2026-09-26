@@ -55,6 +55,9 @@ protected:
         const std::vector<std::string>& titles,
         std::function<void()> body) const;
 
+    int GetGraphHeight(const Preferences& prefs) const;
+    void SetGraphHeight(Preferences& prefs, int height) const;
+
 private:
     bool GetShowChannelName(const Preferences& prefs) const;
     std::string FilterTitle(const std::string& title, bool show) const;

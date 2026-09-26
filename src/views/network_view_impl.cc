@@ -21,11 +21,6 @@
 namespace
 {
 
-    bool GetShowNumbers(const Preferences& prefs, const std::string& prefName)
-    {
-        return prefs.GetBoolean(prefName + ".show_numbers").value_or(true);
-    }
-
     class NetworkViewImpl : public ViewGraphMixin
     {
     public:
@@ -48,11 +43,9 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight =
-                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
-            const bool showNumbers = GetShowNumbers(_prefs, GetPrefName());
-            auto allowedSet =
-                _prefs.GetStringSet(GetPrefName() + ".interfaces");
+            const int graphHeight = GetGraphHeight(_prefs);
+            const bool showNumbers = GetShowNumbers(_prefs);
+            auto allowedSet = GetInterfaces(_prefs);
 
             Style::GraphGroup("Network",
                 [&]
@@ -61,7 +54,7 @@ namespace
                     {
                         const std::string channelName =
                             _sensor->GetChannelName(ch);
-                        if (allowedSet->find(channelName) == allowedSet->end())
+                        if (allowedSet.find(channelName) == allowedSet.end())
                             continue;
 
                         const NetworkSample* samples = _sensor->GetSamples(ch);
@@ -69,9 +62,7 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax =
-                            _prefs.GetDouble(GetPrefName() + ".maximum")
-                                .value_or(0);
+                        double yMax = GetMaximum(_prefs);
                         if (yMax <= 0)
                         {
                             double maxVal = 0;
@@ -176,18 +167,16 @@ namespace
         {
             ViewGraphMixin::DrawConfiguration(preferences);
 
-            bool showNumbers = GetShowNumbers(preferences, GetPrefName());
+            bool showNumbers = GetShowNumbers(preferences);
             if (ImGui::Checkbox("Show numbers", &showNumbers))
-                preferences.SetBoolean(
-                    GetPrefName() + ".show_numbers", showNumbers);
+                SetShowNumbers(preferences, showNumbers);
 
             // Y-axis maximum
             static constexpr const char* kMaximumLabels[] = {
                 "Auto", "1MBps", "10Mbps", "100Mbps", "1GBps"};
             static constexpr double kMaximumValues[] = {
                 0, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
-            double currentMaximum =
-                preferences.GetDouble(GetPrefName() + ".maximum").value_or(0);
+            double currentMaximum = GetMaximum(preferences);
             int maximumIndex = static_cast<int>(
                 indexOf(kMaximumValues, currentMaximum).value_or(0));
             if (ImGui::SliderInt("Maximum (B/s)",
@@ -196,14 +185,11 @@ namespace
                     4,
                     kMaximumLabels[maximumIndex]))
             {
-                preferences.SetDouble(
-                    GetPrefName() + ".maximum", kMaximumValues[maximumIndex]);
+                SetMaximum(preferences, kMaximumValues[maximumIndex]);
             }
 
             // Visible interfaces
-            auto allowedSet =
-                preferences.GetStringSet(GetPrefName() + ".interfaces")
-                    .value_or(std::set<std::string>());
+            auto allowedSet = GetInterfaces(preferences);
 
             bool changed = false;
             ImGuiStyle& style = ImGui::GetStyle();
@@ -240,11 +226,43 @@ namespace
             }
 
             if (changed)
-                preferences.SetStringSet(
-                    GetPrefName() + ".interfaces", allowedSet);
+                SetInterfaces(preferences, allowedSet);
         }
 
     private:
+        double GetMaximum(const Preferences& prefs) const
+        {
+            return prefs.GetDouble(GetPrefName() + ".maximum").value_or(0);
+        }
+
+        void SetMaximum(Preferences& prefs, double value) const
+        {
+            prefs.SetDouble(GetPrefName() + ".maximum", value);
+        }
+
+        std::set<std::string> GetInterfaces(const Preferences& prefs) const
+        {
+            return prefs.GetStringSet(GetPrefName() + ".interfaces")
+                .value_or(std::set<std::string>());
+        }
+
+        void SetInterfaces(
+            Preferences& prefs, const std::set<std::string>& value) const
+        {
+            prefs.SetStringSet(GetPrefName() + ".interfaces", value);
+        }
+
+        bool GetShowNumbers(const Preferences& prefs) const
+        {
+            return prefs.GetBoolean(GetPrefName() + ".show_numbers")
+                .value_or(true);
+        }
+
+        void SetShowNumbers(Preferences& prefs, bool value) const
+        {
+            prefs.SetBoolean(GetPrefName() + ".show_numbers", value);
+        }
+
         const Preferences& _prefs;
         std::unique_ptr<NetworkSensor> _sensor;
     };

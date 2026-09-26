@@ -42,9 +42,8 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight =
-                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
-            auto allowedSet = _prefs.GetStringSet(GetPrefName() + ".devices");
+            const int graphHeight = GetGraphHeight(_prefs);
+            auto allowedSet = GetDevices(_prefs);
 
             Style::GraphGroup("Disk",
                 [&]
@@ -53,7 +52,7 @@ namespace
                     {
                         const std::string channelName =
                             _sensor->GetChannelName(ch);
-                        if (allowedSet->find(channelName) == allowedSet->end())
+                        if (allowedSet.find(channelName) == allowedSet.end())
                             continue;
 
                         const DiskSample* samples = _sensor->GetSamples(ch);
@@ -152,9 +151,7 @@ namespace
             ViewGraphMixin::DrawConfiguration(preferences);
 
             // Visible devices
-            auto allowedSet =
-                preferences.GetStringSet(GetPrefName() + ".devices")
-                    .value_or(std::set<std::string>());
+            auto allowedSet = GetDevices(preferences);
 
             bool changed = false;
             ImGuiStyle& style = ImGui::GetStyle();
@@ -191,11 +188,22 @@ namespace
             }
 
             if (changed)
-                preferences.SetStringSet(
-                    GetPrefName() + ".devices", allowedSet);
+                SetDevices(preferences, allowedSet);
         }
 
     private:
+        std::set<std::string> GetDevices(const Preferences& prefs) const
+        {
+            return prefs.GetStringSet(GetPrefName() + ".devices")
+                .value_or(std::set<std::string>());
+        }
+
+        void SetDevices(
+            Preferences& prefs, const std::set<std::string>& value) const
+        {
+            prefs.SetStringSet(GetPrefName() + ".devices", value);
+        }
+
         const Preferences& _prefs;
         std::unique_ptr<DiskSensor> _sensor;
     };

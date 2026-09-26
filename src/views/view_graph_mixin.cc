@@ -13,18 +13,25 @@ void ViewGraphMixin::DrawConfiguration(Preferences& preferences)
 {
     View::DrawConfiguration(preferences);
 
-    std::string key = GetPrefName() + ".graph_height";
-    int height = preferences.GetInteger(key).value_or(40);
+    int height = GetGraphHeight(preferences);
     if (ImGui::InputInt("Graph height", &height))
-    {
-        if (height < 1)
-            height = 1;
-        preferences.SetInteger(key, height);
-    }
+        SetGraphHeight(preferences, height);
 
     bool show = GetShowChannelName(preferences);
     if (ImGui::Checkbox("Show labels", &show))
         preferences.SetBoolean(GetPrefName() + ".show_labels", show);
+}
+
+int ViewGraphMixin::GetGraphHeight(const Preferences& prefs) const
+{
+    return prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
+}
+
+void ViewGraphMixin::SetGraphHeight(Preferences& prefs, int height) const
+{
+    if (height < 1)
+        height = 1;
+    prefs.SetInteger(GetPrefName() + ".graph_height", height);
 }
 
 bool ViewGraphMixin::GetShowChannelName(const Preferences& prefs) const

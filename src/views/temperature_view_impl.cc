@@ -19,11 +19,6 @@
 namespace
 {
 
-    bool GetShowValue(const Preferences& prefs, const std::string& prefName)
-    {
-        return prefs.GetBoolean(prefName + ".show_value").value_or(true);
-    }
-
     class TemperatureViewImpl : public ViewGraphMixin
     {
     public:
@@ -47,14 +42,11 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int yMin =
-                _prefs.GetDouble("temperature.minimum").value_or(0);
-            const int yMax =
-                _prefs.GetDouble("temperature.maximum").value_or(100);
-            const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
-            const int graphHeight =
-                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
-            const bool showValue = GetShowValue(_prefs, GetPrefName());
+            const int yMin = GetMinimum(_prefs);
+            const int yMax = GetMaximum(_prefs);
+            const auto allowedSet = GetSensors(_prefs);
+            const int graphHeight = GetGraphHeight(_prefs);
+            const bool showValue = GetShowValue(_prefs);
 
             Style::GraphGroup("Temperature",
                 [&]
@@ -119,30 +111,23 @@ namespace
             ViewGraphMixin::DrawConfiguration(preferences);
 
             // Temperature range
-            float minMax[2] = {static_cast<float>(preferences
-                                       .GetInteger(GetPrefName() + ".minimum")
-                                       .value_or(20)),
-                static_cast<float>(
-                    preferences.GetInteger(GetPrefName() + ".maximum")
-                        .value_or(80))};
+            float minMax[2] = {static_cast<float>(GetMinimum(preferences)),
+                static_cast<float>(GetMaximum(preferences))};
             if (ImGui::DragFloat2("Min/Max (°C)", minMax))
             {
-                preferences.SetInteger(
-                    GetPrefName() + ".minimum", static_cast<int>(minMax[0]));
-                preferences.SetInteger(
-                    GetPrefName() + ".maximum", static_cast<int>(minMax[1]));
+                SetMinimum(preferences, static_cast<int>(minMax[0]));
+                SetMaximum(preferences, static_cast<int>(minMax[1]));
             }
 
-            bool showValue = GetShowValue(preferences, GetPrefName());
+            bool showValue = GetShowValue(preferences);
             if (ImGui::Checkbox("Show temperature value", &showValue))
             {
-                preferences.SetBoolean(
-                    GetPrefName() + ".show_value", showValue);
+                SetShowValue(preferences, showValue);
             }
 
             // Visible sensors
             auto allowedSet =
-                *preferences.GetStringSet(GetPrefName() + ".sensors");
+                GetSensors(preferences).value_or(std::set<std::string>());
             bool changed = false;
             ImGuiStyle& style = ImGui::GetStyle();
             float window_visible_x2 =
@@ -175,11 +160,53 @@ namespace
                 }
             }
             if (changed)
-                preferences.SetStringSet(
-                    GetPrefName() + ".sensors", allowedSet);
+                SetSensors(preferences, allowedSet);
         }
 
     private:
+        int GetMinimum(const Preferences& prefs) const
+        {
+            return prefs.GetInteger(GetPrefName() + ".minimum").value_or(20);
+        }
+
+        void SetMinimum(Preferences& prefs, int value) const
+        {
+            prefs.SetInteger(GetPrefName() + ".minimum", value);
+        }
+
+        int GetMaximum(const Preferences& prefs) const
+        {
+            return prefs.GetInteger(GetPrefName() + ".maximum").value_or(80);
+        }
+
+        void SetMaximum(Preferences& prefs, int value) const
+        {
+            prefs.SetInteger(GetPrefName() + ".maximum", value);
+        }
+
+        std::optional<std::set<std::string>> GetSensors(
+            const Preferences& prefs) const
+        {
+            return prefs.GetStringSet(GetPrefName() + ".sensors");
+        }
+
+        void SetSensors(
+            Preferences& prefs, const std::set<std::string>& value) const
+        {
+            prefs.SetStringSet(GetPrefName() + ".sensors", value);
+        }
+
+        bool GetShowValue(const Preferences& prefs) const
+        {
+            return prefs.GetBoolean(GetPrefName() + ".show_value")
+                .value_or(true);
+        }
+
+        void SetShowValue(Preferences& prefs, bool value) const
+        {
+            prefs.SetBoolean(GetPrefName() + ".show_value", value);
+        }
+
         const Preferences& _prefs;
         std::unique_ptr<TemperatureSensor> _sensor;
     };

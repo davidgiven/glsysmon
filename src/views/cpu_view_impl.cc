@@ -41,8 +41,7 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            const int graphHeight =
-                _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
+            const int graphHeight = GetGraphHeight(_prefs);
 
             Style::GraphGroup("CPU usage",
                 [&]
