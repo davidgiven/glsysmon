@@ -82,6 +82,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
@@ -164,6 +165,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
