@@ -1,6 +1,6 @@
 #include "app.h"
 #include "preferences/preferences.h"
-#include "restart.h"
+#include "globals.h"
 
 #include <cerrno>
 #include <cstdio>

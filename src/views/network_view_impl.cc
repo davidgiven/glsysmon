@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "globals.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/style.h"
@@ -175,17 +176,8 @@ namespace
                 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
             double currentMaximum =
                 preferences.GetDouble(GetPrefName() + ".maximum").value_or(0);
-            int maximumIndex = 0;
-            double bestDiff = std::abs(currentMaximum - kMaximumValues[0]);
-            for (int i = 1; i < 4; ++i)
-            {
-                double diff = std::abs(currentMaximum - kMaximumValues[i]);
-                if (diff < bestDiff)
-                {
-                    bestDiff = diff;
-                    maximumIndex = i;
-                }
-            }
+            int maximumIndex = static_cast<int>(
+                indexOf(kMaximumValues, currentMaximum).value_or(0));
             if (ImGui::SliderInt("Maximum (B/s)",
                     &maximumIndex,
                     0,

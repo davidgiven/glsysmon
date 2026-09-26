@@ -7,7 +7,7 @@
 
 #include "app.h"
 #include "preferences/preferences.h"
-#include "restart.h"
+#include "globals.h"
 #include "sensors/sensor.h"
 #include "views/views.h"
 
@@ -36,15 +36,8 @@ void ConfigurationWindow::DrawGlobalConfiguration()
     static constexpr const char* kSideValues[] = {"left", "right"};
     std::string currentSide =
         _pendingPreferences->GetString("side").value_or("left");
-    int sideIndex = 0;
-    for (int i = 0; i < 2; ++i)
-    {
-        if (currentSide == kSideValues[i])
-        {
-            sideIndex = i;
-            break;
-        }
-    }
+    int sideIndex = indexOf(kSideValues, currentSide).value_or(0);
+
     if (ImGui::SliderInt("Side", &sideIndex, 0, 1, kSideLabels[sideIndex]))
     {
         _pendingPreferences->SetString("side", kSideValues[sideIndex]);
