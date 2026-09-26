@@ -19,15 +19,18 @@ int system_cpu(void)
     phase = (phase + 3) % 100;
     int base = 25 + (rand() % 10);
     int v = base + phase / 10;
-    if (v > 95) v = 95;
-    if (v < 5) v = 5;
+    if (v > 95)
+        v = 95;
+    if (v < 5)
+        v = 5;
     return v;
 }
 
 int system_memory(void)
 {
     static int once = 0;
-    if (once == 0) {
+    if (once == 0)
+    {
         once = 1;
         bm.mem_used = 4ULL * 1024 * 1024 * 1024;
         bm.mem_max = 8ULL * 1024 * 1024 * 1024;
@@ -37,11 +40,14 @@ int system_memory(void)
         bm.swap_percent = 10;
         return 1;
     }
-    if ((rand() % 20) == 0) {
+    if ((rand() % 20) == 0)
+    {
         int d = (rand() % 7) - 3;
         int p = (int)bm.mem_percent + d;
-        if (p < 10) p = 10;
-        if (p > 90) p = 90;
+        if (p < 10)
+            p = 10;
+        if (p > 90)
+            p = 90;
         bm.mem_percent = (unsigned int)p;
         bm.mem_used = bm.mem_max * bm.mem_percent / 100;
         return 1;
@@ -49,12 +55,21 @@ int system_memory(void)
     return 0;
 }
 
+static int g_bfm_net_tx = 0;
+static int g_bfm_net_rx = 0;
+
+void bfm_set_network_speed(int rx, int tx)
+{
+    g_bfm_net_rx = rx;
+    g_bfm_net_tx = tx;
+}
+
 int net_tx_speed(void)
 {
-    return 0;
+    return g_bfm_net_tx;
 }
 
 int net_rx_speed(void)
 {
-    return 0;
+    return g_bfm_net_rx;
 }

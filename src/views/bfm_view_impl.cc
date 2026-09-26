@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "display/bfm_gpu_bridge.h"
 #include "preferences/preferences.h"
 #include "sensors/memory_poller.h"
+#include "sensors/network_poller.h"
 #include "sensors/sensors.h"
 #include "timer.h"
 
@@ -26,8 +28,15 @@ extern "C"
 #include "dep/bfm/include/bubblemon.h"
 }
 
+extern "C"
+{
+    extern int fish_traffic;
+    void bfm_set_network_speed(int rx, int tx);
+}
+
 namespace
 {
+    static constexpr int FISH_MAX_SPEED = 8;
 
     class BubbleFishyMonViewImpl : public View
     {
@@ -36,8 +45,10 @@ namespace
             const Preferences& prefs, Sensors& sensors, Timer& timer):
             _prefs(prefs),
             _timer(timer),
-            _memoryPoller(sensors.CreateMemoryPoller())
+            _memoryPoller(sensors.CreateMemoryPoller()),
+            _networkPoller(sensors.CreateNetworkPoller())
         {
+            fish_traffic = 1;
             srand(0);
             bfm_glsysmon_init();
             {
@@ -234,13 +245,80 @@ namespace
                 bm.mem_used = static_cast<u_int64_t>(it->second.usedRam);
                 bm.mem_max = static_cast<u_int64_t>(it->second.totalRam);
                 if (bm.mem_max != 0)
-                    bm.mem_percent =
-                        static_cast<unsigned int>((100 * bm.mem_used) / bm.mem_max);
+                    bm.mem_percent = static_cast<unsigned int>(
+                        (100 * bm.mem_used) / bm.mem_max);
                 else
                     bm.mem_percent = 0;
                 bm.swap_used = 0;
                 bm.swap_max = 0;
                 bm.swap_percent = 0;
+            }
+            {
+                auto netData = _networkPoller->PollCached();
+                std::uint64_t sumRx = 0;
+                std::uint64_t sumTx = 0;
+                for (const auto& kv : netData)
+                {
+                    sumRx += static_cast<std::uint64_t>(kv.second.rxBps);
+                    sumTx += static_cast<std::uint64_t>(kv.second.txBps);
+                }
+                int rxSpeed = 0;
+                int txSpeed = 0;
+                if (sumRx != 0)
+                {
+                    rxSpeed = static_cast<int>(FISH_MAX_SPEED * sumRx / _maxRx);
+                    if (rxSpeed == 0)
+                        rxSpeed = 1;
+                    if (rxSpeed > FISH_MAX_SPEED)
+                        rxSpeed = FISH_MAX_SPEED;
+                    if (_maxRx < sumRx)
+                    {
+                        _maxRx = sumRx;
+                        _rxCnt = 0;
+                    }
+                    else
+                    {
+                        if (++_rxCnt > 5)
+                        {
+                            _maxRx = sumRx;
+                            if (_maxRx < 10)
+                                _maxRx = 10;
+                            _rxCnt = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    rxSpeed = 0;
+                }
+                if (sumTx != 0)
+                {
+                    txSpeed = static_cast<int>(FISH_MAX_SPEED * sumTx / _maxTx);
+                    if (txSpeed == 0)
+                        txSpeed = 1;
+                    if (txSpeed > FISH_MAX_SPEED)
+                        txSpeed = FISH_MAX_SPEED;
+                    if (_maxTx < sumTx)
+                    {
+                        _maxTx = sumTx;
+                        _txCnt = 0;
+                    }
+                    else
+                    {
+                        if (++_txCnt > 5)
+                        {
+                            _maxTx = sumTx;
+                            if (_maxTx < 10)
+                                _maxTx = 10;
+                            _txCnt = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    txSpeed = 0;
+                }
+                bfm_set_network_speed(rxSpeed, txSpeed);
             }
             bubblemon_update(0);
             _scheduled = _timer.Schedule(t + _delta,
@@ -361,6 +439,11 @@ namespace
         const Preferences& _prefs;
         Timer& _timer;
         std::shared_ptr<MemoryPoller> _memoryPoller;
+        std::shared_ptr<NetworkPoller> _networkPoller;
+        std::uint64_t _maxRx = 10;
+        std::uint64_t _maxTx = 10;
+        int _rxCnt = 0;
+        int _txCnt = 0;
         double _interval = 10.0;
         Timer::Time _delta = 100'000'000;
         Timer::Time _scheduled = 0;
