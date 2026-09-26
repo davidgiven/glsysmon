@@ -10,6 +10,7 @@
 #include "disk_sensor.h"
 #include "hostname_sensor.h"
 #include "memory_poller.h"
+#include "memory_sensor.h"
 #include "network_poller.h"
 #include "network_sensor.h"
 #include "temperature_sensor.h"
@@ -43,6 +44,9 @@ public:
     virtual std::unique_ptr<DiskSensor> CreateDiskSensor(
         const std::string& prefPrefix,
         const std::string& procDiskStatsPath = "/proc/diskstats") const;
+    virtual std::unique_ptr<MemorySensor> CreateMemorySensor(
+        const std::string& prefPrefix,
+        const std::string& procMemInfoPath = "/proc/meminfo") const;
     virtual std::shared_ptr<NetworkPoller> CreateNetworkPoller(
         const std::string& procNetDevPath = "/proc/net/dev") const;
     virtual std::shared_ptr<MemoryPoller> CreateMemoryPoller(

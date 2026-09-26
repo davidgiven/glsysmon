@@ -87,6 +87,7 @@ SRC_OBJS := \
 	$(BUILD)/sensors/disk_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
 	$(BUILD)/sensors/network_poller_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
@@ -184,6 +185,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/disk_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
 	$(BUILD)/sensors/network_poller_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \

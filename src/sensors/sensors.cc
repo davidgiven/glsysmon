@@ -9,6 +9,7 @@
 #include "sensors/disk_sensor.h"
 #include "sensors/hostname_sensor.h"
 #include "sensors/memory_poller.h"
+#include "sensors/memory_sensor.h"
 #include "sensors/network_poller.h"
 #include "sensors/network_sensor.h"
 #include "sensors/temperature_sensor.h"
@@ -57,15 +58,20 @@ std::unique_ptr<DiskSensor> Sensors::CreateDiskSensor(
     return ::CreateDiskSensor(_prefs, _timer, a, b);
 }
 
+std::unique_ptr<MemorySensor> Sensors::CreateMemorySensor(
+    const std::string& a, const std::string& b) const
+{
+    auto poller = CreateMemoryPoller(b);
+    return ::CreateMemorySensor(_prefs, _timer, a, poller);
+}
+
 std::shared_ptr<NetworkPoller> Sensors::CreateNetworkPoller(
     const std::string& procNetDevPath) const
 {
     if (!_networkPoller)
-    {
         _networkPoller = ::CreateNetworkPoller(procNetDevPath);
-        _networkPoller->SetCacheIntervalMs(
-            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
-    }
+    _networkPoller->SetCacheIntervalMs(
+        GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
     return _networkPoller;
 }
 
@@ -73,11 +79,9 @@ std::shared_ptr<MemoryPoller> Sensors::CreateMemoryPoller(
     const std::string& procMemInfoPath) const
 {
     if (!_memoryPoller)
-    {
         _memoryPoller = ::CreateMemoryPoller(procMemInfoPath);
-        _memoryPoller->SetCacheIntervalMs(
-            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
-    }
+    _memoryPoller->SetCacheIntervalMs(
+        GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
     return _memoryPoller;
 }
 
@@ -85,10 +89,8 @@ std::shared_ptr<CpuPoller> Sensors::CreateCpuPoller(
     const std::string& procStatPath) const
 {
     if (!_cpuPoller)
-    {
         _cpuPoller = ::CreateCpuPoller(procStatPath);
-        _cpuPoller->SetCacheIntervalMs(
-            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
-    }
+    _cpuPoller->SetCacheIntervalMs(
+        GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
     return _cpuPoller;
 }
