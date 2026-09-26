@@ -19,7 +19,8 @@ namespace
             "ClockView,"
             "CpuView,"
             "TemperatureView,"
-            "NetworkView"                     },
+            "NetworkView"
+            "DiskView"                        },
         {"fps",                         "30"  },
         {"cpu.graph_height",            "40"  },
         {"cpu.update_interval",         "2"   },
@@ -33,6 +34,10 @@ namespace
         {"network.maximum",             "0"   },
         {"network.interfaces",          ""    },
         {"network.sensors",             ""    },
+        {"disk.graph_height",           "40"  },
+        {"disk.update_interval",        "1"   },
+        {"disk.maximum",                "0"   },
+        {"disk.devices",                "sda" },
     };
 
     class DefaultValue : public Value

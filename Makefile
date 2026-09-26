@@ -75,6 +75,7 @@ SRC_OBJS := \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
@@ -83,6 +84,7 @@ SRC_OBJS := \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
+	$(BUILD)/views/disk_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/style.o \
@@ -126,7 +128,8 @@ TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
 TEST_RENDER_CPU      := $(TEST_BUILD)/render_fake_cpu
 TEST_RENDER_TEMPERATURE := $(TEST_BUILD)/render_fake_temperature
 TEST_RENDER_NETWORK := $(TEST_BUILD)/render_fake_network
-TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK)
+TEST_RENDER_DISK := $(TEST_BUILD)/render_fake_disk
+TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK) $(TEST_RENDER_DISK)
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
@@ -147,11 +150,13 @@ TEST_OBJS := \
 	$(BUILD)/views/views.o \
 	$(BUILD)/views/clock_view_impl.o \
 	$(BUILD)/views/cpu_view_impl.o \
+	$(BUILD)/views/disk_view_impl.o \
 	$(BUILD)/views/hostname_view_impl.o \
 	$(BUILD)/views/network_view_impl.o \
 	$(BUILD)/views/temperature_view_impl.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
 	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
@@ -161,7 +166,7 @@ TEST_OBJS := \
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
-         $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d \
+         $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
          $(BUILD)/imhtml.d \
          $(FONT_GEN_CPP:.cpp=.d)
 
@@ -298,6 +303,11 @@ $(TEST_RENDER_NETWORK): $(TEST_BUILD)/render_fake_network.o \
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
+$(TEST_RENDER_DISK): $(TEST_BUILD)/render_fake_disk.o \
+	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+		$(STB_LIBS)
+
 run: $(BIN)
 	./$(BIN)
 
@@ -311,6 +321,7 @@ test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_
 	./$(TEST_RENDER_CPU)
 	./$(TEST_RENDER_TEMPERATURE)
 	./$(TEST_RENDER_NETWORK)
+	./$(TEST_RENDER_DISK)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.

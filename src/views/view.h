@@ -9,6 +9,7 @@ class Sensor;
 class Sensors;
 class ClockSensor;
 class CpuSensor;
+class DiskSensor;
 class HostnameSensor;
 class NetworkSensor;
 class TemperatureSensor;
@@ -55,3 +56,7 @@ extern std::unique_ptr<View> CreateNetworkView(
     const Preferences& prefs, Sensors& sensors);
 extern std::unique_ptr<View> CreateNetworkView(
     const Preferences& prefs, std::unique_ptr<NetworkSensor> sensor);
+extern std::unique_ptr<View> CreateDiskView(
+    const Preferences& prefs, Sensors& sensors);
+extern std::unique_ptr<View> CreateDiskView(
+    const Preferences& prefs, std::unique_ptr<DiskSensor> sensor);

@@ -28,7 +28,8 @@ namespace
             std::unique_ptr<ClockSensor> fakeClockSensor = nullptr,
             std::unique_ptr<CpuSensor> fakeCpuSensor = nullptr,
             std::unique_ptr<TemperatureSensor> fakeTemperatureSensor = nullptr,
-            std::unique_ptr<NetworkSensor> fakeNetworkSensor = nullptr):
+            std::unique_ptr<NetworkSensor> fakeNetworkSensor = nullptr,
+            std::unique_ptr<DiskSensor> fakeDiskSensor = nullptr):
             _prefs(prefs),
             _sensors(prefs, timer),
             _views(prefs, _sensors),
@@ -51,6 +52,9 @@ namespace
             if (fakeNetworkSensor != nullptr)
                 _views.Inject("NetworkView",
                     CreateNetworkView(prefs, std::move(fakeNetworkSensor)));
+            if (fakeDiskSensor != nullptr)
+                _views.Inject("DiskView",
+                    CreateDiskView(prefs, std::move(fakeDiskSensor)));
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(prefs))
             {
@@ -155,6 +159,7 @@ std::unique_ptr<Ui> CreateUiWithFakeHostname(const Preferences& prefs,
         nullptr,
         nullptr,
         nullptr,
+        nullptr,
         nullptr);
 }
 
@@ -168,6 +173,7 @@ std::unique_ptr<Ui> CreateUiWithFakeClock(const Preferences& prefs,
         app,
         nullptr,
         std::move(fakeSensor),
+        nullptr,
         nullptr,
         nullptr,
         nullptr);
@@ -185,6 +191,7 @@ std::unique_ptr<Ui> CreateUiWithFakeCpu(const Preferences& prefs,
         nullptr,
         std::move(fakeSensor),
         nullptr,
+        nullptr,
         nullptr);
 }
 
@@ -200,6 +207,7 @@ std::unique_ptr<Ui> CreateUiWithFakeTemperature(const Preferences& prefs,
         nullptr,
         nullptr,
         std::move(fakeSensor),
+        nullptr,
         nullptr);
 }
 
@@ -211,6 +219,23 @@ std::unique_ptr<Ui> CreateUiWithFakeNetwork(const Preferences& prefs,
     return std::make_unique<ImGuiUiImpl>(prefs,
         timer,
         app,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        std::move(fakeSensor),
+        nullptr);
+}
+
+std::unique_ptr<Ui> CreateUiWithFakeDisk(const Preferences& prefs,
+    Timer& timer,
+    std::unique_ptr<DiskSensor> fakeSensor,
+    App& app)
+{
+    return std::make_unique<ImGuiUiImpl>(prefs,
+        timer,
+        app,
+        nullptr,
         nullptr,
         nullptr,
         nullptr,

@@ -6,6 +6,7 @@
 
 #include "clock_sensor.h"
 #include "cpu_sensor.h"
+#include "disk_sensor.h"
 #include "hostname_sensor.h"
 #include "network_sensor.h"
 #include "temperature_sensor.h"
@@ -34,6 +35,8 @@ public:
     std::unique_ptr<NetworkSensor> CreateNetworkSensor(
         const std::string& prefPrefix,
         const std::string& procNetDevPath = "/proc/net/dev") const;
+    std::unique_ptr<DiskSensor> CreateDiskSensor(const std::string& prefPrefix,
+        const std::string& procDiskStatsPath = "/proc/diskstats") const;
 
 private:
     const Preferences& _prefs;
