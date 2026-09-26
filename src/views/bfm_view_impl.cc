@@ -39,23 +39,12 @@ namespace
             srand(0);
             bfm_glsysmon_init();
             {
-                int w = _prefs.GetInteger("bubbleFishyMon.width").value_or(56);
-                int h = _prefs.GetInteger("bubbleFishyMon.height").value_or(56);
-                if (w < 10)
-                    w = 10;
-                if (w > 256)
-                    w = 256;
-                if (h < 10)
-                    h = 10;
-                if (h > 256)
-                    h = 256;
+                int w = GetWidth(_prefs);
+                int h = GetHeight(_prefs);
                 bfm_set_size(w, h);
             }
             _inited = true;
-            double interval = _prefs.GetDouble("bubbleFishyMon.update_interval")
-                                  .value_or(10.0);
-            if (interval <= 0)
-                interval = 10.0;
+            double interval = GetUpdateInterval(_prefs);
             _interval = interval;
             _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
             Timer::Time now = _timer.Now();
@@ -88,17 +77,8 @@ namespace
             if (device == nullptr)
                 return;
 
-            int width = _prefs.GetInteger("bubbleFishyMon.width").value_or(56);
-            int height =
-                _prefs.GetInteger("bubbleFishyMon.height").value_or(56);
-            if (width < 10)
-                width = 10;
-            if (width > 256)
-                width = 256;
-            if (height < 10)
-                height = 10;
-            if (height > 256)
-                height = 256;
+            int width = GetWidth(_prefs);
+            int height = GetHeight(_prefs);
             int curW = 0;
             int curH = 0;
             bfm_get_size(&curW, &curH);
@@ -152,15 +132,11 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            float interval = static_cast<float>(
-                preferences.GetDouble("bubbleFishyMon.update_interval")
-                    .value_or(_interval));
+            float interval = static_cast<float>(GetUpdateInterval(preferences));
             if (ImGui::InputFloat("Update frequency", &interval))
             {
-                if (interval <= 0)
-                    interval = 1;
-                preferences.SetDouble(
-                    "bubbleFishyMon.update_interval", interval);
+                SetUpdateInterval(preferences, interval);
+                interval = static_cast<float>(GetUpdateInterval(preferences));
                 if (_scheduled != 0)
                     _timer.Cancel(_scheduled);
                 _interval = interval;
@@ -229,6 +205,22 @@ namespace
             if (value > 256)
                 value = 256;
             prefs.SetInteger(GetPrefName() + ".height", value);
+        }
+
+        double GetUpdateInterval(const Preferences& prefs) const
+        {
+            double v = prefs.GetDouble(GetPrefName() + ".update_interval")
+                           .value_or(10.0);
+            if (v <= 0)
+                v = 10.0;
+            return v;
+        }
+
+        void SetUpdateInterval(Preferences& prefs, double value) const
+        {
+            if (value <= 0)
+                value = 1;
+            prefs.SetDouble(GetPrefName() + ".update_interval", value);
         }
 
         void Tick(Timer::Time t)
