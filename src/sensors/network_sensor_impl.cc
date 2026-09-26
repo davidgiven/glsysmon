@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "preferences/preferences.h"
-#include "sensor_graph_mixin.h"
+#include "sensor_rx_tx_graph_mixin.h"
 #include "timer.h"
 
 namespace
@@ -62,16 +62,16 @@ namespace
             _delta = static_cast<std::uint64_t>(1'000'000'000ULL / interval);
 
             _ifaceNames = DiscoverInterfaces(_procNetDevPath);
-            InitGraph(_ifaceNames.size(), sampleCount, NetworkSample{});
+            InitGraph(_ifaceNames.size(), sampleCount, RxTxSample{});
             _prev.resize(_ifaceNames.size());
             Tick(_timer.Now());
         }
 
-        const NetworkSample* GetSamples(std::size_t channel) const override
+        const RxTxSample* GetSamples(std::size_t channel) const override
         {
             if (channel >= GetChannels())
                 return nullptr;
-            return this->SensorGraphMixin<NetworkSample>::GetSamples(channel);
+            return this->SensorRxTxGraphMixin::GetSamples(channel);
         }
 
         std::string GetChannelName(std::size_t channel) const override
@@ -214,7 +214,7 @@ namespace
                         txBps =
                             static_cast<double>(now.txBytes - prev.txBytes) *
                             _interval;
-                    NetworkSample s{txBps, rxBps};
+                    RxTxSample s{txBps, rxBps};
                     AddSample(i, s);
                 }
                 _prev = cur;
@@ -226,7 +226,7 @@ namespace
 
         void PushZeros()
         {
-            NetworkSample zero{0, 0};
+            RxTxSample zero{0, 0};
             for (std::size_t i = 0; i < GetChannels(); ++i)
                 AddSample(i, zero);
         }

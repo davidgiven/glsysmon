@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "preferences/preferences.h"
-#include "sensor_graph_mixin.h"
+#include "sensor_rx_tx_graph_mixin.h"
 #include "timer.h"
 
 namespace
@@ -48,16 +48,16 @@ namespace
             _delta = static_cast<std::uint64_t>(1'000'000'000ULL / interval);
 
             _deviceNames = DiscoverDevices(_procDiskStatsPath);
-            InitGraph(_deviceNames.size(), sampleCount, DiskSample{});
+            InitGraph(_deviceNames.size(), sampleCount, RxTxSample{});
             _prev.resize(_deviceNames.size());
             Tick(_timer.Now());
         }
 
-        const DiskSample* GetSamples(std::size_t channel) const override
+        const RxTxSample* GetSamples(std::size_t channel) const override
         {
             if (channel >= GetChannels())
                 return nullptr;
-            return this->SensorGraphMixin<DiskSample>::GetSamples(channel);
+            return this->SensorRxTxGraphMixin::GetSamples(channel);
         }
 
         std::string GetChannelName(std::size_t channel) const override
@@ -195,7 +195,7 @@ namespace
                         txBps = static_cast<double>(
                                     now.wrSectors - prev.wrSectors) *
                                 512.0 * _interval;
-                    DiskSample s{txBps, rxBps};
+                    RxTxSample s{txBps, rxBps};
                     AddSample(i, s);
                 }
                 _prev = cur;
@@ -206,7 +206,7 @@ namespace
 
         void PushZeros()
         {
-            DiskSample zero{0, 0};
+            RxTxSample zero{0, 0};
             for (std::size_t i = 0; i < GetChannels(); ++i)
                 AddSample(i, zero);
         }

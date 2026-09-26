@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sensor.h"
-#include "sensor_graph_mixin.h"
+#include "sensor_rx_tx_graph_mixin.h"
 
 #include <memory>
 #include <string>
@@ -9,13 +9,9 @@
 class Preferences;
 class Timer;
 
-struct DiskSample
-{
-    double txBps;
-    double rxBps;
-};
+using DiskSample = RxTxSample;
 
-class DiskSensor : public Sensor, public SensorGraphMixin<DiskSample>
+class DiskSensor : public Sensor, public SensorRxTxGraphMixin
 {
 public:
     explicit DiskSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
