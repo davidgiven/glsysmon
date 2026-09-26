@@ -1,0 +1,19 @@
+
+BubbleFishyMon with gkrellm support
+Type 'make' or 'make bubblefishymon' to build bubblefishymon
+Type 'make bubblefishymon1' to build bubblefishymon for gtk1
+Type 'make gkrellm' to build gkrellm-bfm.so for gkrellm2
+Type 'make gkrellm1' to build gkrellm-bfm.so for gkrellm
+
+
+TODO
+- Any way to fix the update speed? Gkrellm maximum update is 10 per second.
+- Someone tests/does the FreeBSD and SunOS platform?
+- Possible/Make more sense, to make a gkrellm swallow plugin?
+  (Quick search on google:
+   http://www.moongroup.com/archives/xfce-dev/2001-06/msg00076.html)
+
+
+Pigeon.
+pigeon@pigeond.net
+
