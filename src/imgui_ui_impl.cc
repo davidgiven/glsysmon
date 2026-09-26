@@ -73,7 +73,13 @@ namespace
                     ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             for (View* view : _activeViews)
+            {
+                std::string enabledKey = view->GetPrefName() + ".enabled";
+                bool enabled = _prefs.GetBoolean(enabledKey).value_or(true);
+                if (!enabled)
+                    continue;
                 view->Draw();
+            }
 
             ImGui::PopFont();
             ImGui::PopStyleVar();
