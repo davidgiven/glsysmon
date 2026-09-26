@@ -22,12 +22,19 @@ ConfigurationWindow::ConfigurationWindow(const Views& views, App& app):
 {
 }
 
+void ConfigurationWindow::DrawGlobalConfiguration() {}
+
 void ConfigurationWindow::Draw(bool* open)
 {
     float buttonHeight = ImGui::GetFrameHeightWithSpacing();
 
     if (ImGui::BeginChild("UpperArea", ImVec2(0, -buttonHeight), false))
     {
+        if (ImGui::CollapsingHeader("Global"))
+        {
+            DrawGlobalConfiguration();
+        }
+
         for (View* view : _views.GetAllViews())
             if (ImGui::CollapsingHeader(view->GetHumanName().c_str()))
             {

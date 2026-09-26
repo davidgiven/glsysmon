@@ -18,4 +18,6 @@ private:
     App& _app;
     std::shared_ptr<Preferences> _pendingMapPreferences;
     std::unique_ptr<Preferences> _pendingPreferences;
+
+    void DrawGlobalConfiguration();
 };
