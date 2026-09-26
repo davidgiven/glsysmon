@@ -22,7 +22,27 @@ ConfigurationWindow::ConfigurationWindow(const Views& views, App& app):
 {
 }
 
-void ConfigurationWindow::DrawGlobalConfiguration() {}
+void ConfigurationWindow::DrawGlobalConfiguration()
+{
+    static constexpr const char* kSideLabels[] = {"left", "right"};
+    static constexpr const char* kSideValues[] = {"left", "right"};
+    std::string currentSide =
+        _pendingPreferences->GetString("side").value_or("left");
+    int sideIndex = 0;
+    for (int i = 0; i < 2; ++i)
+    {
+        if (currentSide == kSideValues[i])
+        {
+            sideIndex = i;
+            break;
+        }
+    }
+    if (ImGui::SliderInt(
+            "Side", &sideIndex, 0, 1, kSideLabels[sideIndex]))
+    {
+        _pendingPreferences->SetString("side", kSideValues[sideIndex]);
+    }
+}
 
 void ConfigurationWindow::Draw(bool* open)
 {
