@@ -19,6 +19,17 @@
 namespace
 {
 
+    bool GetShowValue(const Preferences& prefs, const std::string& prefName)
+    {
+        if (auto v = prefs.GetBoolean(prefName + ".show_value"))
+            return *v;
+        if (auto v = prefs.GetBoolean(prefName + ".show_temperature"))
+            return *v;
+        if (auto v = prefs.GetBoolean(prefName + ".show_numeric"))
+            return *v;
+        return true;
+    }
+
     class TemperatureViewImpl : public ViewGraphMixin
     {
     public:
@@ -49,6 +60,7 @@ namespace
             const auto allowedSet = _prefs.GetStringSet("temperature.sensors");
             const int graphHeight =
                 _prefs.GetInteger(GetPrefName() + ".graph_height").value_or(40);
+            const bool showValue = GetShowValue(_prefs, GetPrefName());
 
             Style::GraphGroup("Temperature",
                 [&]
@@ -64,11 +76,15 @@ namespace
                         if (samples == nullptr)
                             continue;
                         const int n = static_cast<int>(sampleCount);
-                        Style::DrawGraph(
-                            channelName + "\n" +
+                        std::string title = channelName;
+                        if (showValue)
+                            title +=
+                                "\n" +
                                 std::to_string(static_cast<long long>(
                                     std::llround(samples[sampleCount - 1]))) +
-                                "°C",
+                                "°C";
+                        Style::DrawGraph(
+                            title,
                             n,
                             yMin,
                             yMax,
@@ -119,6 +135,13 @@ namespace
                     GetPrefName() + ".minimum", static_cast<int>(minMax[0]));
                 preferences.SetInteger(
                     GetPrefName() + ".maximum", static_cast<int>(minMax[1]));
+            }
+
+            bool showValue = GetShowValue(preferences, GetPrefName());
+            if (ImGui::Checkbox("Show temperature value", &showValue))
+            {
+                preferences.SetBoolean(
+                    GetPrefName() + ".show_value", showValue);
             }
 
             // Visible sensors

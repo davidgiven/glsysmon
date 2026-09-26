@@ -29,6 +29,7 @@ namespace
         {"temperature.minimum",         "20"  },
         {"temperature.maximum",         "80"  },
         {"temperature.sensors",         "CPU" },
+        {"temperature.show_value",      "true"},
         {"network.graph_height",        "40"  },
         {"network.update_interval",     "1"   },
         {"network.maximum",             "0"   },
