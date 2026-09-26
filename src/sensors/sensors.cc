@@ -59,7 +59,16 @@ std::shared_ptr<NetworkPoller> Sensors::CreateNetworkPoller(
     const std::string& procNetDevPath) const
 {
     if (!_networkPoller)
+    {
         _networkPoller = ::CreateNetworkPoller(procNetDevPath);
+        _networkPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
+    else
+    {
+        _networkPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
     return _networkPoller;
 }
 
@@ -67,6 +76,15 @@ std::shared_ptr<MemoryPoller> Sensors::CreateMemoryPoller(
     const std::string& procMemInfoPath) const
 {
     if (!_memoryPoller)
+    {
         _memoryPoller = ::CreateMemoryPoller(procMemInfoPath);
+        _memoryPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
+    else
+    {
+        _memoryPoller->SetCacheIntervalMs(
+            GlobalPreferencesFetcher::GetPollerCacheInterval(_prefs));
+    }
     return _memoryPoller;
 }

@@ -170,4 +170,19 @@ public:
             return *value;
         return CreateDefaultPreferences()->GetDouble("fps").value();
     }
+
+    static int GetPollerCacheInterval(const Preferences& prefs)
+    {
+        if (auto value = prefs.GetInteger("poller.cache_interval"))
+            return *value;
+        if (auto value = prefs.GetInteger("poller.cache_interval_ms"))
+            return *value;
+        if (auto value = prefs.GetInteger("poller_cache_interval"))
+            return *value;
+        auto def =
+            CreateDefaultPreferences()->GetInteger("poller.cache_interval");
+        if (def.has_value())
+            return *def;
+        return 500;
+    }
 };

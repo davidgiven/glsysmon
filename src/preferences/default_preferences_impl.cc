@@ -48,6 +48,7 @@ namespace
         {"bubbleFishyMon.update_interval", "10"                                   },
         {"bubbleFishyMon.width",           "56"                                   },
         {"bubbleFishyMon.height",          "56"                                   },
+        {"poller.cache_interval",          "500"                                  },
     };
 
     class DefaultValue : public Value

@@ -139,6 +139,7 @@ TEST_TIMER  := $(TEST_BUILD)/timer_tests
 TEST_GRAPH_MIXIN := $(TEST_BUILD)/graph_mixin_test
 TEST_PREFERENCES := $(TEST_BUILD)/preferences_test
 TEST_MEMORY := $(TEST_BUILD)/memory_poller_test
+TEST_POLLER := $(TEST_BUILD)/poller_test
 TEST_RENDER_HOSTNAME := $(TEST_BUILD)/render_fake_hostname
 TEST_RENDER_CLOCK    := $(TEST_BUILD)/render_fake_clock
 TEST_RENDER_CPU      := $(TEST_BUILD)/render_fake_cpu
@@ -188,7 +189,7 @@ TEST_OBJS := \
 	$(BFM_OBJS) \
 	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
-DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/memory_poller_test.d $(TEST_BUILD)/render_frame.d \
+DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/memory_poller_test.d $(TEST_BUILD)/poller_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
          $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
@@ -319,6 +320,9 @@ $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o $(TEST_OBJS)
 $(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
+$(TEST_POLLER): $(TEST_BUILD)/poller_test.o $(TEST_OBJS)
+	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+
 $(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
@@ -355,13 +359,14 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 run: $(BIN)
 	./$(BIN)
 
-test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_RENDER)
+test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_POLLER) $(TEST_RENDER)
 	./$(TEST_UNIT)
 	./$(TEST_TIMER)
 	./$(TEST_GRAPH_MIXIN)
 	./$(TEST_PREFERENCES)
 	./$(TEST_UTILS)
 	./$(TEST_MEMORY)
+	./$(TEST_POLLER)
 	./$(TEST_RENDER_HOSTNAME)
 	./$(TEST_RENDER_CLOCK)
 	./$(TEST_RENDER_CPU)
