@@ -3,7 +3,7 @@ glsysmon
 
 A dockable system monitor which isn't gkrellm but it probably strangely familiar to anyone who's used gkrellm.
 
-<img src="doc/screenshot.png" style="float:right;"/>
+<img src="doc/screenshot.png" align="right"/>
 
 What?
 -----
