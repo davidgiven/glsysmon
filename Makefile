@@ -27,6 +27,15 @@ TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
 STB_CFLAGS          := $(shell $(PKG_CONFIG) --cflags stb 2>/dev/null)
 STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb 2>/dev/null)
 
+PROFILER ?= 0
+ifeq ($(PROFILER),1)
+PROFILER_CFLAGS := -DENABLE_PROFILER -fno-omit-frame-pointer
+PROFILER_LIBS   := $(shell $(PKG_CONFIG) --libs libprofiler 2>/dev/null || echo "-lprofiler")
+else
+PROFILER_CFLAGS :=
+PROFILER_LIBS   :=
+endif
+
 WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
 
 IMGUI_BACKENDS_DIR := $(IMGUI_DIR)/backends
@@ -50,7 +59,7 @@ XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
-                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -MMD -MP
+                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) $(PROFILER_CFLAGS) -MMD -MP
 
 BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -isystem $(CURDIR)/dep/bfm/include -isystem $(CURDIR)/dep/bfm
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
@@ -208,7 +217,7 @@ all: $(BIN) $(TEST_LOGS)
 $(BIN): $(OBJS)
 	@echo $@
 	@$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
-		$(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+		$(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) $(PROFILER_LIBS)
 
 $(DROIDSANS_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
 	@echo $@
@@ -399,6 +408,11 @@ $(TEST_BUILD)/%.log: $(TEST_BUILD)/%
 	@echo $@
 	@mkdir -p $(dir $@)
 	@./$< > $@ 2>&1 || (cat $@; false)
+
+pprof: PROFILER=1
+pprof: $(BIN)
+	@echo "Built $(BIN) with gperftools profiler (PROFILER=1)"
+	@echo "Run: CPUPROFILE=/tmp/glsysmon.prof ./$(BIN) ; pprof -http=:8080 $(BIN) /tmp/glsysmon.prof"
 
 run: $(BIN)
 	@echo $@
