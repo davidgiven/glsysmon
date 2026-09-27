@@ -36,9 +36,35 @@ extern "C"
     extern int fish_enabled;
     extern int fish_traffic;
     extern int duck_enabled;
+    extern int upside_down_duck_enabled;
     void bfm_set_network_speed(int rx, int tx);
     void bfm_set_cpu_percent(int percent);
 }
+
+enum class DuckMode
+{
+    NoDuck,
+    Duck,
+    InvertableDuck
+};
+
+namespace magic_enum::customize
+{
+    template <>
+    constexpr customize_t enum_name<DuckMode>(DuckMode value) noexcept
+    {
+        switch (value)
+        {
+            case DuckMode::NoDuck:
+                return "no duck";
+            case DuckMode::Duck:
+                return "duck";
+            case DuckMode::InvertableDuck:
+                return "invertable duck";
+        }
+        return default_tag;
+    }
+} // namespace magic_enum::customize
 
 namespace
 {
@@ -65,7 +91,7 @@ namespace
             srand(0);
             bfm_glsysmon_init();
             ApplyFishMode(GetFishMode(_prefs));
-            ApplyDuckEnabled(GetDuckEnabled(_prefs));
+            ApplyDuckMode(GetDuckMode(_prefs));
             {
                 int w = GetWidth(_prefs);
                 int h = GetHeight(_prefs);
@@ -198,15 +224,16 @@ namespace
             int fishIndex = static_cast<int>(currentFishMode);
             constexpr const char* kFishNames[] = {"off", "random", "network"};
             const char* fishLabel(kFishNames[fishIndex]);
-            if (ImGui::SliderInt("Fish mode", &fishIndex, 0, 2, fishLabel))
+            if (ImGui::SliderInt("Fish", &fishIndex, 0, 2, fishLabel))
                 SetFishMode(preferences, static_cast<FishMode>(fishIndex));
 
-            bool duckEnabled = GetDuckEnabled(preferences);
-            int duckIndex = duckEnabled ? 1 : 0;
-            constexpr const char* kDuckNames[] = {"no duck", "duck"};
+            DuckMode currentDuckMode = GetDuckMode(preferences);
+            int duckIndex = static_cast<int>(currentDuckMode);
+            constexpr const char* kDuckNames[] = {
+                "no duck", "duck", "invertable duck"};
             const char* duckLabel(kDuckNames[duckIndex]);
-            if (ImGui::SliderInt("Duck", &duckIndex, 0, 1, duckLabel))
-                SetDuckEnabled(preferences, duckIndex != 0);
+            if (ImGui::SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
+                SetDuckMode(preferences, static_cast<DuckMode>(duckIndex));
         }
 
     private:
@@ -294,28 +321,44 @@ namespace
             }
         }
 
-        bool GetDuckEnabled(const Preferences& prefs) const
+        DuckMode GetDuckMode(const Preferences& prefs) const
         {
-            if (auto v = prefs.GetBoolean(GetPrefName() + ".duck_mode"))
+            if (auto v = prefs.GetEnum<DuckMode>(GetPrefName() + ".duck_mode"))
                 return *v;
-            return true;
+            if (auto b = prefs.GetBoolean(GetPrefName() + ".duck_mode"))
+                return *b ? DuckMode::Duck : DuckMode::NoDuck;
+            return DuckMode::Duck;
         }
 
-        void SetDuckEnabled(Preferences& prefs, bool enabled) const
+        void SetDuckMode(Preferences& prefs, DuckMode mode) const
         {
-            prefs.SetBoolean(GetPrefName() + ".duck_mode", enabled);
+            prefs.SetEnum(GetPrefName() + ".duck_mode", mode);
         }
 
-        void ApplyDuckEnabled(bool enabled) const
+        void ApplyDuckMode(DuckMode mode) const
         {
-            duck_enabled = enabled ? 1 : 0;
+            switch (mode)
+            {
+                case DuckMode::NoDuck:
+                    duck_enabled = 0;
+                    upside_down_duck_enabled = 0;
+                    break;
+                case DuckMode::Duck:
+                    duck_enabled = 1;
+                    upside_down_duck_enabled = 0;
+                    break;
+                case DuckMode::InvertableDuck:
+                    duck_enabled = 1;
+                    upside_down_duck_enabled = 1;
+                    break;
+            }
         }
 
         void Tick(Timer::Time t)
         {
             FishMode fishMode = GetFishMode(_prefs);
             ApplyFishMode(fishMode);
-            ApplyDuckEnabled(GetDuckEnabled(_prefs));
+            ApplyDuckMode(GetDuckMode(_prefs));
 
             {
                 auto data = _memoryPoller->PollCached();
