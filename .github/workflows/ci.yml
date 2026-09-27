@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libsdl3-dev \
+            wayland-protocols \
+            libwayland-dev \
+            libx11-dev \
+            libvulkan-dev \
+            mesa-vulkan-drivers \
+            libtomlplusplus-dev \
+            libstb-dev \
+            doctest-dev \
+            xvfb
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Test
+        run: xvfb-run -a make test -j$(nproc)
