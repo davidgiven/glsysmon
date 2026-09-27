@@ -187,6 +187,8 @@ namespace
                     _values["views"] = arg.substr(8);
                 else if (arg.rfind("--fps=", 0) == 0)
                     _values["fps"] = arg.substr(6);
+                else if (arg.rfind("--dock=", 0) == 0)
+                    _values["dock"] = arg.substr(7);
                 else if (arg.rfind("--", 0) == 0)
                 {
                     const std::size_t eq = arg.find('=');

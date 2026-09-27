@@ -16,6 +16,15 @@ SDL_DisplayID DockGetDisplay(int index)
 
 std::unique_ptr<Dock> DockCreate(const Preferences& prefs)
 {
+    if (auto dock = GlobalPreferencesFetcher::GetDock(prefs))
+    {
+        if (*dock == "x11")
+            return DockCreateX11(prefs);
+        if (*dock == "wayland")
+            return DockCreateWayland(prefs);
+        if (*dock == "fallback")
+            return DockCreateFallback(prefs);
+    }
     const char* driver = SDL_GetCurrentVideoDriver();
     if (driver == nullptr)
         return DockCreateFallback(prefs);

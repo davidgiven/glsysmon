@@ -185,4 +185,14 @@ public:
             return *def;
         return 500;
     }
+
+    static std::optional<std::string> GetDock(const Preferences& prefs)
+    {
+        if (auto value = prefs.GetString("dock"))
+        {
+            if (*value == "x11" || *value == "wayland" || *value == "fallback")
+                return value;
+        }
+        return std::nullopt;
+    }
 };
