@@ -153,6 +153,9 @@ TEST_RENDER_DISK := $(TEST_BUILD)/render_fake_disk
 TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK) $(TEST_RENDER_DISK)
 TEST_UTILS := $(TEST_BUILD)/utils_test
 
+TEST_BINS := $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER)
+TEST_LOGS := $(addsuffix .log,$(TEST_BINS))
+
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
 	$(BUILD)/configuration.o \
@@ -206,7 +209,7 @@ DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(T
 TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
 	$(TEST_BUILD)/render_lib.o
 
-all: $(BIN)
+all: $(BIN) $(TEST_LOGS)
 	@echo $@
 
 $(BIN): $(OBJS)
@@ -407,26 +410,19 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
+.PRECIOUS: $(TEST_LOGS)
+
+$(TEST_BUILD)/%.log: $(TEST_BUILD)/%
+	@echo $@
+	@mkdir -p $(dir $@)
+	@./$< > $@ 2>&1 || (cat $@; false)
+
 run: $(BIN)
 	@echo $@
 	@./$(BIN)
 
-test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER)
+test: $(TEST_LOGS)
 	@echo $@
-	@./$(TEST_UNIT)
-	@./$(TEST_TIMER)
-	@./$(TEST_GRAPH_MIXIN)
-	@./$(TEST_PREFERENCES)
-	@./$(TEST_UTILS)
-	@./$(TEST_MEMORY)
-	@./$(TEST_CPU)
-	@./$(TEST_POLLER)
-	@./$(TEST_RENDER_HOSTNAME)
-	@./$(TEST_RENDER_CLOCK)
-	@./$(TEST_RENDER_CPU)
-	@./$(TEST_RENDER_TEMPERATURE)
-	@./$(TEST_RENDER_NETWORK)
-	@./$(TEST_RENDER_DISK)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.
