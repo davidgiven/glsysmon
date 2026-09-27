@@ -38,7 +38,8 @@ namespace
                 nullptr; // do not persist window layout to imgui.ini
             ImGui::StyleColorsDark();
 
-            const float ui_scale = 1.0f;
+            const float ui_scale =
+                SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window));
             ImGuiStyle& style = ImGui::GetStyle();
             style.ScaleAllSizes(ui_scale);
             style.FontScaleDpi = ui_scale;
