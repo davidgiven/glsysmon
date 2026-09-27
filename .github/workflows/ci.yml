@@ -25,6 +25,8 @@ jobs:
             mesa-vulkan-drivers \
             libtomlplusplus-dev \
             libstb-dev \
+            liblitehtml-dev \
+            libgumbo-dev \
             doctest-dev \
             xvfb
 

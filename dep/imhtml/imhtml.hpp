@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <string>
+#include <map>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -23,35 +23,19 @@ enum class FontStyle : unsigned char { Regular, Bold, Italic, BoldItalic };
  * Meta data for an image
  */
 struct ImageMeta {
-  int Width;
-  int Height;
-};
-
-/**
- * A font family, containing different styles of the same font.
- */
-struct FontFamily {
-  ImFont *Regular = nullptr;
-  ImFont *Bold = nullptr;
-  ImFont *Italic = nullptr;
-  ImFont *BoldItalic = nullptr;
+  int width;
+  int height;
 };
 
 /**
  * Configuration for the HTML renderer
  */
 struct Config {
-  bool AllowHrefTooltips = true;
-  bool AllowImgAltTooltips = true;
-
   float BaseFontSize = 16.0f;
-
-  // fallback when not found in FontFamilies, or no specific family provided
-  FontFamily DefaultFont;
-
-  // CSS font-family name -> family
-  std::map<std::string, FontFamily> FontFamilies;
-
+  ImFont *FontRegular = nullptr;
+  ImFont *FontBold = nullptr;
+  ImFont *FontItalic = nullptr;
+  ImFont *FontBoldItalic = nullptr;
   std::function<void(const char *src, const char *baseurl)> LoadImage;
   std::function<ImageMeta(const char *src, const char *baseurl)> GetImageMeta;
   std::function<ImTextureID(const char *src, const char *baseurl)> GetImageTexture;
@@ -87,14 +71,14 @@ Config *GetConfig();
  *
  * @param config The new configuration
  */
-void SetConfig(const Config &config);
+void SetConfig(Config config);
 
 /**
  * Push the configuration
  *
  * @param config The new configuration
  */
-void PushConfig(const Config &config);
+void PushConfig(Config config);
 
 /**
  * Pop the configuration

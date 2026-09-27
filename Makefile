@@ -16,11 +16,8 @@ IMPLOT_DIR     := dep/implot
 IMPLOT_CFLAGS  := -isystem $(IMPLOT_DIR)
 IMHTML_DIR      := dep/imhtml
 IMHTML_CFLAGS   := -isystem $(IMHTML_DIR)
-LITEHTML_DIR      := dep/litehtml
-LITEHTML_CFLAGS := -isystem $(LITEHTML_DIR)/include -isystem $(LITEHTML_DIR)/include/litehtml -isystem $(LITEHTML_DIR)/src -isystem $(LITEHTML_DIR)/src/gumbo/include
-LITEHTML_LIBS   :=
-GUMBO_CFLAGS    :=
-GUMBO_LIBS      :=
+LITEHTML_CFLAGS := $(shell $(PKG_CONFIG) --cflags gumbo 2>/dev/null) -I/usr/include/litehtml
+LITEHTML_LIBS   := $(shell $(PKG_CONFIG) --libs gumbo 2>/dev/null) -llitehtml
 X11_CFLAGS     := $(shell $(PKG_CONFIG) --cflags x11)
 X11_LIBS       := $(shell $(PKG_CONFIG) --libs x11)
 WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
@@ -54,10 +51,6 @@ XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
                   $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) -MMD -MP
-LITEHTML_SRCS := $(wildcard $(LITEHTML_DIR)/src/*.cpp)
-LITEHTML_OBJS := $(patsubst $(LITEHTML_DIR)/src/%.cpp,$(BUILD)/litehtml/%.o,$(LITEHTML_SRCS))
-GUMBO_SRCS := $(wildcard $(LITEHTML_DIR)/src/gumbo/*.c)
-GUMBO_OBJS := $(patsubst $(LITEHTML_DIR)/src/gumbo/%.c,$(BUILD)/gumbo/%.o,$(GUMBO_SRCS))
 
 BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -isystem $(CURDIR)/dep/bfm/include -isystem $(CURDIR)/dep/bfm
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
@@ -132,7 +125,7 @@ WAYLAND_OBJS := \
 	$(GEN)/wlr-layer-shell-client-protocol.o \
 	$(GEN)/xdg-shell-client-protocol.o
 
-OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
+OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 
 TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
@@ -197,7 +190,7 @@ TEST_OBJS := \
 	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BFM_OBJS) \
-	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(LITEHTML_OBJS) $(GUMBO_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
+	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/memory_poller_test.d $(TEST_BUILD)/cpu_poller_test.d $(TEST_BUILD)/poller_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
@@ -316,16 +309,6 @@ $(BUILD)/imhtml.o: $(IMHTML_DIR)/imhtml.cpp
 	@echo $@
 	@mkdir -p $(BUILD)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/litehtml/%.o: $(LITEHTML_DIR)/src/%.cpp
-	@echo $@
-	@mkdir -p $(dir $@)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/gumbo/%.o: $(LITEHTML_DIR)/src/gumbo/%.c
-	@echo $@
-	@mkdir -p $(dir $@)
-	@$(CC) -O2 -g -w -isystem $(LITEHTML_DIR)/src/gumbo/include -isystem $(LITEHTML_DIR)/src/gumbo/include/gumbo -MMD -MP -c -o $@ $<
 
 $(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
 	@echo $@
