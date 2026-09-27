@@ -49,7 +49,8 @@ public:
     std::optional<E> GetEnum() const
     {
         if (auto s = GetString())
-            if (auto e = magic_enum::enum_cast<E>(*s))
+            if (auto e =
+                    magic_enum::enum_cast<E>(*s, magic_enum::case_insensitive))
                 return e;
         return std::nullopt;
     }

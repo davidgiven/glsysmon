@@ -45,9 +45,9 @@ namespace
 
     enum class FishMode
     {
-        off,
-        random,
-        network
+        Off,
+        Random,
+        Network
     };
 
     class BubbleFishyMonViewImpl : public View
@@ -258,7 +258,7 @@ namespace
         FishMode GetFishMode(const Preferences& prefs) const
         {
             return prefs.GetEnum<FishMode>(GetPrefName() + ".fish_mode")
-                .value_or(FishMode::network);
+                .value_or(FishMode::Network);
         }
 
         void SetFishMode(Preferences& prefs, FishMode mode) const
@@ -270,15 +270,15 @@ namespace
         {
             switch (mode)
             {
-                case FishMode::off:
+                case FishMode::Off:
                     fish_enabled = 0;
                     fish_traffic = 0;
                     break;
-                case FishMode::random:
+                case FishMode::Random:
                     fish_enabled = 1;
                     fish_traffic = 0;
                     break;
-                case FishMode::network:
+                case FishMode::Network:
                     fish_enabled = 1;
                     fish_traffic = 1;
                     break;
@@ -308,7 +308,7 @@ namespace
                 }
             }
 
-            if (fishMode == FishMode::network)
+            if (fishMode == FishMode::Network)
             {
                 auto netData = _networkPoller->PollCached();
                 std::uint64_t sumRx = 0;
