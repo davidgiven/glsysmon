@@ -4,6 +4,6 @@
 
 #include "preferences/preferences.h"
 
-void View::DrawConfiguration(Preferences& preferences)
+void View::DrawConfiguration(Preferences& /*preferences*/)
 {
 }

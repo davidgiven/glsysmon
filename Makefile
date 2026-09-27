@@ -11,13 +11,13 @@ PKG_CONFIG ?= pkg-config
 SDL_CFLAGS     := $(shell $(PKG_CONFIG) --cflags sdl3)
 SDL_LIBS       := $(shell $(PKG_CONFIG) --libs sdl3)
 IMGUI_DIR      := dep/imgui
-IMGUI_CFLAGS   := -I$(IMGUI_DIR)
+IMGUI_CFLAGS   := -isystem $(IMGUI_DIR)
 IMPLOT_DIR     := dep/implot
-IMPLOT_CFLAGS  := -I$(IMPLOT_DIR)
+IMPLOT_CFLAGS  := -isystem $(IMPLOT_DIR)
 IMHTML_DIR      := dep/imhtml
-IMHTML_CFLAGS   := -I$(IMHTML_DIR)
+IMHTML_CFLAGS   := -isystem $(IMHTML_DIR)
 LITEHTML_DIR      := dep/litehtml
-LITEHTML_CFLAGS := -I$(LITEHTML_DIR)/include -I$(LITEHTML_DIR)/include/litehtml -I$(LITEHTML_DIR)/src -I$(LITEHTML_DIR)/src/gumbo/include
+LITEHTML_CFLAGS := -isystem $(LITEHTML_DIR)/include -isystem $(LITEHTML_DIR)/include/litehtml -isystem $(LITEHTML_DIR)/src -isystem $(LITEHTML_DIR)/src/gumbo/include
 LITEHTML_LIBS   :=
 GUMBO_CFLAGS    :=
 GUMBO_LIBS      :=
@@ -59,7 +59,7 @@ LITEHTML_OBJS := $(patsubst $(LITEHTML_DIR)/src/%.cpp,$(BUILD)/litehtml/%.o,$(LI
 GUMBO_SRCS := $(wildcard $(LITEHTML_DIR)/src/gumbo/*.c)
 GUMBO_OBJS := $(patsubst $(LITEHTML_DIR)/src/gumbo/%.c,$(BUILD)/gumbo/%.o,$(GUMBO_SRCS))
 
-BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -I$(CURDIR)/dep/bfm/include -I$(CURDIR)/dep/bfm
+BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -isystem $(CURDIR)/dep/bfm/include -isystem $(CURDIR)/dep/bfm
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
 
 SRC_OBJS := \
@@ -207,183 +207,226 @@ TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
 	$(TEST_BUILD)/render_lib.o
 
 all: $(BIN)
+	@echo $@
 
 $(BIN): $(OBJS)
-	$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
 		$(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(DROIDSANS_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CXX) -O2 -o $@ $<
+	@$(CXX) -O2 -w -o $@ $<
 
 $(DROIDSANS_GEN_CPP): $(DROIDSANS_TTF) $(DROIDSANS_TOOL)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(DROIDSANS_TOOL) -nostatic $< DroidSansFont > $@
-	sed -i 's/^const unsigned/extern const unsigned/' $@
+	@$(DROIDSANS_TOOL) -nostatic $< DroidSansFont > $@
+	@sed -i 's/^const unsigned/extern const unsigned/' $@
 
 $(DROIDSANS_GEN_OBJ): $(DROIDSANS_GEN_CPP)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(CODICON_GEN_CPP): $(CODICON_TTF) $(DROIDSANS_TOOL)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(DROIDSANS_TOOL) -nostatic $< CodiconFont > $@
-	sed -i 's/^const unsigned/extern const unsigned/' $@
+	@$(DROIDSANS_TOOL) -nostatic $< CodiconFont > $@
+	@sed -i 's/^const unsigned/extern const unsigned/' $@
 
 $(CODICON_GEN_OBJ): $(CODICON_GEN_CPP)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(GEN)/wlr-layer-shell-client-protocol.h: $(WAYLAND_XML)
+	@echo $@
 	@mkdir -p $(GEN)
-	$(WAYLAND_SCANNER) client-header < $< > $@
+	@$(WAYLAND_SCANNER) client-header < $< > $@
 
 $(GEN)/wlr-layer-shell-client-protocol.c: $(WAYLAND_XML)
+	@echo $@
 	@mkdir -p $(GEN)
-	$(WAYLAND_SCANNER) private-code < $< > $@
+	@$(WAYLAND_SCANNER) private-code < $< > $@
 
 $(GEN)/wlr-layer-shell-client-protocol.o: $(GEN)/wlr-layer-shell-client-protocol.c
-	$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
+	@echo $@
+	@$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
 
 $(GEN)/xdg-shell-client-protocol.h: $(XDG_SHELL_XML)
+	@echo $@
 	@mkdir -p $(GEN)
-	$(WAYLAND_SCANNER) client-header < $< > $@
+	@$(WAYLAND_SCANNER) client-header < $< > $@
 
 $(GEN)/xdg-shell-client-protocol.c: $(XDG_SHELL_XML)
+	@echo $@
 	@mkdir -p $(GEN)
-	$(WAYLAND_SCANNER) private-code < $< > $@
+	@$(WAYLAND_SCANNER) private-code < $< > $@
 
 $(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
-	$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
+	@echo $@
+	@$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
 
 $(BUILD)/bfm/%.o: dep/bfm/%.c $(WAYLAND_PROTOCOL_HEADER)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CC) $(COMMON_CFLAGS) $(BFM_CFLAGS) -c -o $@ $<
+	@$(CC) $(COMMON_CFLAGS) -w $(BFM_CFLAGS) -c -o $@ $<
 
 $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
 $(BUILD)/imgui.o: $(IMGUI_DIR)/imgui.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/imgui_draw.o: $(IMGUI_DIR)/imgui_draw.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/imgui_tables.o: $(IMGUI_DIR)/imgui_tables.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/imgui_widgets.o: $(IMGUI_DIR)/imgui_widgets.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/implot.o: $(IMPLOT_DIR)/implot.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/implot_items.o: $(IMPLOT_DIR)/implot_items.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/imhtml.o: $(IMHTML_DIR)/imhtml.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/litehtml/%.o: $(LITEHTML_DIR)/src/%.cpp
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/gumbo/%.o: $(LITEHTML_DIR)/src/gumbo/%.c
+	@echo $@
 	@mkdir -p $(dir $@)
-	$(CC) -O2 -g -Wall -Wextra -I$(LITEHTML_DIR)/src/gumbo/include -I$(LITEHTML_DIR)/src/gumbo/include/gumbo -MMD -MP -c -o $@ $<
+	@$(CC) -O2 -g -w -isystem $(LITEHTML_DIR)/src/gumbo/include -isystem $(LITEHTML_DIR)/src/gumbo/include/gumbo -MMD -MP -c -o $@ $<
 
 $(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(BUILD)/imgui_impl_sdlgpu3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdlgpu3.cpp
+	@echo $@
 	@mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
+	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
 $(TEST_BUILD)/%.o: tests/%.cc
+	@echo $@
 	@mkdir -p $(TEST_BUILD)
-	$(CXX) $(TEST_CFLAGS) -c -o $@ $<
+	@$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
-	$(CXX) -o $@ $^
+	@echo $@
+	@$(CXX) -o $@ $^
 
 $(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_POLLER): $(TEST_BUILD)/poller_test.o $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 
 $(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CPU): $(TEST_BUILD)/render_fake_cpu.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_TEMPERATURE): $(TEST_BUILD)/render_fake_temperature.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_NETWORK): $(TEST_BUILD)/render_fake_network.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_DISK): $(TEST_BUILD)/render_fake_disk.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
-	$(CXX) -o $@ $^
+	@echo $@
+	@$(CXX) -o $@ $^
 
 run: $(BIN)
-	./$(BIN)
+	@echo $@
+	@./$(BIN)
 
 test: $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER)
-	./$(TEST_UNIT)
-	./$(TEST_TIMER)
-	./$(TEST_GRAPH_MIXIN)
-	./$(TEST_PREFERENCES)
-	./$(TEST_UTILS)
-	./$(TEST_MEMORY)
-	./$(TEST_CPU)
-	./$(TEST_POLLER)
-	./$(TEST_RENDER_HOSTNAME)
-	./$(TEST_RENDER_CLOCK)
-	./$(TEST_RENDER_CPU)
-	./$(TEST_RENDER_TEMPERATURE)
-	./$(TEST_RENDER_NETWORK)
-	./$(TEST_RENDER_DISK)
+	@echo $@
+	@./$(TEST_UNIT)
+	@./$(TEST_TIMER)
+	@./$(TEST_GRAPH_MIXIN)
+	@./$(TEST_PREFERENCES)
+	@./$(TEST_UTILS)
+	@./$(TEST_MEMORY)
+	@./$(TEST_CPU)
+	@./$(TEST_POLLER)
+	@./$(TEST_RENDER_HOSTNAME)
+	@./$(TEST_RENDER_CLOCK)
+	@./$(TEST_RENDER_CPU)
+	@./$(TEST_RENDER_TEMPERATURE)
+	@./$(TEST_RENDER_NETWORK)
+	@./$(TEST_RENDER_DISK)
 
 # Compilation database for clangd; every src/**/*.cc and tests/*.cc builds with
 # their respective flags.
@@ -392,6 +435,7 @@ SRC_CC := $(wildcard src/*.cc) $(wildcard src/preferences/*.cc) \
            $(wildcard src/sensors/*.cc)
 TEST_CC := $(wildcard tests/*.cc)
 compile_commands.json: $(SRC_CC) $(TEST_CC)
+	@echo $@
 	@mkdir -p $(BUILD)
 	@{ printf '[\n'; first=1; for f in $(sort $(SRC_CC) $(TEST_CC)); do \
 		if [ $$first -eq 1 ]; then first=0; else printf ',\n'; fi; \
@@ -403,7 +447,8 @@ compile_commands.json: $(SRC_CC) $(TEST_CC)
 	done; printf '\n]\n'; } > $@
 
 clean:
-	rm -rf $(BUILD) $(BIN) compile_commands.json
+	@echo $@
+	@rm -rf $(BUILD) $(BIN) compile_commands.json
 
 -include $(DEPS)
 
