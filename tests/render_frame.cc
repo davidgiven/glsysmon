@@ -10,6 +10,7 @@
 #include <stb_image_write.h>
 
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <string>
@@ -26,6 +27,7 @@ namespace render_frame
         Ui& ui,
         ImGuiFrameRenderer& frameRenderer)
     {
+        SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "offscreen");
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD))
         {
             SDL_Log("SDL_Init failed: %s", SDL_GetError());
@@ -35,14 +37,21 @@ namespace render_frame
         if (height <= 0)
         {
             SDL_Rect bounds = {};
-            if (!SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), &bounds))
+            SDL_DisplayID display = SDL_GetPrimaryDisplay();
+            if (display != 0 && SDL_GetDisplayUsableBounds(display, &bounds) &&
+                bounds.h > 0)
             {
-                SDL_Log(
-                    "SDL_GetDisplayUsableBounds failed: %s", SDL_GetError());
-                SDL_Quit();
-                return 1;
+                height = bounds.h;
             }
-            height = bounds.h;
+            else
+            {
+                height = 768;
+                SDL_Log(
+                    "SDL_GetDisplayUsableBounds failed: %s, "
+                    "using fallback height %d",
+                    SDL_GetError(),
+                    height);
+            }
         }
 
         // The window is only a platform-backend carrier for ImGui; nothing is
