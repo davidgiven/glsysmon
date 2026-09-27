@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include <magic_enum.hpp>
+
 struct CliArgs
 {
     std::vector<std::string> values;
@@ -42,6 +44,21 @@ public:
     virtual void SetBoolean(bool value) = 0;
     virtual void SetStringList(const std::vector<std::string>& value) = 0;
     virtual void SetStringSet(const std::set<std::string>& value) = 0;
+
+    template <typename E>
+    std::optional<E> GetEnum() const
+    {
+        if (auto s = GetString())
+            if (auto e = magic_enum::enum_cast<E>(*s))
+                return e;
+        return std::nullopt;
+    }
+
+    template <typename E>
+    void SetEnum(E value)
+    {
+        SetString(std::string(magic_enum::enum_name(value)));
+    }
 
     bool operator==(const Value& other) const
     {
@@ -115,6 +132,23 @@ public:
         const std::string& key, const std::vector<std::string>& value);
     void SetStringSet(
         const std::string& key, const std::set<std::string>& value);
+
+    template <typename E>
+    std::optional<E> GetEnum(const std::string& key) const
+    {
+        auto v = Get(key);
+        if (!v)
+            return std::nullopt;
+        return v->GetEnum<E>();
+    }
+
+    template <typename E>
+    void SetEnum(const std::string& key, E value)
+    {
+        auto v = Add(key);
+        if (v)
+            v->SetEnum<E>(value);
+    }
 
     virtual void ClearAll();
 };

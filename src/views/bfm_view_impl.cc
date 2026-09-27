@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "display/bfm_gpu_bridge.h"
-#include "globals.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
 #include "sensors/memory_poller.h"
@@ -258,16 +257,13 @@ namespace
 
         FishMode GetFishMode(const Preferences& prefs) const
         {
-            if (auto v = prefs.GetString(GetPrefName() + ".fish_mode"))
-                if (auto e = magic_enum::enum_cast<FishMode>(*v))
-                    return *e;
-            return FishMode::network;
+            return prefs.GetEnum<FishMode>(GetPrefName() + ".fish_mode")
+                .value_or(FishMode::network);
         }
 
         void SetFishMode(Preferences& prefs, FishMode mode) const
         {
-            auto name = magic_enum::enum_name(mode);
-            prefs.SetString(GetPrefName() + ".fish_mode", std::string(name));
+            prefs.SetEnum(GetPrefName() + ".fish_mode", mode);
         }
 
         void ApplyFishMode(FishMode mode) const

@@ -16,18 +16,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
-            pkg-config \
+            doctest-dev \
+            libgumbo-dev \
+            liblitehtml-dev \
+            libmagicenum-dev \
             libsdl3-dev \
-            wayland-protocols \
+            libstb-dev \
+            libtomlplusplus-dev \
+            libvulkan-dev \
             libwayland-dev \
             libx11-dev \
-            libvulkan-dev \
             mesa-vulkan-drivers \
-            libtomlplusplus-dev \
-            libstb-dev \
-            liblitehtml-dev \
-            libgumbo-dev \
-            doctest-dev \
+            pkg-config \
+            wayland-protocols \
             xvfb
 
       - name: Build
