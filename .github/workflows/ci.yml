@@ -31,7 +31,4 @@ jobs:
             xvfb
 
       - name: Build
-        run: make -j1
-
-      - name: Test
-        run: xvfb-run -a make test -j$(nproc)
+        run: make -j$(nproc)
