@@ -26,8 +26,7 @@ namespace
                 return {};
 
             long long total = -1;
-            long long free = -1;
-            long long buffers = -1;
+            long long avail = -1;
 
             std::string line;
             while (std::getline(file, line))
@@ -57,24 +56,22 @@ namespace
                     long long v = std::stoll(numStr);
                     if (key == "MemTotal")
                         total = v;
-                    else if (key == "MemFree")
-                        free = v;
-                    else if (key == "Buffers")
-                        buffers = v;
+                    else if (key == "MemAvailable")
+                        avail = v;
                 }
                 catch (...)
                 {
                     continue;
                 }
 
-                if (total != -1 && free != -1 && buffers != -1)
+                if (total != -1 && avail != -1)
                     break;
             }
 
-            if (total == -1 || free == -1 || buffers == -1)
+            if (total == -1 || avail == -1)
                 return {};
 
-            long long usedKb = total - free - buffers;
+            long long usedKb = total - avail;
             if (usedKb < 0)
                 usedKb = 0;
 

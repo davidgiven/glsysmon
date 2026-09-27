@@ -176,8 +176,7 @@ TEST_CASE("Poller::PollCached with MemoryPoller caches file reads")
         std::ofstream out(path);
         REQUIRE(out.is_open());
         out << "MemTotal:       8000 kB\n";
-        out << "MemFree:        2000 kB\n";
-        out << "Buffers:         500 kB\n";
+        out << "MemAvailable:   5500 kB\n";
     }
 
     auto poller = CreateMemoryPoller(path);
@@ -186,24 +185,23 @@ TEST_CASE("Poller::PollCached with MemoryPoller caches file reads")
 
     auto r1 = poller->PollCached();
     REQUIRE(r1.size() == 1);
-    CHECK(r1["mem"].usedRam == (8000 - 2000 - 500) * 1024);
+    CHECK(r1["mem"].usedRam == (8000 - 5500) * 1024);
 
     {
         std::ofstream out(path);
         out << "MemTotal:       8000 kB\n";
-        out << "MemFree:        1000 kB\n";
-        out << "Buffers:         500 kB\n";
+        out << "MemAvailable:   6500 kB\n";
     }
 
     auto r2 = poller->PollCached();
-    CHECK(r2["mem"].usedRam == (8000 - 2000 - 500) * 1024);
+    CHECK(r2["mem"].usedRam == (8000 - 5500) * 1024);
 
     auto rDirect = poller->Poll();
-    CHECK(rDirect["mem"].usedRam == (8000 - 1000 - 500) * 1024);
+    CHECK(rDirect["mem"].usedRam == (8000 - 6500) * 1024);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(600));
     auto r3 = poller->PollCached();
-    CHECK(r3["mem"].usedRam == (8000 - 1000 - 500) * 1024);
+    CHECK(r3["mem"].usedRam == (8000 - 6500) * 1024);
 
     std::remove(path.c_str());
 }
@@ -214,8 +212,7 @@ TEST_CASE("Poller::PollCached with MemoryPoller respects custom interval")
     {
         std::ofstream out(path);
         out << "MemTotal:       8000 kB\n";
-        out << "MemFree:        2000 kB\n";
-        out << "Buffers:         500 kB\n";
+        out << "MemAvailable:   5500 kB\n";
     }
 
     auto poller = CreateMemoryPoller(path);
@@ -223,21 +220,20 @@ TEST_CASE("Poller::PollCached with MemoryPoller respects custom interval")
     poller->SetCacheIntervalMs(100);
 
     auto r1 = poller->PollCached();
-    CHECK(r1["mem"].usedRam == (8000 - 2000 - 500) * 1024);
+    CHECK(r1["mem"].usedRam == (8000 - 5500) * 1024);
 
     {
         std::ofstream out(path);
         out << "MemTotal:       8000 kB\n";
-        out << "MemFree:        500 kB\n";
-        out << "Buffers:         500 kB\n";
+        out << "MemAvailable:   7000 kB\n";
     }
 
     auto r2 = poller->PollCached();
-    CHECK(r2["mem"].usedRam == (8000 - 2000 - 500) * 1024);
+    CHECK(r2["mem"].usedRam == (8000 - 5500) * 1024);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
     auto r3 = poller->PollCached();
-    CHECK(r3["mem"].usedRam == (8000 - 500 - 500) * 1024);
+    CHECK(r3["mem"].usedRam == (8000 - 7000) * 1024);
 
     std::remove(path.c_str());
 }
@@ -324,8 +320,7 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
     {
         std::ofstream out(path);
         out << "MemTotal:       8000 kB\n";
-        out << "MemFree:        2000 kB\n";
-        out << "Buffers:         500 kB\n";
+        out << "MemAvailable:   5500 kB\n";
     }
 
     auto memPoller = sensors.CreateMemoryPoller(path);

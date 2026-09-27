@@ -96,7 +96,6 @@ namespace
                                     sizeof(DiskSample)));
                         };
 
-                        ImVec2 startPos = ImGui::GetCursorPos();
                         DrawGraph(
                             _prefs,
                             channelName,
@@ -107,19 +106,28 @@ namespace
                             [&]
                             {
                                 plot("rx", &samples[0].rxBps, 0);
-                            },
-                            static_cast<float>(graphHeight));
-                        ImGui::SetCursorPos(startPos);
-                        DrawGraph(
-                            _prefs,
-                            channelName,
-                            "",
-                            n,
-                            yMax,
-                            0,
-                            [&]
-                            {
-                                plot("tx", &samples[0].txBps, 1);
+                                thread_local std::vector<double> txInv;
+                                txInv.resize(static_cast<std::size_t>(n));
+                                for (int i = 0; i < n; ++i)
+                                    txInv[static_cast<std::size_t>(i)] =
+                                        yMax - samples[i].txBps;
+                                const ImVec4 col = ImPlot::GetColormapColor(1);
+                                ImPlot::PlotShaded("tx",
+                                    txInv.data(),
+                                    n,
+                                    yMax,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor,
+                                        col,
+                                        ImPlotProp_FillColor,
+                                        col));
+                                ImPlot::PlotLine("tx",
+                                    txInv.data(),
+                                    n,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor, col));
                             },
                             static_cast<float>(graphHeight));
                     }
