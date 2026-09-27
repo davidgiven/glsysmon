@@ -53,6 +53,9 @@ namespace
         {"bubbleFishyMon.width",           "56"                                   },
         {"bubbleFishyMon.height",          "56"                                   },
         {"bubbleFishyMon.fish_mode",       "network"                              },
+        {"bubbleFishyMon.show_duck",       "true"                                 },
+        {"bubbleFishyMon.duck",            "true"                                 },
+        {"bubbleFishyMon.duck_enabled",    "true"                                 },
         {"poller.cache_interval",          "500"                                  },
     };
 

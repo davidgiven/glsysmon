@@ -35,6 +35,7 @@ extern "C"
 {
     extern int fish_enabled;
     extern int fish_traffic;
+    extern int duck_enabled;
     void bfm_set_network_speed(int rx, int tx);
     void bfm_set_cpu_percent(int percent);
 }
@@ -64,6 +65,7 @@ namespace
             srand(0);
             bfm_glsysmon_init();
             ApplyFishMode(GetFishMode(_prefs));
+            ApplyDuckEnabled(GetDuckEnabled(_prefs));
             {
                 int w = GetWidth(_prefs);
                 int h = GetHeight(_prefs);
@@ -198,6 +200,13 @@ namespace
             const char* fishLabel(kFishNames[fishIndex]);
             if (ImGui::SliderInt("Fish mode", &fishIndex, 0, 2, fishLabel))
                 SetFishMode(preferences, static_cast<FishMode>(fishIndex));
+
+            bool duckEnabled = GetDuckEnabled(preferences);
+            int duckIndex = duckEnabled ? 1 : 0;
+            constexpr const char* kDuckNames[] = {"no duck", "duck"};
+            const char* duckLabel(kDuckNames[duckIndex]);
+            if (ImGui::SliderInt("Duck", &duckIndex, 0, 1, duckLabel))
+                SetDuckEnabled(preferences, duckIndex != 0);
         }
 
     private:
@@ -285,10 +294,28 @@ namespace
             }
         }
 
+        bool GetDuckEnabled(const Preferences& prefs) const
+        {
+            if (auto v = prefs.GetBoolean(GetPrefName() + ".duck_mode"))
+                return *v;
+            return true;
+        }
+
+        void SetDuckEnabled(Preferences& prefs, bool enabled) const
+        {
+            prefs.SetBoolean(GetPrefName() + ".duck_mode", enabled);
+        }
+
+        void ApplyDuckEnabled(bool enabled) const
+        {
+            duck_enabled = enabled ? 1 : 0;
+        }
+
         void Tick(Timer::Time t)
         {
             FishMode fishMode = GetFishMode(_prefs);
             ApplyFishMode(fishMode);
+            ApplyDuckEnabled(GetDuckEnabled(_prefs));
 
             {
                 auto data = _memoryPoller->PollCached();
