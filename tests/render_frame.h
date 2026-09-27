@@ -21,8 +21,9 @@ namespace render_frame
         Ui& ui,
         ImGuiFrameRenderer& frameRenderer);
 
-    // Returns true if the two PNG files are pixel-identical (same dimensions
-    // and bytes). Used to compare a fresh capture against a golden reference.
+    // Returns true if the two PNG files are visually similar within a
+    // tolerance (same dimensions and per-channel difference within limits).
+    // Used to compare a fresh capture against a golden reference.
     bool ImagesMatch(const char* actual, const char* expected);
 
 } // namespace render_frame

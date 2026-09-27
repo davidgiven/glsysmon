@@ -96,6 +96,6 @@ int main()
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;
     auto ui = CreateUi(*prefs, sensors, app);
-    auto renderer = CreateImGuiFrameRendererForTests();
+    auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_clock", *ui, *renderer);
 }

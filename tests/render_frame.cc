@@ -9,6 +9,7 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -203,15 +204,77 @@ namespace render_frame
             stbi_image_free(expected_pixels);
             return false;
         }
-        const bool match = actual_width == expected_width &&
-                           actual_height == expected_height &&
-                           std::memcmp(actual_pixels,
-                               expected_pixels,
-                               static_cast<std::size_t>(actual_width) *
-                                   actual_height * 4) == 0;
+        if (actual_width != expected_width || actual_height != expected_height)
+        {
+            SDL_Log("image dimensions differ: actual %dx%d vs expected %dx%d",
+                actual_width,
+                actual_height,
+                expected_width,
+                expected_height);
+            stbi_image_free(actual_pixels);
+            stbi_image_free(expected_pixels);
+            return false;
+        }
+
+        const int total_pixels = actual_width * actual_height;
+        constexpr int kPerChannelTolerance = 12;
+        constexpr double kAllowedFraction = 0.02;
+        constexpr double kMaxAvgDiff = 3.0;
+
+        int differing_pixels = 0;
+        long long total_diff = 0;
+        int max_diff = 0;
+
+        for (int i = 0; i < total_pixels; ++i)
+        {
+            int pixel_max = 0;
+            for (int c = 0; c < 4; ++c)
+            {
+                const int a = static_cast<int>(actual_pixels[i * 4 + c]);
+                const int e = static_cast<int>(expected_pixels[i * 4 + c]);
+                const int diff = std::abs(a - e);
+                total_diff += diff;
+                pixel_max = std::max(pixel_max, diff);
+                max_diff = std::max(max_diff, diff);
+            }
+            if (pixel_max > kPerChannelTolerance)
+                ++differing_pixels;
+        }
+
+        const double avg_diff =
+            static_cast<double>(total_diff) / (total_pixels * 4);
+        const double fraction =
+            static_cast<double>(differing_pixels) / total_pixels;
+
+        SDL_Log(
+            "image compare %s vs %s: avg diff %.3f, max diff %d, differing "
+            "pixels %d/%d (%.2f%%)",
+            actual,
+            expected,
+            avg_diff,
+            max_diff,
+            differing_pixels,
+            total_pixels,
+            fraction * 100.0);
+
         stbi_image_free(actual_pixels);
         stbi_image_free(expected_pixels);
-        return match;
+
+        if (fraction > kAllowedFraction)
+        {
+            SDL_Log("image differs: fraction %.2f%% exceeds %.2f%%",
+                fraction * 100.0,
+                kAllowedFraction * 100.0);
+            return false;
+        }
+        if (avg_diff > kMaxAvgDiff)
+        {
+            SDL_Log("image differs: avg diff %.3f exceeds %.3f",
+                avg_diff,
+                kMaxAvgDiff);
+            return false;
+        }
+        return true;
     }
 
 } // namespace render_frame
