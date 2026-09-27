@@ -77,16 +77,13 @@ namespace
                             yMax = 1;
                     }
 
-                    std::string subtitle;
                     const MemorySample& last = samples[sampleCount - 1];
-                    subtitle = std::to_string(std::llround(
-                                   100.0 * last.usedRam / last.totalRam)) +
-                               "%";
-
                     DrawGraph(
                         _prefs,
                         "",
-                        subtitle,
+                        std::to_string(std::llround(
+                            100.0 * last.usedRam / last.totalRam)) +
+                            "%",
                         n,
                         0,
                         yMax,
