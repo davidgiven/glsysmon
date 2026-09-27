@@ -47,6 +47,8 @@
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
 
+extern int bubbles_enabled;
+
 /* *INDENT-OFF* */
 /* drawing */
 void draw_cmap_image(void);
@@ -202,6 +204,12 @@ void bubble_update(void)
     Bubble *bubbles = bm.bubbles;
     int i, x, y;
     int seq;
+
+    if (!bubbles_enabled)
+    {
+        bm.nr_bubbles = 0;
+        return;
+    }
 
     /* make a new bubble, if needed */
     if ((bm.nr_bubbles < MAXBUBBLE) && ((rand() % 101) <= 32)) {

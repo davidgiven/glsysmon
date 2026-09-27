@@ -37,6 +37,7 @@ extern "C"
     extern int fish_traffic;
     extern int duck_enabled;
     extern int upside_down_duck_enabled;
+    extern int bubbles_enabled;
     void bfm_set_network_speed(int rx, int tx);
     void bfm_set_cpu_percent(int percent);
 }
@@ -48,23 +49,11 @@ enum class DuckMode
     InvertableDuck
 };
 
-namespace magic_enum::customize
+enum class BubblesMode
 {
-    template <>
-    constexpr customize_t enum_name<DuckMode>(DuckMode value) noexcept
-    {
-        switch (value)
-        {
-            case DuckMode::NoDuck:
-                return "no duck";
-            case DuckMode::Duck:
-                return "duck";
-            case DuckMode::InvertableDuck:
-                return "invertable duck";
-        }
-        return default_tag;
-    }
-} // namespace magic_enum::customize
+    NoBubbles,
+    Bubbles
+};
 
 namespace
 {
@@ -92,6 +81,7 @@ namespace
             bfm_glsysmon_init();
             ApplyFishMode(GetFishMode(_prefs));
             ApplyDuckMode(GetDuckMode(_prefs));
+            ApplyBubblesMode(GetBubblesMode(_prefs));
             {
                 int w = GetWidth(_prefs);
                 int h = GetHeight(_prefs);
@@ -234,6 +224,14 @@ namespace
             const char* duckLabel(kDuckNames[duckIndex]);
             if (ImGui::SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
                 SetDuckMode(preferences, static_cast<DuckMode>(duckIndex));
+
+            BubblesMode currentBubblesMode = GetBubblesMode(preferences);
+            int bubblesIndex = static_cast<int>(currentBubblesMode);
+            constexpr const char* kBubblesNames[] = {"no bubbles", "bubbles"};
+            const char* bubblesLabel(kBubblesNames[bubblesIndex]);
+            if (ImGui::SliderInt("Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
+                SetBubblesMode(
+                    preferences, static_cast<BubblesMode>(bubblesIndex));
         }
 
     private:
@@ -323,11 +321,8 @@ namespace
 
         DuckMode GetDuckMode(const Preferences& prefs) const
         {
-            if (auto v = prefs.GetEnum<DuckMode>(GetPrefName() + ".duck_mode"))
-                return *v;
-            if (auto b = prefs.GetBoolean(GetPrefName() + ".duck_mode"))
-                return *b ? DuckMode::Duck : DuckMode::NoDuck;
-            return DuckMode::Duck;
+            return prefs.GetEnum<DuckMode>(GetPrefName() + ".duck_mode")
+                .value_or(DuckMode::Duck);
         }
 
         void SetDuckMode(Preferences& prefs, DuckMode mode) const
@@ -354,11 +349,38 @@ namespace
             }
         }
 
+        BubblesMode GetBubblesMode(const Preferences& prefs) const
+        {
+            return prefs.GetEnum<BubblesMode>(GetPrefName() + ".bubbles_mode")
+                .value_or(BubblesMode::Bubbles);
+        }
+
+        void SetBubblesMode(Preferences& prefs, BubblesMode mode) const
+        {
+            prefs.SetEnum(GetPrefName() + ".bubbles_mode", mode);
+        }
+
+        void ApplyBubblesMode(BubblesMode mode) const
+        {
+            switch (mode)
+            {
+                case BubblesMode::NoBubbles:
+                    bubbles_enabled = 0;
+                    bm.n_bubbles = 0;
+                    bm.nr_bubbles = 0;
+                    break;
+                case BubblesMode::Bubbles:
+                    bubbles_enabled = 1;
+                    break;
+            }
+        }
+
         void Tick(Timer::Time t)
         {
             FishMode fishMode = GetFishMode(_prefs);
             ApplyFishMode(fishMode);
             ApplyDuckMode(GetDuckMode(_prefs));
+            ApplyBubblesMode(GetBubblesMode(_prefs));
 
             {
                 auto data = _memoryPoller->PollCached();

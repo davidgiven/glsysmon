@@ -198,6 +198,8 @@ int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
 #endif				/* ENABLE_MEMSCREEN */
 
+int bubbles_enabled = 1;
+
 #define INT_VAL 0
 #define DOUBLE_VAL 1
 #define COLOR_VAL 2
@@ -978,7 +980,7 @@ BFM_STATIC void bubblemon_update(int proximity)
      */
 
     /* Create a new bubble if the planets are correctly aligned... */
-    if ((bm.n_bubbles < bm.maxbubbles)
+    if (bubbles_enabled && (bm.n_bubbles < bm.maxbubbles)
 	&& ((rand() % 101) <= loadPercentage)) {
 	/* We don't allow bubbles on the edges 'cause we'd have to clip them */
 	bubbles[bm.n_bubbles].x = (rand() % (bfm_width - 2)) + 1;

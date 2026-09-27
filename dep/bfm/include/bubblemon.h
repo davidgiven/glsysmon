@@ -179,6 +179,7 @@ extern int bubble_state_change;
 extern int duck_enabled;
 extern int fish_enabled;
 extern int cpu_enabled;
+extern int bubbles_enabled;
 extern int bfm_width;
 extern int bfm_height;
 #ifdef ENABLE_FISH
