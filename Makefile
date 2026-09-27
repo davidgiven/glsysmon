@@ -24,6 +24,7 @@ WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
 WAYLAND_LIBS   := $(shell $(PKG_CONFIG) --libs wayland-client)
 TOMLPLUSPLUS_CFLAGS := $(shell $(PKG_CONFIG) --cflags tomlplusplus)
 TOMLPLUSPLUS_LIBS   := $(shell $(PKG_CONFIG) --libs tomlplusplus)
+MAGIC_ENUM_CFLAGS   := $(shell $(PKG_CONFIG) --cflags magic_enum 2>/dev/null)
 STB_CFLAGS          := $(shell $(PKG_CONFIG) --cflags stb 2>/dev/null)
 STB_LIBS            := $(shell $(PKG_CONFIG) --libs stb 2>/dev/null)
 
@@ -59,7 +60,7 @@ XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
 COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
-                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) $(PROFILER_CFLAGS) -MMD -MP
+                  $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) $(MAGIC_ENUM_CFLAGS) $(PROFILER_CFLAGS) -MMD -MP
 
 BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -isystem $(CURDIR)/dep/bfm/include -isystem $(CURDIR)/dep/bfm
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o

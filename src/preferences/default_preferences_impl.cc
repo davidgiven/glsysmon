@@ -52,6 +52,7 @@ namespace
         {"bubbleFishyMon.update_interval", "10"                                   },
         {"bubbleFishyMon.width",           "56"                                   },
         {"bubbleFishyMon.height",          "56"                                   },
+        {"bubbleFishyMon.fish_mode",       "network"                              },
         {"poller.cache_interval",          "500"                                  },
     };
 

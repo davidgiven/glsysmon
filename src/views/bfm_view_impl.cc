@@ -12,12 +12,15 @@
 #include <vector>
 
 #include "display/bfm_gpu_bridge.h"
+#include "globals.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
 #include "sensors/memory_poller.h"
 #include "sensors/network_poller.h"
 #include "sensors/sensors.h"
 #include "timer.h"
+
+#include <magic_enum.hpp>
 
 extern "C"
 {
@@ -31,6 +34,7 @@ extern "C"
 
 extern "C"
 {
+    extern int fish_enabled;
     extern int fish_traffic;
     void bfm_set_network_speed(int rx, int tx);
     void bfm_set_cpu_percent(int percent);
@@ -39,6 +43,13 @@ extern "C"
 namespace
 {
     static constexpr int FISH_MAX_SPEED = 8;
+
+    enum class FishMode
+    {
+        off,
+        random,
+        network
+    };
 
     class BubbleFishyMonViewImpl : public View
     {
@@ -51,9 +62,9 @@ namespace
             _networkPoller(sensors.CreateNetworkPoller()),
             _cpuPoller(sensors.CreateCpuPoller())
         {
-            fish_traffic = 1;
             srand(0);
             bfm_glsysmon_init();
+            ApplyFishMode(GetFishMode(_prefs));
             {
                 int w = GetWidth(_prefs);
                 int h = GetHeight(_prefs);
@@ -181,6 +192,13 @@ namespace
                 SetWidth(preferences, w);
                 SetHeight(preferences, h);
             }
+
+            FishMode currentFishMode = GetFishMode(preferences);
+            int fishIndex = static_cast<int>(currentFishMode);
+            constexpr const char* kFishNames[] = {"off", "random", "network"};
+            const char* fishLabel(kFishNames[fishIndex]);
+            if (ImGui::SliderInt("Fish mode", &fishIndex, 0, 2, fishLabel))
+                SetFishMode(preferences, static_cast<FishMode>(fishIndex));
         }
 
     private:
@@ -238,8 +256,44 @@ namespace
             prefs.SetDouble(GetPrefName() + ".update_interval", value);
         }
 
+        FishMode GetFishMode(const Preferences& prefs) const
+        {
+            if (auto v = prefs.GetString(GetPrefName() + ".fish_mode"))
+                if (auto e = magic_enum::enum_cast<FishMode>(*v))
+                    return *e;
+            return FishMode::network;
+        }
+
+        void SetFishMode(Preferences& prefs, FishMode mode) const
+        {
+            auto name = magic_enum::enum_name(mode);
+            prefs.SetString(GetPrefName() + ".fish_mode", std::string(name));
+        }
+
+        void ApplyFishMode(FishMode mode) const
+        {
+            switch (mode)
+            {
+                case FishMode::off:
+                    fish_enabled = 0;
+                    fish_traffic = 0;
+                    break;
+                case FishMode::random:
+                    fish_enabled = 1;
+                    fish_traffic = 0;
+                    break;
+                case FishMode::network:
+                    fish_enabled = 1;
+                    fish_traffic = 1;
+                    break;
+            }
+        }
+
         void Tick(Timer::Time t)
         {
+            FishMode fishMode = GetFishMode(_prefs);
+            ApplyFishMode(fishMode);
+
             {
                 auto data = _memoryPoller->PollCached();
                 auto it = data.find("mem");
@@ -258,6 +312,7 @@ namespace
                 }
             }
 
+            if (fishMode == FishMode::network)
             {
                 auto netData = _networkPoller->PollCached();
                 std::uint64_t sumRx = 0;
@@ -324,6 +379,10 @@ namespace
                     txSpeed = 0;
                 }
                 bfm_set_network_speed(rxSpeed, txSpeed);
+            }
+            else
+            {
+                bfm_set_network_speed(0, 0);
             }
 
             {
