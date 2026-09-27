@@ -68,34 +68,6 @@ namespace
                             maxVal = 1;
                         double yMax = maxVal * 1.1;
 
-                        auto plot = [&](const char* label,
-                                        const double* values,
-                                        int colIdx)
-                        {
-                            const ImVec4 col = ImPlot::GetColormapColor(colIdx);
-                            ImPlot::PlotShaded(label,
-                                values,
-                                n,
-                                0.0,
-                                1,
-                                0,
-                                ImPlotSpec(ImPlotProp_LineColor,
-                                    col,
-                                    ImPlotProp_FillColor,
-                                    col,
-                                    ImPlotProp_Stride,
-                                    sizeof(DiskSample)));
-                            ImPlot::PlotLine(label,
-                                values,
-                                n,
-                                1,
-                                0,
-                                ImPlotSpec(ImPlotProp_LineColor,
-                                    col,
-                                    ImPlotProp_Stride,
-                                    sizeof(DiskSample)));
-                        };
-
                         DrawGraph(
                             _prefs,
                             channelName,
@@ -105,7 +77,22 @@ namespace
                             yMax,
                             [&]
                             {
-                                plot("rx", &samples[0].rxBps, 0);
+                                {
+                                    const ImVec4 col =
+                                        ImPlot::GetColormapColor(0);
+                                    ImPlot::PlotShaded("rx",
+                                        &samples[0].rxBps,
+                                        n,
+                                        0.0,
+                                        1,
+                                        0,
+                                        ImPlotSpec(ImPlotProp_LineColor,
+                                            col,
+                                            ImPlotProp_FillColor,
+                                            col,
+                                            ImPlotProp_Stride,
+                                            sizeof(DiskSample)));
+                                }
                                 thread_local std::vector<double> txInv;
                                 txInv.resize(static_cast<std::size_t>(n));
                                 for (int i = 0; i < n; ++i)
@@ -122,12 +109,6 @@ namespace
                                         col,
                                         ImPlotProp_FillColor,
                                         col));
-                                ImPlot::PlotLine("tx",
-                                    txInv.data(),
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
                             },
                             static_cast<float>(graphHeight));
                     }

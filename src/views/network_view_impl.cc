@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <optional>
 #include <set>
@@ -75,42 +76,14 @@ namespace
                             yMax = maxVal * 1.1;
                         }
 
-                        auto plot = [&](const char* label,
-                                        const double* values,
-                                        int colIdx)
-                        {
-                            const ImVec4 col = ImPlot::GetColormapColor(colIdx);
-                            ImPlot::PlotShaded(label,
-                                values,
-                                n,
-                                0.0,
-                                1,
-                                0,
-                                ImPlotSpec(ImPlotProp_LineColor,
-                                    col,
-                                    ImPlotProp_FillColor,
-                                    col,
-                                    ImPlotProp_Stride,
-                                    sizeof(NetworkSample)));
-                            ImPlot::PlotLine(label,
-                                values,
-                                n,
-                                1,
-                                0,
-                                ImPlotSpec(ImPlotProp_LineColor,
-                                    col,
-                                    ImPlotProp_Stride,
-                                    sizeof(NetworkSample)));
-                        };
-
                         std::string subtitle;
                         if (showNumbers)
                         {
                             const NetworkSample& last =
                                 samples[sampleCount - 1];
-                            subtitle = "RX " + FormatBinary(last.rxBps, "B/s") +
-                                       "\nTX " +
-                                       FormatBinary(last.txBps, "B/s");
+                            subtitle = std::format("RX {}\nTX {}",
+                                FormatBinary(last.rxBps, "B/s"),
+                                FormatBinary(last.txBps, "B/s"));
                         }
 
                         DrawGraph(
@@ -122,12 +95,25 @@ namespace
                             yMax,
                             [&]
                             {
-                                plot("rx", &samples[0].rxBps, 0);
+                                ImVec4 col = ImPlot::GetColormapColor(0);
+                                ImPlot::PlotShaded("rx",
+                                    &samples[0].rxBps,
+                                    n,
+                                    0.0,
+                                    1,
+                                    0,
+                                    ImPlotSpec(ImPlotProp_LineColor,
+                                        col,
+                                        ImPlotProp_FillColor,
+                                        col,
+                                        ImPlotProp_Stride,
+                                        sizeof(NetworkSample)));
+
                                 double txInv[n];
                                 for (int i = 0; i < n; ++i)
                                     txInv[static_cast<std::size_t>(i)] =
                                         yMax - samples[i].txBps;
-                                const ImVec4 col = ImPlot::GetColormapColor(1);
+                                col = ImPlot::GetColormapColor(1);
                                 ImPlot::PlotShaded("tx",
                                     txInv,
                                     n,
@@ -138,12 +124,6 @@ namespace
                                         col,
                                         ImPlotProp_FillColor,
                                         col));
-                                ImPlot::PlotLine("tx",
-                                    txInv,
-                                    n,
-                                    1,
-                                    0,
-                                    ImPlotSpec(ImPlotProp_LineColor, col));
                             },
                             static_cast<float>(graphHeight));
                     }
