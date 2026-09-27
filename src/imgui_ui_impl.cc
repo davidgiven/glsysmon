@@ -102,7 +102,7 @@ namespace
                     ImGuiViewportFlags_NoDecoration;
                 ImGui::SetNextWindowClass(&window_class);
                 ImGui::SetNextWindowSize(
-                    ImVec2(600, 500), ImGuiCond_FirstUseEver);
+                    ImVec2(800, 600), ImGuiCond_FirstUseEver);
                 ImGui::Begin("Configuration",
                     &_viewportOpen,
                     ImGuiWindowFlags_NoTitleBar);

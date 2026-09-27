@@ -4,10 +4,12 @@
 #include <imhtml.hpp>
 
 #include <algorithm>
-#include <cstdio>
 #include <ctime>
+#include <format>
+#include <iomanip>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -37,22 +39,14 @@ namespace
         {
             std::tm tm = _sensor->GetLocalTime();
             std::string format = GetFormat(_prefs);
-            char buf[8192];
-            if (std::strftime(buf, sizeof(buf), format.c_str(), &tm) == 0)
-                buf[0] = '\0';
             ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_Text];
-            char style[64];
-            std::snprintf(style,
-                sizeof(style),
-                "color: #%02X%02X%02X;",
-                static_cast<int>(col.x * 255),
-                static_cast<int>(col.y * 255),
-                static_cast<int>(col.z * 255));
-            std::string html = "<div style=\"";
-            html += style;
-            html += "\">";
-            html += buf;
-            html += "</div>";
+            std::ostringstream oss;
+            oss << std::format("<div style=\"color: #{:02X}{:02X}{:02X};\">",
+                       static_cast<int>(col.x * 255),
+                       static_cast<int>(col.y * 255),
+                       static_cast<int>(col.z * 255))
+                << std::put_time(&tm, format.c_str()) << "</div>";
+            std::string html = oss.str();
             ImHTML::Canvas("clock", html.c_str());
         }
 
