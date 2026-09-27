@@ -23,6 +23,11 @@ namespace
     class ImGuiFrameRendererImpl : public ImGuiFrameRenderer
     {
     public:
+        explicit ImGuiFrameRendererImpl(bool forTests = false):
+            _forTests(forTests)
+        {
+        }
+
         bool Init(SDL_GPUDevice* device,
             SDL_Window* window,
             SDL_GPUTextureFormat color_format) override
@@ -38,21 +43,41 @@ namespace
                 nullptr; // do not persist window layout to imgui.ini
             ImGui::StyleColorsDark();
 
-            const float ui_scale =
-                SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window));
+            const float ui_scale = _forTests
+                                       ? 1.0f
+                                       : SDL_GetDisplayContentScale(
+                                             SDL_GetDisplayForWindow(window));
             ImGuiStyle& style = ImGui::GetStyle();
+            if (_forTests)
+            {
+                style.AntiAliasedLines = false;
+                style.AntiAliasedLinesUseTex = false;
+                style.AntiAliasedFill = false;
+            }
             style.ScaleAllSizes(ui_scale);
             style.FontScaleDpi = ui_scale;
 
+            ImFontConfig droid_config;
+            if (_forTests)
+            {
+                droid_config.OversampleH = 1;
+                droid_config.OversampleV = 1;
+            }
             io.Fonts->AddFontFromMemoryCompressedTTF(
                 DroidSansFont_compressed_data,
                 static_cast<int>(DroidSansFont_compressed_size),
-                16.0f);
+                16.0f,
+                &droid_config);
 
             static const ImWchar codicon_ranges[] = {0xEA60, 0xECE7, 0};
             ImFontConfig codicon_config;
             codicon_config.MergeMode = true;
             codicon_config.PixelSnapH = true;
+            if (_forTests)
+            {
+                codicon_config.OversampleH = 1;
+                codicon_config.OversampleV = 1;
+            }
             io.Fonts->AddFontFromMemoryCompressedTTF(
                 CodiconFont_compressed_data,
                 static_cast<int>(CodiconFont_compressed_size),
@@ -128,6 +153,7 @@ namespace
         }
 
     private:
+        bool _forTests = false;
         ImGuiContext* _context = nullptr;
         ImPlotContext* _plotContext = nullptr;
     };
@@ -136,5 +162,10 @@ namespace
 
 std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer()
 {
-    return std::make_unique<ImGuiFrameRendererImpl>();
+    return std::make_unique<ImGuiFrameRendererImpl>(false);
+}
+
+std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRendererForTests()
+{
+    return std::make_unique<ImGuiFrameRendererImpl>(true);
 }

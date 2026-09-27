@@ -37,3 +37,4 @@ public:
 };
 
 extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
+extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRendererForTests();

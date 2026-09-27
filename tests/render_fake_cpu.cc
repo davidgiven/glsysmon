@@ -123,6 +123,6 @@ int main()
     FakeSensors sensors(*prefs, *timer);
     FakeApp app;
     auto ui = CreateUi(*prefs, sensors, app);
-    auto renderer = CreateImGuiFrameRenderer();
+    auto renderer = CreateImGuiFrameRendererForTests();
     return render_lib::Run("render_fake_cpu", *ui, *renderer);
 }
