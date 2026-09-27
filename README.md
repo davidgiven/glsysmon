@@ -3,7 +3,7 @@ glsysmon
 
 A dockable system monitor which isn't gkrellm but it probably strangely familiar to anyone who's used gkrellm.
 
-<img src="doc/screenshot.png" align="right"/>
+<img src="doc/screenshot.png" align="left"/>
 
 What?
 -----
@@ -13,7 +13,7 @@ at the side of the screen and shows blinkenlights about what your system is
 doing. It's supposed to be similar enough to gkrellm to be a drop-in
 replacement.
 
-All the various monitors and displays supported are shown to the right
+All the various monitors and displays supported are shown to the left
 (alongside gkrellm, for comparison). Update speed, monitor order, which monitors
 are shown, which disks, network interfaces,temperature sensors etc are all
 configurable via the GUI (right click to open). It has hidpi support. And a
