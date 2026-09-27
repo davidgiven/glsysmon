@@ -19,7 +19,11 @@
 #include "sensors/sensors.h"
 #include "timer.h"
 
+#if __has_include(<magic_enum/magic_enum.hpp>)
+#include <magic_enum/magic_enum.hpp>
+#else
 #include <magic_enum.hpp>
+#endif
 
 extern "C"
 {
