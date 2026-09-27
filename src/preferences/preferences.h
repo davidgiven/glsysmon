@@ -160,8 +160,6 @@ extern void WriteTomlPreferences(const Preferences& prefs);
 extern void WriteTomlPreferences(Preferences& prefs);
 extern std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args);
 
-extern std::unique_ptr<Preferences> CreateDefaultPreferences();
-
 extern std::shared_ptr<Preferences> CreateMapPreferences();
 
 extern std::unique_ptr<Preferences> CreateCombinedPreferences(
@@ -175,35 +173,43 @@ public:
     {
         if (auto value = prefs.GetString("side"))
             return *value;
-        return CreateDefaultPreferences()->GetString("side").value();
+        return "left";
     }
 
     static int GetSize(const Preferences& prefs)
     {
         if (auto value = prefs.GetInteger("size"))
             return *value;
-        return CreateDefaultPreferences()->GetInteger("size").value();
+        return 100;
     }
 
     static int GetMonitor(const Preferences& prefs)
     {
         if (auto value = prefs.GetInteger("monitor"))
             return *value;
-        return CreateDefaultPreferences()->GetInteger("monitor").value();
+        return 0;
     }
 
     static std::vector<std::string> GetViews(const Preferences& prefs)
     {
         if (auto value = prefs.GetStringList("views"))
             return *value;
-        return CreateDefaultPreferences()->GetStringList("views").value();
+        return {"HostnameView",
+            "ClockView",
+            "CpuView",
+            "TemperatureView",
+            "NetworkView",
+            "DiskView",
+            "MemoryView"};
     }
 
     static double GetFps(const Preferences& prefs)
     {
         if (auto value = prefs.GetDouble("fps"))
             return *value;
-        return CreateDefaultPreferences()->GetDouble("fps").value();
+        if (auto value = prefs.GetInteger("fps"))
+            return static_cast<double>(*value);
+        return 30;
     }
 
     static int GetPollerCacheInterval(const Preferences& prefs)
@@ -214,10 +220,6 @@ public:
             return *value;
         if (auto value = prefs.GetInteger("poller_cache_interval"))
             return *value;
-        auto def =
-            CreateDefaultPreferences()->GetInteger("poller.cache_interval");
-        if (def.has_value())
-            return *def;
         return 500;
     }
 

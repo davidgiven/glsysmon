@@ -14,7 +14,7 @@ namespace render_lib
     {
         return CreateCombinedPreferences(
             {std::shared_ptr<Preferences>(CreateCliPreferences(args)),
-                std::shared_ptr<Preferences>(CreateDefaultPreferences())});
+                CreateMapPreferences()});
     }
 
     int Run(const std::string& name,

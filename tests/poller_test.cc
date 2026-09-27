@@ -93,10 +93,9 @@ TEST_CASE("Poller::PollCached default interval is 500ms")
     CHECK(poller.GetCacheIntervalMs() == 500);
     CHECK(poller.GetCacheInterval() == std::chrono::milliseconds(500));
 
-    auto def = CreateDefaultPreferences();
-    REQUIRE(def->GetInteger("poller.cache_interval").has_value());
-    CHECK(def->GetInteger("poller.cache_interval").value() == 500);
-    CHECK(GlobalPreferencesFetcher::GetPollerCacheInterval(*def) == 500);
+    auto map = CreateMapPreferences();
+    CHECK_FALSE(map->GetInteger("poller.cache_interval").has_value());
+    CHECK(GlobalPreferencesFetcher::GetPollerCacheInterval(*map) == 500);
 }
 
 TEST_CASE("Poller::PollCached caches within interval")
@@ -246,9 +245,6 @@ TEST_CASE("Poller::PollCached with MemoryPoller respects custom interval")
 TEST_CASE(
     "GlobalPreferencesFetcher poller.cache_interval defaults and overrides")
 {
-    auto def = CreateDefaultPreferences();
-    CHECK(GlobalPreferencesFetcher::GetPollerCacheInterval(*def) == 500);
-
     auto map = CreateMapPreferences();
     CHECK(GlobalPreferencesFetcher::GetPollerCacheInterval(*map) == 500);
 

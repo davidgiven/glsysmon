@@ -73,6 +73,5 @@ std::unique_ptr<Preferences> CreatePreferences(const CliArgs& args)
 {
     return CreateCombinedPreferences(
         {std::shared_ptr<Preferences>(CreateCliPreferences(args)),
-            std::shared_ptr<Preferences>(CreateTomlPreferences()),
-            std::shared_ptr<Preferences>(CreateDefaultPreferences())});
+            std::shared_ptr<Preferences>(CreateTomlPreferences())});
 }

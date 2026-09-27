@@ -79,7 +79,6 @@ SRC_OBJS := \
 	$(BUILD)/utils.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
-	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/string_value.o \
@@ -170,7 +169,6 @@ TEST_OBJS := \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
-	$(BUILD)/preferences/default_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/views/style.o \

@@ -58,18 +58,18 @@ namespace
 
 } // namespace
 
-TEST_CASE("Default preferences provide cpu.update_interval = 2")
+TEST_CASE(
+    "Missing cpu.update_interval returns nullopt (default wired at call site)")
 {
-    auto prefs = CreateDefaultPreferences();
-    REQUIRE(prefs->GetInteger("cpu.update_interval").has_value());
-    CHECK(prefs->GetInteger("cpu.update_interval").value() == 2);
+    auto prefs = CreateMapPreferences();
+    CHECK_FALSE(prefs->GetInteger("cpu.update_interval").has_value());
+    CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 100);
 }
 
-TEST_CASE("Default preferences provide single fps for redraw = 30")
+TEST_CASE("GlobalPreferencesFetcher provides fps default 30 when missing")
 {
-    auto prefs = CreateDefaultPreferences();
-    REQUIRE(prefs->GetInteger("fps").has_value());
-    CHECK(prefs->GetInteger("fps").value() == 30);
+    auto prefs = CreateMapPreferences();
+    CHECK_FALSE(prefs->GetInteger("fps").has_value());
     CHECK_FALSE(prefs->GetInteger("redraw_fps").has_value());
     CHECK(GlobalPreferencesFetcher::GetFps(*prefs) == 30);
 }
@@ -148,7 +148,9 @@ TEST_CASE("CombinedPreferences prefers TOML cpu.update_interval over default")
     std::filesystem::remove_all(tmp);
 }
 
-TEST_CASE("CombinedPreferences falls back to default when TOML missing")
+TEST_CASE(
+    "CombinedPreferences returns nullopt when TOML missing (no default "
+    "fallback)")
 {
     const std::string tmp = MakeTempDir();
     ScopedEnv env("XDG_CONFIG_HOME", tmp);
@@ -159,8 +161,7 @@ TEST_CASE("CombinedPreferences falls back to default when TOML missing")
 
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    REQUIRE(prefs->GetInteger("cpu.update_interval").has_value());
-    CHECK(prefs->GetInteger("cpu.update_interval").value() == 2);
+    CHECK_FALSE(prefs->GetInteger("cpu.update_interval").has_value());
 
     std::filesystem::remove_all(tmp);
 }
@@ -185,7 +186,9 @@ TEST_CASE("TomlPreferences reads fps as single redraw fps")
     std::filesystem::remove_all(tmp);
 }
 
-TEST_CASE("CombinedPreferences falls back to default fps when TOML missing")
+TEST_CASE(
+    "CombinedPreferences falls back to GlobalPreferencesFetcher fps when TOML "
+    "missing")
 {
     const std::string tmp = MakeTempDir();
     ScopedEnv env("XDG_CONFIG_HOME", tmp);
@@ -195,8 +198,7 @@ TEST_CASE("CombinedPreferences falls back to default fps when TOML missing")
 
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    REQUIRE(prefs->GetInteger("fps").has_value());
-    CHECK(prefs->GetInteger("fps").value() == 30);
+    CHECK_FALSE(prefs->GetInteger("fps").has_value());
     CHECK(GlobalPreferencesFetcher::GetFps(*prefs) == 30);
 
     std::filesystem::remove_all(tmp);
@@ -294,7 +296,8 @@ TEST_CASE("CombinedPreferences prefers TOML list and set over default")
 }
 
 TEST_CASE(
-    "CombinedPreferences falls back to default list and set when TOML missing")
+    "CombinedPreferences returns nullopt for views when TOML missing but "
+    "fetcher provides default")
 {
     const std::string tmp = MakeTempDir();
     ScopedEnv env("XDG_CONFIG_HOME", tmp);
@@ -304,8 +307,9 @@ TEST_CASE(
 
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    REQUIRE(prefs->GetStringList("views").has_value());
-    CHECK(prefs->GetStringList("views").value() ==
+    CHECK_FALSE(prefs->GetStringList("views").has_value());
+    CHECK_FALSE(prefs->GetStringSet("views").has_value());
+    CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
           std::vector<std::string>{"HostnameView",
               "ClockView",
               "CpuView",
@@ -313,15 +317,6 @@ TEST_CASE(
               "NetworkView",
               "DiskView",
               "MemoryView"});
-    REQUIRE(prefs->GetStringSet("views").has_value());
-    CHECK(prefs->GetStringSet("views").value() ==
-          std::set<std::string>{"ClockView",
-              "CpuView",
-              "DiskView",
-              "HostnameView",
-              "MemoryView",
-              "NetworkView",
-              "TemperatureView"});
 
     std::filesystem::remove_all(tmp);
 }
@@ -792,10 +787,6 @@ TEST_CASE("Preferences::ClearAll default throws unsupported operation")
 
     auto toml = CreateTomlPreferences();
     CHECK_THROWS_AS(toml->ClearAll(), std::runtime_error);
-
-    auto def = CreateDefaultPreferences();
-    CHECK_THROWS_AS(def->ClearAll(), std::runtime_error);
-    CHECK_THROWS_WITH(def->ClearAll(), "unsupported operation");
 }
 
 TEST_CASE("MapPreferences::ClearAll clears the underlying map")
