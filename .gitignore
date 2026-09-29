@@ -5,4 +5,5 @@ compile_commands.json
 tests/*.bad.png
 .idea/
 glsysmon.iml
+.gdb_history
 

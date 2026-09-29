@@ -52,7 +52,13 @@ namespace
     class FakeApp : public App
     {
     public:
-        FakeApp(): _dummyPrefs(CreateMapPreferences()), _dummyTimer(CreateTimer()), _dummyImgui(CreateImGui()), _dummyCtx(nullptr) {}
+        FakeApp():
+            _dummyPrefs(CreateMapPreferences()),
+            _dummyTimer(CreateTimer()),
+            _dummyImgui(CreateImGui()),
+            _dummyCtx(nullptr)
+        {
+        }
 
         void Setup() override {}
 
@@ -69,7 +75,8 @@ namespace
         {
             if (_dummyCtx == nullptr)
             {
-                _dummyCtx = std::make_unique<Context>(*this, *_dummyImgui, *_dummyPrefs, *_dummyTimer);
+                _dummyCtx = std::make_unique<Context>(
+                    *this, *_dummyImgui, *_dummyPrefs, *_dummyTimer);
             }
             return *_dummyCtx;
         }

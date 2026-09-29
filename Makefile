@@ -66,6 +66,7 @@ BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_D
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
 
 SRC_OBJS := \
+	$(BUILD)/fake_app_lib.o \
 	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
@@ -157,12 +158,15 @@ TEST_RENDER_DISK := $(TEST_BUILD)/render_fake_disk
 TEST_RENDER := $(TEST_RENDER_HOSTNAME) $(TEST_RENDER_CLOCK) $(TEST_RENDER_CPU) $(TEST_RENDER_TEMPERATURE) $(TEST_RENDER_NETWORK) $(TEST_RENDER_DISK)
 TEST_UTILS := $(TEST_BUILD)/utils_test
 TEST_DISK_VIEW := $(TEST_BUILD)/disk_view_test
+TEST_NETWORK_VIEW := $(TEST_BUILD)/network_view_test
+TEST_TEMPERATURE_VIEW := $(TEST_BUILD)/temperature_view_test
 
-TEST_BINS := $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER) $(TEST_DISK_VIEW)
+TEST_BINS := $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER) $(TEST_DISK_VIEW) $(TEST_NETWORK_VIEW) $(TEST_TEMPERATURE_VIEW)
 TEST_LOGS := $(addsuffix .log,$(TEST_BINS))
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
+	$(BUILD)/fake_app_lib.o \
 	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
@@ -406,7 +410,15 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
-$(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_BUILD)/mock_disk_sensor_lib.o $(TEST_OBJS)
+$(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+
+$(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
+	@echo $@
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+
+$(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
 	@echo $@
 	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
 

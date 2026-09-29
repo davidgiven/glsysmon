@@ -86,10 +86,7 @@ namespace
     class FakeSensors : public Sensors
     {
     public:
-        FakeSensors(const Context& ctx):
-            Sensors(ctx)
-        {
-        }
+        FakeSensors(const Context& ctx): Sensors(ctx) {}
 
         std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
             const std::string& prefPrefix,
@@ -123,7 +120,8 @@ namespace
                 CreateMapPreferences();
             static auto dummyTimer = CreateTimer();
             static auto dummyImgui = CreateImGui();
-            static Context dummyCtx(*this, *dummyImgui, *dummyPrefs, *dummyTimer);
+            static Context dummyCtx(
+                *this, *dummyImgui, *dummyPrefs, *dummyTimer);
             return dummyCtx;
         }
 

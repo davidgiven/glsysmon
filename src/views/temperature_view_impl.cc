@@ -30,7 +30,8 @@ namespace
         {
         }
 
-        explicit TemperatureViewImpl(const Context& ctx, std::unique_ptr<TemperatureSensor> sensor):
+        explicit TemperatureViewImpl(
+            const Context& ctx, std::unique_ptr<TemperatureSensor> sensor):
             _context(ctx),
             _sensor(std::move(sensor))
         {
@@ -48,7 +49,8 @@ namespace
             const int graphHeight = GetGraphHeight(_context.preferences);
             const bool showValue = GetShowValue(_context.preferences);
 
-            Style::GraphGroup(_context.imgui, "Temperature",
+            Style::GraphGroup(_context.imgui,
+                "Temperature",
                 [&]
                 {
                     for (std::size_t ch = 0; ch < count; ++ch)
@@ -69,7 +71,9 @@ namespace
                                 std::to_string(static_cast<long long>(
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
-                        DrawGraph(_context.imgui, _context.preferences,
+                        DrawGraph(
+                            _context.imgui,
+                            _context.preferences,
                             title,
                             subtitle,
                             n,
@@ -140,7 +144,8 @@ namespace
             bool changed = false;
             ImGuiStyle& style = _context.imgui.GetStyle();
             float window_visible_x2 =
-                _context.imgui.GetWindowPos().x + _context.imgui.GetWindowContentRegionMax().x;
+                _context.imgui.GetWindowPos().x +
+                _context.imgui.GetWindowContentRegionMax().x;
             for (size_t i = 0; i < _sensor->GetChannels(); i++)
             {
                 auto name = _sensor->GetChannelName(i);
@@ -148,20 +153,22 @@ namespace
                 bool state = allowedSet.contains(name);
                 float width = _context.imgui.CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (_context.imgui.Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
+                if (_context.imgui.Selectable(
+                        name.c_str(), &state, 0, ImVec2(width, 0)))
                 {
                     if (state)
-                        allowedSet.erase(name);
-                    else
                         allowedSet.insert(name);
+                    else
+                        allowedSet.erase(name);
                     changed = true;
                 }
                 _context.imgui.PopID();
                 if (i + 1 < _sensor->GetChannels())
                 {
                     std::string nextName = _sensor->GetChannelName(i + 1);
-                    float nextWidth = _context.imgui.CalcTextSize(nextName.c_str()).x +
-                                      style.FramePadding.x * 2.0f;
+                    float nextWidth =
+                        _context.imgui.CalcTextSize(nextName.c_str()).x +
+                        style.FramePadding.x * 2.0f;
                     float last_x2 = _context.imgui.GetItemRectMax().x;
                     float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
                     if (next_x2 < window_visible_x2)
@@ -222,12 +229,14 @@ namespace
 
 } // namespace
 
-std::unique_ptr<View> CreateTemperatureView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateTemperatureView(
+    const Context& ctx, Sensors& sensors)
 {
     return std::make_unique<TemperatureViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateTemperatureView(const Context& ctx, std::unique_ptr<TemperatureSensor> sensor)
+std::unique_ptr<View> CreateTemperatureView(
+    const Context& ctx, std::unique_ptr<TemperatureSensor> sensor)
 {
     return std::make_unique<TemperatureViewImpl>(ctx, std::move(sensor));
 }

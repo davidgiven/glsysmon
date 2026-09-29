@@ -164,12 +164,12 @@ namespace
                 bool state = allowedSet.contains(name);
                 float width = _context.imgui.CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (_context.imgui.Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
+                if (_context.imgui.Selectable(name.c_str(), &state, 0, ImVec2(width, 0)))
                 {
                     if (state)
-                        allowedSet.erase(name);
-                    else
                         allowedSet.insert(name);
+                    else
+                        allowedSet.erase(name);
                     changed = true;
                 }
                 _context.imgui.PopID();
