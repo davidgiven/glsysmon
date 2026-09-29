@@ -146,6 +146,6 @@ int main()
     Context ctx(app, *imgui, *prefs, *timer);
     FakeSensors sensors(ctx);
     auto ui = CreateUi(ctx, sensors);
-    auto renderer = CreateImGuiFrameRenderer();
+    auto renderer = CreateImGuiFrameRenderer(*prefs);
     return render_lib::Run("render_fake_network", *ui, *renderer);
 }

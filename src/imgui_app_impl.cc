@@ -334,14 +334,13 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
     auto dockFactory = CreateDockFactory(*prefs);
     auto timer = CreateTimer();
     auto imgui = CreateImGui();
-    auto renderer = CreateImGuiFrameRenderer();
+    auto renderer = CreateImGuiFrameRenderer(*prefs);
     auto app = std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
         std::move(renderer),
         prefs,
         std::move(timer),
         std::move(imgui));
-    auto ui =
-        CreateUi(static_cast<ImGuiAppImpl*>(app.get())->GetContext());
+    auto ui = CreateUi(static_cast<ImGuiAppImpl*>(app.get())->GetContext());
     static_cast<ImGuiAppImpl*>(app.get())->SetUi(std::move(ui));
     return app;
 }

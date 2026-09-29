@@ -7,6 +7,7 @@
 #include <backends/imgui_impl_sdlgpu3.h>
 
 #include "bfm_gpu_bridge.h"
+#include "preferences/preferences.h"
 
 #include <memory>
 
@@ -23,6 +24,12 @@ namespace
     class ImGuiFrameRendererImpl : public ImGuiFrameRenderer
     {
     public:
+        explicit ImGuiFrameRendererImpl(Preferences& prefs): _prefs(&prefs) {}
+
+        explicit ImGuiFrameRendererImpl(Preferences* prefs): _prefs(prefs) {}
+
+        ImGuiFrameRendererImpl(): _prefs(nullptr) {}
+
         bool Init(SDL_GPUDevice* device,
             SDL_Window* window,
             SDL_GPUTextureFormat color_format) override
@@ -44,10 +51,15 @@ namespace
             style.ScaleAllSizes(ui_scale);
             style.FontScaleDpi = ui_scale;
 
+            float fontSize = 16.0f;
+            if (_prefs != nullptr)
+                fontSize = static_cast<float>(
+                    GlobalPreferencesFetcher::GetFontSize(*_prefs));
+
             io.Fonts->AddFontFromMemoryCompressedTTF(
                 DroidSansFont_compressed_data,
                 static_cast<int>(DroidSansFont_compressed_size),
-                16.0f);
+                fontSize);
 
             static const ImWchar codicon_ranges[] = {0xEA60, 0xECE7, 0};
             ImFontConfig codicon_config;
@@ -56,7 +68,7 @@ namespace
             io.Fonts->AddFontFromMemoryCompressedTTF(
                 CodiconFont_compressed_data,
                 static_cast<int>(CodiconFont_compressed_size),
-                16.0f,
+                fontSize,
                 &codicon_config,
                 codicon_ranges);
 
@@ -128,11 +140,18 @@ namespace
         }
 
     private:
+        Preferences* _prefs = nullptr;
         ImGuiContext* _context = nullptr;
         ImPlotContext* _plotContext = nullptr;
     };
 
 } // namespace
+
+std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer(
+    Preferences& preferences)
+{
+    return std::make_unique<ImGuiFrameRendererImpl>(&preferences);
+}
 
 std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer()
 {

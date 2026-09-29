@@ -47,6 +47,13 @@ void ConfigurationWindow::DrawGlobalConfiguration()
     {
         _pendingPreferences->SetString("side", kSideValues[sideIndex]);
     }
+
+    // Font size
+    int fontSize = _pendingPreferences->GetInteger("font_size").value_or(16);
+    if (_imgui.DragInt("Font size", &fontSize, 0.25f, 1, 100))
+    {
+        _pendingPreferences->SetInteger("font_size", fontSize);
+    }
 }
 
 void ConfigurationWindow::Draw(bool* open)

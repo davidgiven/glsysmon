@@ -236,4 +236,11 @@ public:
         }
         return std::nullopt;
     }
+
+    static int GetFontSize(const Preferences& prefs)
+    {
+        if (auto value = prefs.GetInteger("font_size"))
+            return *value;
+        return 16;
+    }
 };

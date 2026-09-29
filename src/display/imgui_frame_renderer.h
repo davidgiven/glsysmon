@@ -5,6 +5,8 @@
 
 #include <memory>
 
+class Preferences;
+
 // ImGui context, backends, and per-frame render pass. Owns everything ImGui so
 // the app and the off-screen render harness share one implementation; callers
 // only supply the SDL window/device and the target texture (swapchain or
@@ -36,4 +38,6 @@ public:
     virtual void Shutdown() = 0;
 };
 
+extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer(
+    Preferences& preferences);
 extern std::unique_ptr<ImGuiFrameRenderer> CreateImGuiFrameRenderer();
