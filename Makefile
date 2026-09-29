@@ -75,6 +75,7 @@ SRC_OBJS := \
 	$(BUILD)/display/x11_dock_impl.o \
 	$(BUILD)/imgui_app_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/main.o \
 	$(BUILD)/utils.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
@@ -162,6 +163,7 @@ TEST_LOGS := $(addsuffix .log,$(TEST_BINS))
 TEST_OBJS := \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
+	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/imgui_ui_impl.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
 	$(BUILD)/preferences/preferences.o \
