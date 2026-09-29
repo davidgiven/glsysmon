@@ -15,7 +15,7 @@ replacement.
 
 All the various monitors and displays supported are shown to the right
 (alongside gkrellm, for comparison). Update speed, monitor order, which monitors
-are shown, which disks, network interfaces,temperature sensors etc are all
+are shown, which disks, network interfaces, temperature sensors etc are all
 configurable via the GUI (right click to open). It has hidpi support. And a
 built-in port of [BubbleFishyMon](https://github.com/JNRowe/bfm)!
 
