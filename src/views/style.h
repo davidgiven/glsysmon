@@ -15,9 +15,12 @@ public:
     static void DrawGraph(ImGuiIf& imgui,
         const std::string& title,
         const std::string& subtitle,
-        std::function<void()> body);
+        std::function<void()> body,
+        float labelFontSize);
     static void DrawGraph(ImGuiIf& imgui,
-        const std::vector<std::string>& titles, std::function<void()> body);
+        const std::vector<std::string>& titles,
+        std::function<void()> body,
+        float labelFontSize);
     static void DrawGraph(ImGuiIf& imgui,
         const std::string& title,
         const std::string& subtitle,
@@ -25,6 +28,7 @@ public:
         double yMin,
         double yMax,
         std::function<void()> body,
+        float labelFontSize,
         float height = 40);
     static void DrawGraph(ImGuiIf& imgui,
         const std::vector<std::string>& titles,
@@ -32,9 +36,11 @@ public:
         double yMin,
         double yMax,
         std::function<void()> body,
+        float labelFontSize,
         float height = 40);
 
     static void DrawCentredText(ImGuiIf& imgui, const std::string& text);
 
-    static bool DrawToggleButton(ImGuiIf& imgui, const std::string& text, bool* state);
+    static bool DrawToggleButton(
+        ImGuiIf& imgui, const std::string& text, bool* state);
 };

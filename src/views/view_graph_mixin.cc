@@ -66,7 +66,8 @@ std::vector<std::string> ViewGraphMixin::FilterTitles(
     return filtered;
 }
 
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::string& title,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const std::string& title,
     const std::string& subtitle,
     int n,
     double yMin,
@@ -74,33 +75,50 @@ void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::string& title,
     std::function<void()> body,
     float height)
 {
-    Style::DrawGraph(imgui, title, subtitle, n, yMin, yMax, std::move(body), height);
-}
-
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::vector<std::string>& titles,
-    int n,
-    double yMin,
-    double yMax,
-    std::function<void()> body,
-    float height)
-{
-    Style::DrawGraph(imgui, titles, n, yMin, yMax, std::move(body), height);
-}
-
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::string& title,
-    const std::string& subtitle,
-    std::function<void()> body)
-{
-    Style::DrawGraph(imgui, title, subtitle, std::move(body));
+    float labelFontSize = imgui.GetFontSize() * 2.0f / 3.0f;
+    Style::DrawGraph(imgui,
+        title,
+        subtitle,
+        n,
+        yMin,
+        yMax,
+        std::move(body),
+        labelFontSize,
+        height);
 }
 
 void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
-    const std::vector<std::string>& titles, std::function<void()> body)
+    const std::vector<std::string>& titles,
+    int n,
+    double yMin,
+    double yMax,
+    std::function<void()> body,
+    float height)
 {
-    Style::DrawGraph(imgui, titles, std::move(body));
+    float labelFontSize = imgui.GetFontSize() * 2.0f / 3.0f;
+    Style::DrawGraph(
+        imgui, titles, n, yMin, yMax, std::move(body), labelFontSize, height);
 }
 
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const std::string& title,
+    const std::string& subtitle,
+    std::function<void()> body)
+{
+    float labelFontSize = imgui.GetFontSize() * 2.0f / 3.0f;
+    Style::DrawGraph(imgui, title, subtitle, std::move(body), labelFontSize);
+}
+
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const std::vector<std::string>& titles,
+    std::function<void()> body)
+{
+    float labelFontSize = imgui.GetFontSize() * 2.0f / 3.0f;
+    Style::DrawGraph(imgui, titles, std::move(body), labelFontSize);
+}
+
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const Preferences& prefs,
     const std::string& title,
     const std::string& subtitle,
     int n,
@@ -111,11 +129,21 @@ void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
+    float labelFontSize =
+        GlobalPreferencesFetcher::GetSmallFontSize(prefs, imgui.GetFontSize());
     Style::DrawGraph(imgui,
-        filtered, subtitle, n, yMin, yMax, std::move(body), height);
+        filtered,
+        subtitle,
+        n,
+        yMin,
+        yMax,
+        std::move(body),
+        labelFontSize,
+        height);
 }
 
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const Preferences& prefs,
     const std::vector<std::string>& titles,
     int n,
     double yMin,
@@ -125,24 +153,33 @@ void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
 {
     const bool show = GetShowChannelName(prefs);
     std::vector<std::string> filtered = FilterTitles(titles, show);
-    Style::DrawGraph(imgui, filtered, n, yMin, yMax, std::move(body), height);
+    float labelFontSize =
+        GlobalPreferencesFetcher::GetSmallFontSize(prefs, imgui.GetFontSize());
+    Style::DrawGraph(
+        imgui, filtered, n, yMin, yMax, std::move(body), labelFontSize, height);
 }
 
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const Preferences& prefs,
     const std::string& title,
     const std::string& subtitle,
     std::function<void()> body) const
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
-    Style::DrawGraph(imgui, filtered, subtitle, std::move(body));
+    float labelFontSize =
+        GlobalPreferencesFetcher::GetSmallFontSize(prefs, imgui.GetFontSize());
+    Style::DrawGraph(imgui, filtered, subtitle, std::move(body), labelFontSize);
 }
 
-void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
+    const Preferences& prefs,
     const std::vector<std::string>& titles,
     std::function<void()> body) const
 {
     const bool show = GetShowChannelName(prefs);
     std::vector<std::string> filtered = FilterTitles(titles, show);
-    Style::DrawGraph(imgui, filtered, std::move(body));
+    float labelFontSize =
+        GlobalPreferencesFetcher::GetSmallFontSize(prefs, imgui.GetFontSize());
+    Style::DrawGraph(imgui, filtered, std::move(body), labelFontSize);
 }

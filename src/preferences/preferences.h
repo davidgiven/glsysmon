@@ -243,4 +243,21 @@ public:
             return *value;
         return 16;
     }
+
+    static double GetSmallFontScale(const Preferences& prefs)
+    {
+        if (auto value = prefs.GetDouble("small_font_scale"))
+            return *value;
+        return 2.0 / 3.0;
+    }
+
+    static double GetSmallFontShrink(const Preferences& prefs)
+    {
+        return GetSmallFontScale(prefs);
+    }
+
+    static float GetSmallFontSize(const Preferences& prefs, float fontSize)
+    {
+        return static_cast<float>(GetSmallFontScale(prefs) * fontSize);
+    }
 };

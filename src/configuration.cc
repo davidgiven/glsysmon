@@ -54,6 +54,16 @@ void ConfigurationWindow::DrawGlobalConfiguration()
     {
         _pendingPreferences->SetInteger("font_size", fontSize);
     }
+
+    // Small font scale factor (for labels in graphs)
+    double scale =
+        GlobalPreferencesFetcher::GetSmallFontScale(*_pendingPreferences);
+    float scaleF = static_cast<float>(scale);
+    if (_imgui.DragFloat(
+            "Small font scale", &scaleF, 0.01f, 0.1f, 2.0f, "%.3f"))
+    {
+        _pendingPreferences->SetDouble("small_font_scale", scaleF);
+    }
 }
 
 void ConfigurationWindow::Draw(bool* open)

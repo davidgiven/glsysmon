@@ -44,7 +44,8 @@ namespace
 
 } // namespace
 
-void Style::GraphGroup(ImGuiIf& imgui, const std::string& title, std::function<void()> body)
+void Style::GraphGroup(
+    ImGuiIf& imgui, const std::string& title, std::function<void()> body)
 {
     imgui.Dummy(ImVec2(0.0f, imgui.GetFontSize() * 0.5f));
     DrawCentredText(imgui, title);
@@ -56,25 +57,31 @@ void Style::GraphGroup(ImGuiIf& imgui, const std::string& title, std::function<v
     imgui.PopStyleVar(2);
 }
 
-void Style::DrawGraph(ImGuiIf& imgui, const std::string& title,
+void Style::DrawGraph(ImGuiIf& imgui,
+    const std::string& title,
     const std::string& subtitle,
-    std::function<void()> body)
+    std::function<void()> body,
+    float labelFontSize)
 {
-    DrawGraph(imgui, title, subtitle, 60, 0, 1, std::move(body));
+    DrawGraph(imgui, title, subtitle, 60, 0, 1, std::move(body), labelFontSize);
 }
 
 void Style::DrawGraph(ImGuiIf& imgui,
-    const std::vector<std::string>& titles, std::function<void()> body)
+    const std::vector<std::string>& titles,
+    std::function<void()> body,
+    float labelFontSize)
 {
-    DrawGraph(imgui, titles, 60, 0, 1, std::move(body));
+    DrawGraph(imgui, titles, 60, 0, 1, std::move(body), labelFontSize);
 }
 
-void Style::DrawGraph(ImGuiIf& imgui, const std::string& title,
+void Style::DrawGraph(ImGuiIf& imgui,
+    const std::string& title,
     const std::string& subtitle,
     int n,
     double yMin,
     double yMax,
     std::function<void()> body,
+    float labelFontSize,
     float height)
 {
     std::vector<std::string> titles;
@@ -87,14 +94,17 @@ void Style::DrawGraph(ImGuiIf& imgui, const std::string& title,
         std::vector<std::string> subLines = splitLines(subtitle);
         titles.insert(titles.end(), subLines.begin(), subLines.end());
     }
-    DrawGraph(imgui, titles, n, yMin, yMax, std::move(body), height);
+    DrawGraph(
+        imgui, titles, n, yMin, yMax, std::move(body), labelFontSize, height);
 }
 
-void Style::DrawGraph(ImGuiIf& imgui, const std::vector<std::string>& titles,
+void Style::DrawGraph(ImGuiIf& imgui,
+    const std::vector<std::string>& titles,
     int n,
     double yMin,
     double yMax,
     std::function<void()> body,
+    float labelFontSize,
     float height)
 {
     std::string joined = joinLines(titles);
@@ -124,7 +134,7 @@ void Style::DrawGraph(ImGuiIf& imgui, const std::vector<std::string>& titles,
         imgui.SetupFinish();
         body();
         ImVec2 pos = imgui.GetPlotPos();
-        const float fontSize = imgui.GetFontSize() * 2.0f / 3.0f;
+        const float fontSize = labelFontSize;
         ImDrawList* drawList = imgui.GetPlotDrawList();
         ImFont* font = imgui.GetFont();
         ImU32 col = imgui.GetColorU32(ImGuiCol_Text);
