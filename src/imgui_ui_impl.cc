@@ -65,7 +65,6 @@ namespace
             _context.imgui.SetNextWindowSize(viewport->Size);
             _context.imgui.PushStyleVar(
                 ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-            _context.imgui.PushFont(nullptr, _context.imgui.GetStyle().FontSizeBase * 0.75f);
             _context.imgui.Begin("glsysmon",
                 nullptr,
                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
@@ -83,7 +82,6 @@ namespace
                 view->Draw();
             }
 
-            _context.imgui.PopFont();
             _context.imgui.PopStyleVar();
 
             _context.imgui.End();

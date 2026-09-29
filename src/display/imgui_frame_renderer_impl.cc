@@ -51,7 +51,7 @@ namespace
             style.ScaleAllSizes(ui_scale);
             style.FontScaleDpi = ui_scale;
 
-            float fontSize = 16.0f;
+            float fontSize = 12.0f;
             if (_prefs != nullptr)
                 fontSize = static_cast<float>(
                     GlobalPreferencesFetcher::GetFontSize(*_prefs));
