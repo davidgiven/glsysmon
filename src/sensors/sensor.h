@@ -3,6 +3,7 @@
 #include <string>
 
 class Context;
+class ImGuiIf;
 class Preferences;
 
 // Fetches a piece of system data. Implementations live in sensor_*.cc.
@@ -28,6 +29,9 @@ public:
     virtual std::string GetPrefName() const = 0;
 
     virtual void DrawConfiguration(Preferences& preferences);
+
+    virtual ImGuiIf& GetImGui();
+    virtual const ImGuiIf& GetImGui() const;
 
 protected:
     const Context* _ctx = nullptr;

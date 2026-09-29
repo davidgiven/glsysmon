@@ -13,6 +13,7 @@
 
 #include "display/bfm_gpu_bridge.h"
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
 #include "sensors/memory_poller.h"
@@ -132,7 +133,7 @@ namespace
 
             Upload(device);
 
-            float availWidth = ImGui::GetContentRegionAvail().x;
+            float availWidth = _context.imgui.GetContentRegionAvail().x;
             if (availWidth <= 0)
                 return;
 
@@ -140,15 +141,15 @@ namespace
             if (scale < 1)
                 scale = 1;
             ImVec2 imgSize((float)(width * scale), (float)(height * scale));
-            float cursorX = ImGui::GetCursorPosX();
-            ImGui::SetCursorPosX(cursorX + (availWidth - imgSize.x) * 0.5f);
+            float cursorX = _context.imgui.GetCursorPosX();
+            _context.imgui.SetCursorPosX(cursorX + (availWidth - imgSize.x) * 0.5f);
 
-            ImDrawList* dl = ImGui::GetWindowDrawList();
+            ImDrawList* dl = _context.imgui.GetWindowDrawList();
             dl->AddCallback(
-                ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
-            ImGui::Image((ImTextureID)(intptr_t)_texture, imgSize);
+                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
+            _context.imgui.Image((ImTextureID)(intptr_t)_texture, imgSize);
             dl->AddCallback(
-                ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
         }
 
         std::string GetHumanName() const override
@@ -159,6 +160,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "bubbleFishyMon";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -174,7 +185,7 @@ namespace
         void DrawConfiguration(Preferences& preferences) override
         {
             float interval = static_cast<float>(GetUpdateInterval(preferences));
-            if (ImGui::InputFloat("Update frequency", &interval))
+            if (_context.imgui.InputFloat("Update frequency", &interval))
             {
                 SetUpdateInterval(preferences, interval);
                 interval = static_cast<float>(GetUpdateInterval(preferences));
@@ -191,7 +202,7 @@ namespace
 
             float size[2] = {static_cast<float>(GetWidth(preferences)),
                 static_cast<float>(GetHeight(preferences))};
-            if (ImGui::DragFloat2("Size", size, 1.0f, 10.0f, 256.0f))
+            if (_context.imgui.DragFloat2("Size", size, 1.0f, 10.0f, 256.0f))
             {
                 int w = static_cast<int>(std::lround(size[0]));
                 int h = static_cast<int>(std::lround(size[1]));
@@ -211,7 +222,7 @@ namespace
             int fishIndex = static_cast<int>(currentFishMode);
             constexpr const char* kFishNames[] = {"off", "random", "network"};
             const char* fishLabel(kFishNames[fishIndex]);
-            if (ImGui::SliderInt("Fish", &fishIndex, 0, 2, fishLabel))
+            if (_context.imgui.SliderInt("Fish", &fishIndex, 0, 2, fishLabel))
                 SetFishMode(preferences, static_cast<FishMode>(fishIndex));
 
             DuckMode currentDuckMode = GetDuckMode(preferences);
@@ -219,14 +230,14 @@ namespace
             constexpr const char* kDuckNames[] = {
                 "no duck", "duck", "invertable duck"};
             const char* duckLabel(kDuckNames[duckIndex]);
-            if (ImGui::SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
+            if (_context.imgui.SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
                 SetDuckMode(preferences, static_cast<DuckMode>(duckIndex));
 
             BubblesMode currentBubblesMode = GetBubblesMode(preferences);
             int bubblesIndex = static_cast<int>(currentBubblesMode);
             constexpr const char* kBubblesNames[] = {"no bubbles", "bubbles"};
             const char* bubblesLabel(kBubblesNames[bubblesIndex]);
-            if (ImGui::SliderInt("Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
+            if (_context.imgui.SliderInt("Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
                 SetBubblesMode(
                     preferences, static_cast<BubblesMode>(bubblesIndex));
         }

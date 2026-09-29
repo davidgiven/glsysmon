@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -43,7 +44,7 @@ namespace
 
             const int graphHeight = GetGraphHeight(_context.preferences);
 
-            Style::GraphGroup("CPU usage",
+            Style::GraphGroup(_context.imgui, "CPU usage",
                 [&]
                 {
                     for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
@@ -64,8 +65,7 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        DrawGraph(
-                            _context.preferences,
+                        DrawGraph(_context.imgui, _context.preferences,
                             _sensor->GetChannelName(cpu),
                             "",
                             n,
@@ -73,7 +73,7 @@ namespace
                             1,
                             [&]
                             {
-                                ImPlot::PlotBarGroups(labels,
+                                _context.imgui.PlotBarGroups(labels,
                                     values.data(),
                                     3,
                                     n,
@@ -95,6 +95,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "cpu";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override

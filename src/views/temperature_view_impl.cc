@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/style.h"
@@ -47,7 +48,7 @@ namespace
             const int graphHeight = GetGraphHeight(_context.preferences);
             const bool showValue = GetShowValue(_context.preferences);
 
-            Style::GraphGroup("Temperature",
+            Style::GraphGroup(_context.imgui, "Temperature",
                 [&]
                 {
                     for (std::size_t ch = 0; ch < count; ++ch)
@@ -68,8 +69,7 @@ namespace
                                 std::to_string(static_cast<long long>(
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
-                        DrawGraph(
-                            _context.preferences,
+                        DrawGraph(_context.imgui, _context.preferences,
                             title,
                             subtitle,
                             n,
@@ -77,7 +77,7 @@ namespace
                             yMax,
                             [&]
                             {
-                                ImPlot::PlotLine(
+                                _context.imgui.PlotLine(
                                     channelName.c_str(), samples, n);
                             },
                             static_cast<float>(graphHeight));
@@ -93,6 +93,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "temperature";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -112,14 +122,14 @@ namespace
             // Temperature range
             float minMax[2] = {static_cast<float>(GetMinimum(preferences)),
                 static_cast<float>(GetMaximum(preferences))};
-            if (ImGui::DragFloat2("Min/Max (°C)", minMax))
+            if (_context.imgui.DragFloat2("Min/Max (°C)", minMax))
             {
                 SetMinimum(preferences, static_cast<int>(minMax[0]));
                 SetMaximum(preferences, static_cast<int>(minMax[1]));
             }
 
             bool showValue = GetShowValue(preferences);
-            if (ImGui::Checkbox("Show temperature value", &showValue))
+            if (_context.imgui.Checkbox("Show temperature value", &showValue))
             {
                 SetShowValue(preferences, showValue);
             }
@@ -128,17 +138,17 @@ namespace
             auto allowedSet =
                 GetSensors(preferences).value_or(std::set<std::string>());
             bool changed = false;
-            ImGuiStyle& style = ImGui::GetStyle();
+            ImGuiStyle& style = _context.imgui.GetStyle();
             float window_visible_x2 =
-                ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+                _context.imgui.GetWindowPos().x + _context.imgui.GetWindowContentRegionMax().x;
             for (size_t i = 0; i < _sensor->GetChannels(); i++)
             {
                 auto name = _sensor->GetChannelName(i);
-                ImGui::PushID(static_cast<int>(i));
+                _context.imgui.PushID(static_cast<int>(i));
                 bool state = allowedSet.contains(name);
-                float width = ImGui::CalcTextSize(name.c_str()).x +
+                float width = _context.imgui.CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (ImGui::Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
+                if (_context.imgui.Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
                 {
                     if (state)
                         allowedSet.erase(name);
@@ -146,16 +156,16 @@ namespace
                         allowedSet.insert(name);
                     changed = true;
                 }
-                ImGui::PopID();
+                _context.imgui.PopID();
                 if (i + 1 < _sensor->GetChannels())
                 {
                     std::string nextName = _sensor->GetChannelName(i + 1);
-                    float nextWidth = ImGui::CalcTextSize(nextName.c_str()).x +
+                    float nextWidth = _context.imgui.CalcTextSize(nextName.c_str()).x +
                                       style.FramePadding.x * 2.0f;
-                    float last_x2 = ImGui::GetItemRectMax().x;
+                    float last_x2 = _context.imgui.GetItemRectMax().x;
                     float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
                     if (next_x2 < window_visible_x2)
-                        ImGui::SameLine();
+                        _context.imgui.SameLine();
                 }
             }
             if (changed)

@@ -11,6 +11,7 @@
 #include "preferences/preferences.h"
 
 class Context;
+class ImGuiIf;
 
 class SensorGraphMixinBase
 {
@@ -29,7 +30,7 @@ protected:
         double defaultInterval = 1);
 
     void DrawIntervalConfiguration(
-        Preferences& preferences, const std::string& prefPrefix);
+        ImGuiIf& imgui, Preferences& preferences, const std::string& prefPrefix);
 
     std::uint64_t _delta = 0;
     double _interval = 1;

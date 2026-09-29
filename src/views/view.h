@@ -5,6 +5,7 @@
 #include <vector>
 
 class Context;
+class ImGuiIf;
 class Preferences;
 class Sensor;
 class Sensors;
@@ -36,6 +37,9 @@ public:
     virtual std::vector<Sensor*> GetSensors() = 0;
 
     virtual std::vector<Sensor*> GetSensors() const = 0;
+
+    virtual ImGuiIf& GetImGui() = 0;
+    virtual const ImGuiIf& GetImGui() const = 0;
 };
 
 extern std::unique_ptr<View> CreateClockView(

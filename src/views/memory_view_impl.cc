@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "utils.h"
@@ -46,7 +47,7 @@ namespace
 
             const int graphHeight = GetGraphHeight(_context.preferences);
 
-            Style::GraphGroup("Memory",
+            Style::GraphGroup(_context.imgui, "Memory",
                 [&]
                 {
                     const MemorySample* samples = _sensor->GetSamples(0);
@@ -78,8 +79,7 @@ namespace
                     }
 
                     const MemorySample& last = samples[sampleCount - 1];
-                    DrawGraph(
-                        _context.preferences,
+                    DrawGraph(_context.imgui, _context.preferences,
                         "",
                         std::to_string(std::llround(
                             100.0 * last.usedRam / last.totalRam)) +
@@ -89,7 +89,7 @@ namespace
                         yMax,
                         [&]
                         {
-                            ImPlot::PlotLine("used", values.data(), n);
+                            _context.imgui.PlotLine("used", values.data(), n);
                         },
                         static_cast<float>(graphHeight));
                 });
@@ -103,6 +103,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "memory";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override

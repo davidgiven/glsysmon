@@ -1,5 +1,6 @@
 #include "views/view_graph_mixin.h"
 
+#include "imguiif.h"
 #include <imgui.h>
 
 #include <functional>
@@ -13,12 +14,13 @@ void ViewGraphMixin::DrawConfiguration(Preferences& preferences)
 {
     View::DrawConfiguration(preferences);
 
+    ImGuiIf& imgui = GetImGui();
     int height = GetGraphHeight(preferences);
-    if (ImGui::InputInt("Graph height", &height))
+    if (imgui.InputInt("Graph height", &height))
         SetGraphHeight(preferences, height);
 
     bool show = GetShowChannelName(preferences);
-    if (ImGui::Checkbox("Show labels", &show))
+    if (imgui.Checkbox("Show labels", &show))
         SetShowChannelName(preferences, show);
 }
 
@@ -64,7 +66,7 @@ std::vector<std::string> ViewGraphMixin::FilterTitles(
     return filtered;
 }
 
-void ViewGraphMixin::DrawGraph(const std::string& title,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::string& title,
     const std::string& subtitle,
     int n,
     double yMin,
@@ -72,33 +74,33 @@ void ViewGraphMixin::DrawGraph(const std::string& title,
     std::function<void()> body,
     float height)
 {
-    Style::DrawGraph(title, subtitle, n, yMin, yMax, std::move(body), height);
+    Style::DrawGraph(imgui, title, subtitle, n, yMin, yMax, std::move(body), height);
 }
 
-void ViewGraphMixin::DrawGraph(const std::vector<std::string>& titles,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::vector<std::string>& titles,
     int n,
     double yMin,
     double yMax,
     std::function<void()> body,
     float height)
 {
-    Style::DrawGraph(titles, n, yMin, yMax, std::move(body), height);
+    Style::DrawGraph(imgui, titles, n, yMin, yMax, std::move(body), height);
 }
 
-void ViewGraphMixin::DrawGraph(const std::string& title,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const std::string& title,
     const std::string& subtitle,
     std::function<void()> body)
 {
-    Style::DrawGraph(title, subtitle, std::move(body));
+    Style::DrawGraph(imgui, title, subtitle, std::move(body));
 }
 
-void ViewGraphMixin::DrawGraph(
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui,
     const std::vector<std::string>& titles, std::function<void()> body)
 {
-    Style::DrawGraph(titles, std::move(body));
+    Style::DrawGraph(imgui, titles, std::move(body));
 }
 
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
     const std::string& title,
     const std::string& subtitle,
     int n,
@@ -109,11 +111,11 @@ void ViewGraphMixin::DrawGraph(const Preferences& prefs,
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
-    Style::DrawGraph(
+    Style::DrawGraph(imgui,
         filtered, subtitle, n, yMin, yMax, std::move(body), height);
 }
 
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
     const std::vector<std::string>& titles,
     int n,
     double yMin,
@@ -123,24 +125,24 @@ void ViewGraphMixin::DrawGraph(const Preferences& prefs,
 {
     const bool show = GetShowChannelName(prefs);
     std::vector<std::string> filtered = FilterTitles(titles, show);
-    Style::DrawGraph(filtered, n, yMin, yMax, std::move(body), height);
+    Style::DrawGraph(imgui, filtered, n, yMin, yMax, std::move(body), height);
 }
 
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
     const std::string& title,
     const std::string& subtitle,
     std::function<void()> body) const
 {
     const bool show = GetShowChannelName(prefs);
     std::string filtered = FilterTitle(title, show);
-    Style::DrawGraph(filtered, subtitle, std::move(body));
+    Style::DrawGraph(imgui, filtered, subtitle, std::move(body));
 }
 
-void ViewGraphMixin::DrawGraph(const Preferences& prefs,
+void ViewGraphMixin::DrawGraph(ImGuiIf& imgui, const Preferences& prefs,
     const std::vector<std::string>& titles,
     std::function<void()> body) const
 {
     const bool show = GetShowChannelName(prefs);
     std::vector<std::string> filtered = FilterTitles(titles, show);
-    Style::DrawGraph(filtered, std::move(body));
+    Style::DrawGraph(imgui, filtered, std::move(body));
 }

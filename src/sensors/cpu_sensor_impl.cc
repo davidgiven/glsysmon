@@ -78,7 +78,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(preferences, _prefPrefix);
+            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
         }
 
     private:

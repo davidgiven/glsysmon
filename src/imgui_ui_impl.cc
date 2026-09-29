@@ -11,6 +11,7 @@
 #include "app.h"
 #include "configuration.h"
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "timer.h"
@@ -28,7 +29,7 @@ namespace
             _sensors(*_ownedSensors),
             _views(ctx, _sensors),
             _app(ctx.app),
-            _configurationWindow(_views, _app)
+            _configurationWindow(_views, _app, _context.imgui)
         {
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(ctx.preferences))
@@ -45,7 +46,7 @@ namespace
             _sensors(sensors),
             _views(ctx, _sensors),
             _app(ctx.app),
-            _configurationWindow(_views, _app)
+            _configurationWindow(_views, _app, _context.imgui)
         {
             for (const std::string& name :
                 GlobalPreferencesFetcher::GetViews(ctx.preferences))
@@ -59,13 +60,13 @@ namespace
 
         void Draw() override
         {
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->Pos);
-            ImGui::SetNextWindowSize(viewport->Size);
-            ImGui::PushStyleVar(
+            ImGuiViewport* viewport = _context.imgui.GetMainViewport();
+            _context.imgui.SetNextWindowPos(viewport->Pos);
+            _context.imgui.SetNextWindowSize(viewport->Size);
+            _context.imgui.PushStyleVar(
                 ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-            ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 0.75f);
-            ImGui::Begin("glsysmon",
+            _context.imgui.PushFont(nullptr, _context.imgui.GetStyle().FontSizeBase * 0.75f);
+            _context.imgui.Begin("glsysmon",
                 nullptr,
                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
                     ImGuiWindowFlags_NoResize |
@@ -82,12 +83,12 @@ namespace
                 view->Draw();
             }
 
-            ImGui::PopFont();
-            ImGui::PopStyleVar();
+            _context.imgui.PopFont();
+            _context.imgui.PopStyleVar();
 
-            ImGui::End();
+            _context.imgui.End();
 
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            if (_context.imgui.IsMouseClicked(ImGuiMouseButton_Right))
             {
                 if (!_viewportOpen)
                     _viewportOpen = true;
@@ -101,17 +102,17 @@ namespace
                     ImGuiViewportFlags_NoAutoMerge;
                 window_class.ViewportFlagsOverrideClear =
                     ImGuiViewportFlags_NoDecoration;
-                ImGui::SetNextWindowClass(&window_class);
-                ImGui::SetNextWindowSize(
+                _context.imgui.SetNextWindowClass(&window_class);
+                _context.imgui.SetNextWindowSize(
                     ImVec2(800, 600), ImGuiCond_FirstUseEver);
-                ImGui::Begin("Configuration",
+                _context.imgui.Begin("Configuration",
                     &_viewportOpen,
                     ImGuiWindowFlags_NoTitleBar);
 
                 if (_viewportFocusRequested)
                 {
-                    ImGuiViewport* vp = ImGui::GetWindowViewport();
-                    if (vp != nullptr && vp != ImGui::GetMainViewport() &&
+                    ImGuiViewport* vp = _context.imgui.GetWindowViewport();
+                    if (vp != nullptr && vp != _context.imgui.GetMainViewport() &&
                         vp->PlatformHandle != nullptr)
                     {
                         SDL_Window* sdlWin = SDL_GetWindowFromID(
@@ -124,7 +125,7 @@ namespace
                     }
                 }
                 _configurationWindow.Draw(&_viewportOpen);
-                ImGui::End();
+                _context.imgui.End();
             }
         }
 

@@ -15,6 +15,7 @@
 
 #include "globals.h"
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "utils.h"
@@ -48,7 +49,7 @@ namespace
             const bool showNumbers = GetShowNumbers(_context.preferences);
             auto allowedSet = GetInterfaces(_context.preferences);
 
-            Style::GraphGroup("Network",
+            Style::GraphGroup(_context.imgui, "Network",
                 [&]
                 {
                     for (std::size_t ch = 0; ch < count; ++ch)
@@ -86,8 +87,7 @@ namespace
                                 FormatBinary(last.txBps, "B/s"));
                         }
 
-                        DrawGraph(
-                            _context.preferences,
+                        DrawGraph(_context.imgui, _context.preferences,
                             channelName,
                             subtitle,
                             n,
@@ -95,8 +95,8 @@ namespace
                             yMax,
                             [&]
                             {
-                                ImVec4 col = ImPlot::GetColormapColor(0);
-                                ImPlot::PlotShaded("rx",
+                                ImVec4 col = _context.imgui.GetColormapColor(0);
+                                _context.imgui.PlotShaded("rx",
                                     &samples[0].rxBps,
                                     n,
                                     0.0,
@@ -113,8 +113,8 @@ namespace
                                 for (int i = 0; i < n; ++i)
                                     txInv[static_cast<std::size_t>(i)] =
                                         yMax - samples[i].txBps;
-                                col = ImPlot::GetColormapColor(1);
-                                ImPlot::PlotShaded("tx",
+                                col = _context.imgui.GetColormapColor(1);
+                                _context.imgui.PlotShaded("tx",
                                     txInv,
                                     n,
                                     yMax,
@@ -140,6 +140,16 @@ namespace
             return "network";
         }
 
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
+        }
+
         std::vector<Sensor*> GetSensors() override
         {
             return {static_cast<Sensor*>(_sensor.get())};
@@ -155,7 +165,7 @@ namespace
             ViewGraphMixin::DrawConfiguration(preferences);
 
             bool showNumbers = GetShowNumbers(preferences);
-            if (ImGui::Checkbox("Show numbers", &showNumbers))
+            if (_context.imgui.Checkbox("Show numbers", &showNumbers))
                 SetShowNumbers(preferences, showNumbers);
 
             // Y-axis maximum
@@ -166,7 +176,7 @@ namespace
             double currentMaximum = GetMaximum(preferences);
             int maximumIndex = static_cast<int>(
                 indexOf(kMaximumValues, currentMaximum).value_or(0));
-            if (ImGui::SliderInt("Maximum (B/s)",
+            if (_context.imgui.SliderInt("Maximum (B/s)",
                     &maximumIndex,
                     0,
                     4,
@@ -179,18 +189,18 @@ namespace
             auto allowedSet = GetInterfaces(preferences);
 
             bool changed = false;
-            ImGuiStyle& style = ImGui::GetStyle();
+            ImGuiStyle& style = _context.imgui.GetStyle();
             float window_visible_x2 =
-                ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+                _context.imgui.GetWindowPos().x + _context.imgui.GetWindowContentRegionMax().x;
 
             for (size_t i = 0; i < _sensor->GetChannels(); ++i)
             {
                 auto name = _sensor->GetChannelName(i);
-                ImGui::PushID(static_cast<int>(i));
+                _context.imgui.PushID(static_cast<int>(i));
                 bool state = allowedSet.contains(name);
-                float width = ImGui::CalcTextSize(name.c_str()).x +
+                float width = _context.imgui.CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (ImGui::Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
+                if (_context.imgui.Selectable(name.c_str(), state, 0, ImVec2(width, 0)))
                 {
                     if (state)
                         allowedSet.erase(name);
@@ -198,17 +208,17 @@ namespace
                         allowedSet.insert(name);
                     changed = true;
                 }
-                ImGui::PopID();
+                _context.imgui.PopID();
 
                 if (i + 1 < _sensor->GetChannels())
                 {
                     std::string nextName = _sensor->GetChannelName(i + 1);
-                    float nextWidth = ImGui::CalcTextSize(nextName.c_str()).x +
+                    float nextWidth = _context.imgui.CalcTextSize(nextName.c_str()).x +
                                       style.FramePadding.x * 2.0f;
-                    float last_x2 = ImGui::GetItemRectMax().x;
+                    float last_x2 = _context.imgui.GetItemRectMax().x;
                     float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
                     if (next_x2 < window_visible_x2)
-                        ImGui::SameLine();
+                        _context.imgui.SameLine();
                 }
             }
 

@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 
 void SensorGraphMixinBase::InitGraphBase(const Preferences& prefs,
@@ -30,11 +31,11 @@ void SensorGraphMixinBase::InitGraphBase(const Context& ctx,
 }
 
 void SensorGraphMixinBase::DrawIntervalConfiguration(
-    Preferences& preferences, const std::string& prefPrefix)
+    ImGuiIf& imgui, Preferences& preferences, const std::string& prefPrefix)
 {
     float interval =
         static_cast<float>(GetUpdateInterval(preferences, prefPrefix, 2.0));
-    if (ImGui::InputFloat("Update interval (Hz)", &interval))
+    if (imgui.InputFloat("Update interval (Hz)", &interval))
     {
         SetUpdateInterval(preferences, prefPrefix, interval);
     }

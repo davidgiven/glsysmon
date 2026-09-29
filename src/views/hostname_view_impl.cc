@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -33,11 +34,11 @@ namespace
         void Draw() override
         {
             const std::string hostname = _sensor->GetHostname();
-            const float avail = ImGui::GetContentRegionAvail().x;
-            const float textWidth = ImGui::CalcTextSize(hostname.c_str()).x;
-            ImGui::SetCursorPosX(
-                ImGui::GetCursorPosX() + (avail - textWidth) * 0.5f);
-            ImGui::Text("%s", hostname.c_str());
+            const float avail = _context.imgui.GetContentRegionAvail().x;
+            const float textWidth = _context.imgui.CalcTextSize(hostname.c_str()).x;
+            _context.imgui.SetCursorPosX(
+                _context.imgui.GetCursorPosX() + (avail - textWidth) * 0.5f);
+            _context.imgui.Text("%s", hostname.c_str());
         }
 
         std::string GetHumanName() const override
@@ -48,6 +49,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "hostname";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -39,7 +40,7 @@ namespace
         {
             std::tm tm = _sensor->GetLocalTime();
             std::string format = GetFormat(_context.preferences);
-            ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_Text];
+            ImVec4 col = _context.imgui.GetStyle().Colors[ImGuiCol_Text];
             std::ostringstream oss;
             oss << std::format("<div style=\"color: #{:02X}{:02X}{:02X};\">",
                        static_cast<int>(col.x * 255),
@@ -76,13 +77,13 @@ namespace
             for (char c : buf)
                 if (c == '\n')
                     ++lines;
-            float line_h = ImGui::GetTextLineHeight();
+            float line_h = _context.imgui.GetTextLineHeight();
             float h =
                 line_h * static_cast<float>(std::clamp(lines + 1, 3, 10)) +
-                ImGui::GetStyle().FramePadding.y * 2.0f;
+                _context.imgui.GetStyle().FramePadding.y * 2.0f;
             ImVec2 size(-FLT_MIN, h);
 
-            if (ImGui::InputTextMultiline("Format",
+            if (_context.imgui.InputTextMultiline("Format",
                     buf.data(),
                     buf.capacity() + 1,
                     size,
@@ -100,6 +101,16 @@ namespace
         std::string GetPrefName() const override
         {
             return "clock";
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return _context.imgui;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return _context.imgui;
         }
 
         std::vector<Sensor*> GetSensors() override

@@ -7,6 +7,7 @@
 
 #include "configuration.h"
 #include "app.h"
+#include "imguiif.h"
 #include "imgui_helpers.h"
 #include "preferences/preferences.h"
 #include "globals.h"
@@ -15,9 +16,11 @@
 
 jmp_buf g_restartJmp;
 
-ConfigurationWindow::ConfigurationWindow(const Views& views, App& app):
+ConfigurationWindow::ConfigurationWindow(
+    const Views& views, App& app, ImGuiIf& imgui):
     _views(views),
     _app(app),
+    _imgui(imgui),
     _pendingMapPreferences(CreateMapPreferences()),
     _pendingPreferences(CreateCombinedPreferences(
         {_pendingMapPreferences, app.GetPreferences()}))
@@ -28,7 +31,7 @@ void ConfigurationWindow::DrawGlobalConfiguration()
 {
     // Panel width
     int size = _pendingPreferences->GetInteger("size").value_or(100);
-    if (ImGui::SliderInt("Width", &size, 1, 300))
+    if (_imgui.SliderInt("Width", &size, 1, 300))
     {
         _pendingPreferences->SetInteger("size", size);
     }
@@ -40,7 +43,7 @@ void ConfigurationWindow::DrawGlobalConfiguration()
         _pendingPreferences->GetString("side").value_or("left");
     int sideIndex = indexOf(kSideValues, currentSide).value_or(0);
 
-    if (ImGui::SliderInt("Side", &sideIndex, 0, 1, kSideLabels[sideIndex]))
+    if (_imgui.SliderInt("Side", &sideIndex, 0, 1, kSideLabels[sideIndex]))
     {
         _pendingPreferences->SetString("side", kSideValues[sideIndex]);
     }
@@ -48,22 +51,22 @@ void ConfigurationWindow::DrawGlobalConfiguration()
 
 void ConfigurationWindow::Draw(bool* open)
 {
-    float buttonHeight = ImGui::GetFrameHeightWithSpacing();
+    float buttonHeight = _imgui.GetFrameHeightWithSpacing();
 
-    if (ImGui::BeginChild("UpperArea", ImVec2(0, -buttonHeight), false))
+    if (_imgui.BeginChild("UpperArea", ImVec2(0, -buttonHeight), false))
     {
-        ImGui::SetNextItemOpen(_openSection == 0);
-        bool globalOpen = ImGui::CollapsingHeader("Global");
+        _imgui.SetNextItemOpen(_openSection == 0);
+        bool globalOpen = _imgui.CollapsingHeader("Global");
         if (globalOpen != (_openSection == 0))
         {
             _openSection = globalOpen ? 0 : -1;
         }
         if (_openSection == 0)
         {
-            float indent = ImGui::GetFontSize() * 2.0f;
-            ImGui::Indent(indent);
+            float indent = _imgui.GetFontSize() * 2.0f;
+            _imgui.Indent(indent);
             DrawGlobalConfiguration();
-            ImGui::Unindent(indent);
+            _imgui.Unindent(indent);
         }
 
         std::vector<std::string> viewOrder =
@@ -86,39 +89,39 @@ void ConfigurationWindow::Draw(bool* open)
         for (size_t i = 0; i < viewOrder.size(); ++i)
         {
             View* view = _views.Get(viewOrder[i]);
-            ImGui::PushID(view->GetPrefName().c_str());
+            _imgui.PushID(view->GetPrefName().c_str());
             std::string enabledKey = view->GetPrefName() + ".enabled";
             bool enabled =
                 _pendingPreferences->GetBoolean(enabledKey).value_or(true);
             int section = static_cast<int>(i) + 1;
-            ImGui::SetNextItemOpen(_openSection == section);
-            bool isOpen = ImGui::CollapsingHeader(
+            _imgui.SetNextItemOpen(_openSection == section);
+            bool isOpen = _imgui.CollapsingHeader(
                 view->GetHumanName().c_str(), ImGuiTreeNodeFlags_AllowOverlap);
             if (isOpen != (_openSection == section))
                 _openSection = isOpen ? section : -1;
 
-            float frameHeight = ImGui::GetFrameHeight();
-            float itemSpacing = ImGui::GetStyle().ItemSpacing.x;
-            float framePadding = ImGui::GetStyle().FramePadding.x;
+            float frameHeight = _imgui.GetFrameHeight();
+            float itemSpacing = _imgui.GetStyle().ItemSpacing.x;
+            float framePadding = _imgui.GetStyle().FramePadding.x;
             float totalWidth = frameHeight * 3 + itemSpacing * 2;
-            ImGui::SameLine(
-                ImGui::GetContentRegionMax().x - totalWidth - framePadding);
+            _imgui.SameLine(
+                _imgui.GetContentRegionMax().x - totalWidth - framePadding);
 
             bool upPressed = false;
             bool downPressed = false;
             {
                 ImguiDisabled disabled(i == 0);
-                upPressed = ImGui::Button(
+                upPressed = _imgui.Button(
                     ICON_CODICON_ARROW_UP, ImVec2(frameHeight, frameHeight));
             }
-            ImGui::SameLine(0, itemSpacing);
+            _imgui.SameLine(0, itemSpacing);
             {
                 ImguiDisabled disabled(i + 1 >= viewOrder.size());
-                downPressed = ImGui::Button(
+                downPressed = _imgui.Button(
                     ICON_CODICON_ARROW_DOWN, ImVec2(frameHeight, frameHeight));
             }
-            ImGui::SameLine(0, itemSpacing);
-            if (ImGui::Checkbox("##enabled", &enabled))
+            _imgui.SameLine(0, itemSpacing);
+            if (_imgui.Checkbox("##enabled", &enabled))
                 _pendingPreferences->SetBoolean(enabledKey, enabled);
             if (upPressed && i > 0)
             {
@@ -143,52 +146,52 @@ void ConfigurationWindow::Draw(bool* open)
 
             if (_openSection == section)
             {
-                float indent = ImGui::GetFontSize() * 2.0f;
-                ImGui::Indent(indent);
+                float indent = _imgui.GetFontSize() * 2.0f;
+                _imgui.Indent(indent);
                 view->DrawConfiguration(*_pendingPreferences);
 
-                ImGui::PushID("sensors");
+                _imgui.PushID("sensors");
                 for (Sensor* sensor : view->GetSensors())
                 {
-                    ImGui::PushID(sensor->GetPrefName().c_str());
+                    _imgui.PushID(sensor->GetPrefName().c_str());
                     sensor->DrawConfiguration(*_pendingPreferences);
-                    ImGui::PopID();
+                    _imgui.PopID();
                 }
 
-                ImGui::PopID();
-                ImGui::Unindent(indent);
+                _imgui.PopID();
+                _imgui.Unindent(indent);
             }
-            ImGui::PopID();
+            _imgui.PopID();
         }
     }
-    ImGui::EndChild();
+    _imgui.EndChild();
 
-    if (ImGui::BeginChild("LowerArea", ImVec2(0, 0), false))
+    if (_imgui.BeginChild("LowerArea", ImVec2(0, 0), false))
     {
-        float okWidth = ImGui::CalcTextSize("OK").x +
-                        ImGui::GetStyle().FramePadding.x * 2.0f;
-        float cancelWidth = ImGui::CalcTextSize("Cancel").x +
-                            ImGui::GetStyle().FramePadding.x * 2.0f;
+        float okWidth = _imgui.CalcTextSize("OK").x +
+                        _imgui.GetStyle().FramePadding.x * 2.0f;
+        float cancelWidth = _imgui.CalcTextSize("Cancel").x +
+                            _imgui.GetStyle().FramePadding.x * 2.0f;
         float totalWidth =
-            okWidth + cancelWidth + ImGui::GetStyle().ItemSpacing.x;
-        ImGui::SetCursorPosX(0);
-        if (ImGui::Button("Quit!"))
+            okWidth + cancelWidth + _imgui.GetStyle().ItemSpacing.x;
+        _imgui.SetCursorPosX(0);
+        if (_imgui.Button("Quit!"))
             _app.Quit();
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
-                             ImGui::GetContentRegionAvail().x - totalWidth);
-        if (ImGui::Button("OK"))
+        _imgui.SameLine();
+        _imgui.SetCursorPosX(_imgui.GetCursorPosX() +
+                             _imgui.GetContentRegionAvail().x - totalWidth);
+        if (_imgui.Button("OK"))
         {
             WriteTomlPreferences(*_pendingPreferences);
             longjmp(g_restartJmp, 1);
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel"))
+        _imgui.SameLine();
+        if (_imgui.Button("Cancel"))
         {
             _pendingMapPreferences->ClearAll();
             if (open != nullptr)
                 *open = false;
         }
     }
-    ImGui::EndChild();
+    _imgui.EndChild();
 }
