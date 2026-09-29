@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+class Context;
+
 struct CpuSample
 {
     float user;
@@ -21,3 +23,6 @@ public:
 
 extern std::unique_ptr<CpuPoller> CreateCpuPoller(
     const std::string& procStatPath = "/proc/stat");
+
+extern std::unique_ptr<CpuPoller> CreateCpuPoller(
+    const Context& ctx, const std::string& procStatPath = "/proc/stat");

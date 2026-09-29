@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -21,15 +22,14 @@ namespace
     class CpuViewImpl : public ViewGraphMixin
     {
     public:
-        explicit CpuViewImpl(const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit CpuViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateCpuSensor(GetPrefName()))
         {
         }
 
-        explicit CpuViewImpl(
-            const Preferences& prefs, std::unique_ptr<CpuSensor> sensor):
-            _prefs(prefs),
+        explicit CpuViewImpl(const Context& ctx, std::unique_ptr<CpuSensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -41,7 +41,7 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_prefs);
+            const int graphHeight = GetGraphHeight(_context.preferences);
 
             Style::GraphGroup("CPU usage",
                 [&]
@@ -65,7 +65,7 @@ namespace
                         }
                         const char* labels[] = {"user", "system", "nice"};
                         DrawGraph(
-                            _prefs,
+                            _context.preferences,
                             _sensor->GetChannelName(cpu),
                             "",
                             n,
@@ -108,19 +108,18 @@ namespace
         }
 
     private:
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<CpuSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateCpuView(const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateCpuView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<CpuViewImpl>(prefs, sensors);
+    return std::make_unique<CpuViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateCpuView(
-    const Preferences& prefs, std::unique_ptr<CpuSensor> sensor)
+std::unique_ptr<View> CreateCpuView(const Context& ctx, std::unique_ptr<CpuSensor> sensor)
 {
-    return std::make_unique<CpuViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<CpuViewImpl>(ctx, std::move(sensor));
 }

@@ -6,17 +6,19 @@
 
 #include <memory>
 
-class Preferences;
-class Timer;
+class Context;
 
 // Fetches the current local time. Implementations live in
 // src/sensors/clock_sensor_impl.cc.
 class ClockSensor : public Sensor
 {
 public:
-    explicit ClockSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    explicit ClockSensor(const Context& ctx, const std::string& prefPrefix):
+        Sensor(ctx, prefPrefix)
     {
     }
+
+    explicit ClockSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
 
     virtual ~ClockSensor() = default;
 
@@ -25,4 +27,4 @@ public:
 };
 
 extern std::unique_ptr<ClockSensor> CreateClockSensor(
-    const Preferences& prefs, Timer& timer, const std::string& prefPrefix);
+    const Context& ctx, const std::string& prefPrefix);

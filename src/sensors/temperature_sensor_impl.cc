@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -52,12 +53,10 @@ namespace
     class TemperatureSensorImpl : public TemperatureSensor
     {
     public:
-        explicit TemperatureSensorImpl(const Preferences& prefs,
-            Timer& timer,
+        explicit TemperatureSensorImpl(const Context& ctx,
             const std::string& prefPrefix,
-            const std::string& hwmonRoot):
-            TemperatureSensor(prefPrefix),
-            _timer(timer),
+            const std::string& hwmonRoot): TemperatureSensor(ctx, prefPrefix),
+            _ctx(ctx),
             _hwmonRoot(hwmonRoot)
         {
             _inputPaths = DiscoverInputs(_hwmonRoot);
@@ -113,11 +112,11 @@ namespace
                     _names.push_back(base);
             }
 
-            InitGraph(prefs,
+            InitGraph(_ctx,
                 _prefPrefix,
                 _inputPaths.size(),
                 std::numeric_limits<double>::quiet_NaN());
-            Tick(_timer.Now());
+            Tick(_ctx.timer.Now());
         }
 
         const double* GetSamples(std::size_t channel) const override
@@ -179,12 +178,12 @@ namespace
                     AddSample(i, std::numeric_limits<double>::quiet_NaN());
                 }
             }
-            _timer.Schedule(t + this->_delta,
+            _ctx.timer.Schedule(t + this->_delta,
                 std::bind(
                     &TemperatureSensorImpl::Tick, this, std::placeholders::_1));
         }
 
-        Timer& _timer;
+        const Context& _ctx;
         std::string _hwmonRoot;
         std::vector<std::string> _inputPaths;
         std::vector<std::string> _names;
@@ -192,12 +191,9 @@ namespace
 
 } // namespace
 
-std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-    const Preferences& prefs,
-    Timer& timer,
+std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(const Context& ctx,
     const std::string& prefPrefix,
     const std::string& hwmonRoot)
 {
-    return std::make_unique<TemperatureSensorImpl>(
-        prefs, timer, prefPrefix, hwmonRoot);
+    return std::make_unique<TemperatureSensorImpl>(ctx, prefPrefix, hwmonRoot);
 }

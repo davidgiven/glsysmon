@@ -6,21 +6,22 @@
 #include <memory>
 #include <string>
 
-class Preferences;
-class Timer;
+class Context;
 
 class TemperatureSensor : public Sensor, public SensorGraphMixin<double>
 {
 public:
-    explicit TemperatureSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    explicit TemperatureSensor(const Context& ctx, const std::string& prefPrefix):
+        Sensor(ctx, prefPrefix)
     {
     }
+
+    explicit TemperatureSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
 
     virtual ~TemperatureSensor() = default;
 };
 
 extern std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-    const Preferences& prefs,
-    Timer& timer,
+    const Context& ctx,
     const std::string& prefPrefix,
     const std::string& hwmonRoot = "/sys/class/hwmon");

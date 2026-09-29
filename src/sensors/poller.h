@@ -5,6 +5,8 @@
 #include <optional>
 #include <string>
 
+class Context;
+
 // Fetches a piece of system data. Implementations live in poller_*.cc.
 template <typename T>
 class Poller
@@ -36,6 +38,8 @@ public:
         return static_cast<int>(_cacheInterval.count());
     }
 
+    void SetCacheIntervalFromContext(const Context& ctx);
+
 protected:
     virtual std::chrono::steady_clock::time_point Now() const
     {
@@ -62,4 +66,14 @@ std::map<std::string, T> Poller<T>::PollCached()
     _cached = Poll();
     _lastPoll = now;
     return _cached;
+}
+
+#include "context.h"
+#include "preferences/preferences.h"
+
+template <typename T>
+void Poller<T>::SetCacheIntervalFromContext(const Context& ctx)
+{
+    SetCacheIntervalMs(
+        GlobalPreferencesFetcher::GetPollerCacheInterval(ctx.preferences));
 }

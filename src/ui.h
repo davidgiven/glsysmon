@@ -2,10 +2,8 @@
 
 #include <memory>
 
-class Preferences;
-class Timer;
+class Context;
 class Sensors;
-class App;
 
 struct SDL_Window;
 
@@ -18,7 +16,5 @@ public:
     virtual void Draw() = 0;
 };
 
-extern std::unique_ptr<Ui> CreateUi(
-    const Preferences& prefs, Timer& timer, App& app);
-extern std::unique_ptr<Ui> CreateUi(
-    const Preferences& prefs, Sensors& sensors, App& app);
+extern std::unique_ptr<Ui> CreateUi(const Context& ctx);
+extern std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors);

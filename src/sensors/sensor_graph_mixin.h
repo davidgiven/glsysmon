@@ -10,6 +10,8 @@
 
 #include "preferences/preferences.h"
 
+class Context;
+
 class SensorGraphMixinBase
 {
 protected:
@@ -17,6 +19,11 @@ protected:
     virtual ~SensorGraphMixinBase() = default;
 
     void InitGraphBase(const Preferences& prefs,
+        const std::string& prefPrefix,
+        std::size_t& sampleCount,
+        double defaultInterval = 1);
+
+    void InitGraphBase(const Context& ctx,
         const std::string& prefPrefix,
         std::size_t& sampleCount,
         double defaultInterval = 1);
@@ -130,6 +137,17 @@ protected:
     {
         std::size_t sampleCount = 0;
         InitGraphBase(prefs, prefPrefix, sampleCount, defaultInterval);
+        _samples.assign(channels, std::vector<T>(sampleCount, initial));
+    }
+
+    void InitGraph(const Context& ctx,
+        const std::string& prefPrefix,
+        std::size_t channels,
+        const T& initial = T{},
+        double defaultInterval = 1)
+    {
+        std::size_t sampleCount = 0;
+        InitGraphBase(ctx, prefPrefix, sampleCount, defaultInterval);
         _samples.assign(channels, std::vector<T>(sampleCount, initial));
     }
 

@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+class Context;
+
 struct MemorySample
 {
     long long totalRam;
@@ -20,3 +22,6 @@ public:
 
 extern std::unique_ptr<MemoryPoller> CreateMemoryPoller(
     const std::string& procMemInfoPath = "/proc/meminfo");
+
+extern std::unique_ptr<MemoryPoller> CreateMemoryPoller(
+    const Context& ctx, const std::string& procMemInfoPath = "/proc/meminfo");

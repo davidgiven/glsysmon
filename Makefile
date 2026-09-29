@@ -66,6 +66,7 @@ BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_D
 BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stub.o
 
 SRC_OBJS := \
+	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/display/dock.o \
@@ -161,6 +162,7 @@ TEST_LOGS := $(addsuffix .log,$(TEST_BINS))
 
 # Objects needed by every test binary: the modules the app's components pull in.
 TEST_OBJS := \
+	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/imguiif_impl.o \

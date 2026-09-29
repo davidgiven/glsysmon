@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "globals.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "utils.h"
@@ -25,15 +26,14 @@ namespace
     class NetworkViewImpl : public ViewGraphMixin
     {
     public:
-        explicit NetworkViewImpl(const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit NetworkViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateNetworkSensor(GetPrefName()))
         {
         }
 
-        explicit NetworkViewImpl(
-            const Preferences& prefs, std::unique_ptr<NetworkSensor> sensor):
-            _prefs(prefs),
+        explicit NetworkViewImpl(const Context& ctx, std::unique_ptr<NetworkSensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -44,9 +44,9 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight = GetGraphHeight(_prefs);
-            const bool showNumbers = GetShowNumbers(_prefs);
-            auto allowedSet = GetInterfaces(_prefs);
+            const int graphHeight = GetGraphHeight(_context.preferences);
+            const bool showNumbers = GetShowNumbers(_context.preferences);
+            auto allowedSet = GetInterfaces(_context.preferences);
 
             Style::GraphGroup("Network",
                 [&]
@@ -63,7 +63,7 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax = GetMaximum(_prefs);
+                        double yMax = GetMaximum(_context.preferences);
                         if (yMax <= 0)
                         {
                             double maxVal = 0;
@@ -87,7 +87,7 @@ namespace
                         }
 
                         DrawGraph(
-                            _prefs,
+                            _context.preferences,
                             channelName,
                             subtitle,
                             n,
@@ -250,20 +250,18 @@ namespace
             prefs.SetBoolean(GetPrefName() + ".show_numbers", value);
         }
 
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<NetworkSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateNetworkView(
-    const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateNetworkView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<NetworkViewImpl>(prefs, sensors);
+    return std::make_unique<NetworkViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateNetworkView(
-    const Preferences& prefs, std::unique_ptr<NetworkSensor> sensor)
+std::unique_ptr<View> CreateNetworkView(const Context& ctx, std::unique_ptr<NetworkSensor> sensor)
 {
-    return std::make_unique<NetworkViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<NetworkViewImpl>(ctx, std::move(sensor));
 }

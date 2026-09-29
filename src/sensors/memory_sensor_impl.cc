@@ -8,6 +8,7 @@
 #include <string>
 
 #include "memory_poller.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -18,16 +19,14 @@ namespace
     class MemorySensorImpl : public MemorySensor
     {
     public:
-        explicit MemorySensorImpl(const Preferences& prefs,
-            Timer& timer,
+        explicit MemorySensorImpl(const Context& ctx,
             const std::string& prefPrefix,
-            std::shared_ptr<MemoryPoller> poller):
-            MemorySensor(prefPrefix),
-            _timer(timer),
+            std::shared_ptr<MemoryPoller> poller): MemorySensor(ctx, prefPrefix),
+            _ctx(ctx),
             _poller(std::move(poller))
         {
-            InitGraph(prefs, _prefPrefix, 1, MemorySample{0, 0});
-            Tick(_timer.Now());
+            InitGraph(_ctx, _prefPrefix, 1, MemorySample{0, 0});
+            Tick(_ctx.timer.Now());
         }
 
         const MemorySample* GetSamples(std::size_t channel) const override
@@ -65,7 +64,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _timer.Schedule(t + this->_delta,
+                _ctx.timer.Schedule(t + this->_delta,
                     std::bind(
                         &MemorySensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -88,8 +87,9 @@ namespace
                     AddSample(0, it->second);
                 }
             }
-            _timer.Schedule(t + this->_delta,
-                std::bind(&MemorySensorImpl::Tick, this, std::placeholders::_1));
+            _ctx.timer.Schedule(t + this->_delta,
+                std::bind(
+                    &MemorySensorImpl::Tick, this, std::placeholders::_1));
         }
 
         void PushZeros()
@@ -99,17 +99,16 @@ namespace
                 AddSample(i, zero);
         }
 
-        Timer& _timer;
+        const Context& _ctx;
         std::shared_ptr<MemoryPoller> _poller;
     };
 
 } // namespace
 
-std::unique_ptr<MemorySensor> CreateMemorySensor(const Preferences& prefs,
-    Timer& timer,
+std::unique_ptr<MemorySensor> CreateMemorySensor(const Context& ctx,
     const std::string& prefPrefix,
     std::shared_ptr<MemoryPoller> poller)
 {
     return std::make_unique<MemorySensorImpl>(
-        prefs, timer, prefPrefix, std::move(poller));
+        ctx, prefPrefix, std::move(poller));
 }

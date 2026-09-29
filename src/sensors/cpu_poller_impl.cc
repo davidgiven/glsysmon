@@ -1,3 +1,4 @@
+#include "context.h"
 #include "cpu_poller.h"
 
 #include <cctype>
@@ -128,4 +129,12 @@ namespace
 std::unique_ptr<CpuPoller> CreateCpuPoller(const std::string& procStatPath)
 {
     return std::make_unique<CpuPollerImpl>(procStatPath);
+}
+
+std::unique_ptr<CpuPoller> CreateCpuPoller(
+    const Context& ctx, const std::string& procStatPath)
+{
+    auto poller = CreateCpuPoller(procStatPath);
+    poller->SetCacheIntervalFromContext(ctx);
+    return poller;
 }

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/style.h"
@@ -22,16 +23,14 @@ namespace
     class TemperatureViewImpl : public ViewGraphMixin
     {
     public:
-        explicit TemperatureViewImpl(
-            const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit TemperatureViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateTemperatureSensor(GetPrefName()))
         {
         }
 
-        explicit TemperatureViewImpl(const Preferences& prefs,
-            std::unique_ptr<TemperatureSensor> sensor):
-            _prefs(prefs),
+        explicit TemperatureViewImpl(const Context& ctx, std::unique_ptr<TemperatureSensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -42,11 +41,11 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int yMin = GetMinimum(_prefs);
-            const int yMax = GetMaximum(_prefs);
-            const auto allowedSet = GetSensors(_prefs);
-            const int graphHeight = GetGraphHeight(_prefs);
-            const bool showValue = GetShowValue(_prefs);
+            const int yMin = GetMinimum(_context.preferences);
+            const int yMax = GetMaximum(_context.preferences);
+            const auto allowedSet = GetSensors(_context.preferences);
+            const int graphHeight = GetGraphHeight(_context.preferences);
+            const bool showValue = GetShowValue(_context.preferences);
 
             Style::GraphGroup("Temperature",
                 [&]
@@ -70,7 +69,7 @@ namespace
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
                         DrawGraph(
-                            _prefs,
+                            _context.preferences,
                             title,
                             subtitle,
                             n,
@@ -207,20 +206,18 @@ namespace
             prefs.SetBoolean(GetPrefName() + ".show_value", value);
         }
 
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<TemperatureSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateTemperatureView(
-    const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateTemperatureView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<TemperatureViewImpl>(prefs, sensors);
+    return std::make_unique<TemperatureViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateTemperatureView(
-    const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor)
+std::unique_ptr<View> CreateTemperatureView(const Context& ctx, std::unique_ptr<TemperatureSensor> sensor)
 {
-    return std::make_unique<TemperatureViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<TemperatureViewImpl>(ctx, std::move(sensor));
 }

@@ -12,8 +12,10 @@
 #include <string>
 #include <utility>
 
+#include "context.h"
 #include "display/dock.h"
 #include "display/imgui_frame_renderer.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "timer.h"
 #include "ui.h"
@@ -126,11 +128,15 @@ namespace
         ImGuiAppImpl(DockFactory dockFactory,
             std::unique_ptr<ImGuiFrameRenderer> frameRenderer,
             std::shared_ptr<Preferences> prefs,
-            std::unique_ptr<Timer> timer):
+            std::unique_ptr<Timer> timer,
+            std::unique_ptr<ImGuiIf> imgui):
             _prefs(std::move(prefs)),
             _dockFactory(std::move(dockFactory)),
             _frameRenderer(std::move(frameRenderer)),
-            _timer(std::move(timer))
+            _timer(std::move(timer)),
+            _imgui(std::move(imgui)),
+            _context(std::make_unique<Context>(
+                static_cast<App&>(*this), *_imgui, *_prefs, *_timer))
         {
         }
 
@@ -139,9 +145,14 @@ namespace
             Shutdown();
         }
 
-        std::shared_ptr<Preferences> GetPreferences()
+        std::shared_ptr<Preferences> GetPreferences() override
         {
             return _prefs;
+        }
+
+        Context& GetContext() override
+        {
+            return *_context;
         }
 
         void SetUi(std::unique_ptr<Ui> ui)
@@ -302,6 +313,8 @@ namespace
         DockFactory _dockFactory;
         std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
         std::unique_ptr<Timer> _timer;
+        std::unique_ptr<ImGuiIf> _imgui;
+        std::unique_ptr<Context> _context;
         std::unique_ptr<Ui> _ui;
         std::unique_ptr<Dock> _dock;
         std::unique_ptr<SdlSession> _sdl;
@@ -320,12 +333,15 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
     auto prefs = std::shared_ptr<Preferences>(CreatePreferences(args));
     auto dockFactory = CreateDockFactory(*prefs);
     auto timer = CreateTimer();
-    Timer& timerRef = *timer;
-    Preferences& prefsRef = *prefs;
+    auto imgui = CreateImGui();
     auto renderer = CreateImGuiFrameRenderer();
-    auto app = std::make_unique<ImGuiAppImpl>(
-        std::move(dockFactory), std::move(renderer), prefs, std::move(timer));
-    auto ui = CreateUi(prefsRef, timerRef, *app);
+    auto app = std::make_unique<ImGuiAppImpl>(std::move(dockFactory),
+        std::move(renderer),
+        prefs,
+        std::move(timer),
+        std::move(imgui));
+    auto ui =
+        CreateUi(static_cast<ImGuiAppImpl*>(app.get())->GetContext());
     static_cast<ImGuiAppImpl*>(app.get())->SetUi(std::move(ui));
     return app;
 }

@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "app.h"
+#include "context.h"
 #include "display/imgui_frame_renderer.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/hostname_sensor.h"
@@ -50,6 +52,8 @@ namespace
     class FakeApp : public App
     {
     public:
+        FakeApp(): _dummyPrefs(CreateMapPreferences()), _dummyTimer(CreateTimer()), _dummyImgui(CreateImGui()), _dummyCtx(nullptr) {}
+
         void Setup() override {}
 
         void MainLoop() override {}
@@ -58,7 +62,16 @@ namespace
 
         std::shared_ptr<Preferences> GetPreferences() override
         {
-            return nullptr;
+            return _dummyPrefs;
+        }
+
+        Context& GetContext() override
+        {
+            if (_dummyCtx == nullptr)
+            {
+                _dummyCtx = std::make_unique<Context>(*this, *_dummyImgui, *_dummyPrefs, *_dummyTimer);
+            }
+            return *_dummyCtx;
         }
 
         void Quit() override
@@ -71,7 +84,24 @@ namespace
             return _quit;
         }
 
+        void SetExternalContext(Context* ctx)
+        {
+            _externalCtx = ctx;
+        }
+
+        Context& GetContextExternal()
+        {
+            if (_externalCtx != nullptr)
+                return *_externalCtx;
+            return GetContext();
+        }
+
     private:
+        std::shared_ptr<Preferences> _dummyPrefs;
+        std::unique_ptr<Timer> _dummyTimer;
+        std::unique_ptr<ImGuiIf> _dummyImgui;
+        std::unique_ptr<Context> _dummyCtx;
+        Context* _externalCtx = nullptr;
         bool _quit = false;
     };
 
@@ -82,8 +112,10 @@ TEST_CASE("CreateUi creates a UI component")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
+    auto imgui = CreateImGui();
     FakeApp app;
-    auto ui = CreateUi(*prefs, *timer, app);
+    Context ctx(app, *imgui, *prefs, *timer);
+    auto ui = CreateUi(ctx);
     CHECK(ui != nullptr);
 }
 
@@ -94,7 +126,11 @@ TEST_CASE("CreateHostnameView with a fake sensor creates a view")
 
     CliArgs args;
     auto prefs = CreatePreferences(args);
-    auto view = CreateHostnameView(*prefs, std::move(fake));
+    auto timer = CreateTimer();
+    auto imgui = CreateImGui();
+    FakeApp app;
+    Context ctx(app, *imgui, *prefs, *timer);
+    auto view = CreateHostnameView(ctx, std::move(fake));
     CHECK(view != nullptr);
 }
 
@@ -103,8 +139,11 @@ TEST_CASE("CreateHostnameView creates a view component")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    Sensors sensors(*prefs, *timer);
-    auto view = CreateHostnameView(*prefs, sensors);
+    auto imgui = CreateImGui();
+    FakeApp app;
+    Context ctx(app, *imgui, *prefs, *timer);
+    Sensors sensors(ctx);
+    auto view = CreateHostnameView(ctx, sensors);
     CHECK(view != nullptr);
 }
 
@@ -113,8 +152,11 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    Sensors sensors(*prefs, *timer);
-    Views views(*prefs, sensors, *timer);
+    auto imgui = CreateImGui();
+    FakeApp app;
+    Context ctx(app, *imgui, *prefs, *timer);
+    Sensors sensors(ctx);
+    Views views(ctx, sensors);
     View* view = views.Get("HostnameView");
     REQUIRE(view != nullptr);
     CHECK(views.Get("UnknownView") == nullptr);
@@ -127,7 +169,10 @@ TEST_CASE("Hostname sensor returns the current hostname")
     CliArgs args;
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
-    auto sensor = CreateHostnameSensor(*prefs, *timer, "hostname");
+    auto imgui = CreateImGui();
+    FakeApp app;
+    Context ctx(app, *imgui, *prefs, *timer);
+    auto sensor = CreateHostnameSensor(ctx, "hostname");
 
     const std::string hostname = sensor->GetHostname();
     CHECK_FALSE(hostname.empty());
@@ -202,7 +247,10 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", CreateCpuPoller(path));
+    auto imgui = CreateImGui();
+    FakeApp app;
+    Context ctx(app, *imgui, *prefs, *timer);
+    auto sensor = CreateCpuSensor(ctx, "cpu", CreateCpuPoller(path));
     const int cpuInterval =
         prefs->GetInteger("cpu.update_interval").value_or(5);
     uint64_t delta = 1'000'000'000ULL / static_cast<uint64_t>(cpuInterval);
@@ -278,11 +326,11 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     // Via Sensors factory
-    Sensors sensors(*prefs, *timer);
+    Sensors sensors(ctx);
     auto factorySensor = sensors.CreateCpuSensor("cpu", path);
     CHECK(factorySensor->GetChannels() == 2);
     // Via view-owned sensor
-    auto view = CreateCpuView(*prefs, sensors.CreateCpuSensor("cpu", path));
+    auto view = CreateCpuView(ctx, sensors.CreateCpuSensor("cpu", path));
     REQUIRE(view != nullptr);
     CHECK(view->GetSensors().size() == 1);
     auto* viewSensor = dynamic_cast<CpuSensor*>(view->GetSensors()[0]);
@@ -299,8 +347,10 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     const std::string missing = ".obj/nonexistent_cpu_stat";
     std::remove(missing.c_str());
     auto timer = CreateTimer();
-    auto sensor =
-        CreateCpuSensor(*prefs, *timer, "cpu", CreateCpuPoller(missing));
+    auto imgui2 = CreateImGui();
+    FakeApp app2;
+    Context ctx2(app2, *imgui2, *prefs, *timer);
+    auto sensor = CreateCpuSensor(ctx2, "cpu", CreateCpuPoller(missing));
     CHECK(sensor->GetChannels() == 0);
     CHECK(sensor->GetSampleCount() == 0);
     const int cpuInterval =

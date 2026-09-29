@@ -6,20 +6,23 @@
 #include <memory>
 #include <string>
 
-class Preferences;
-class Timer;
+class Context;
 
 using DiskSample = RxTxSample;
 
 class DiskSensor : public Sensor, public SensorRxTxGraphMixin
 {
 public:
+    explicit DiskSensor(const Context& ctx, const std::string& prefPrefix):
+        Sensor(ctx, prefPrefix)
+    {
+    }
+
     explicit DiskSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
 
     virtual ~DiskSensor() = default;
 };
 
-extern std::unique_ptr<DiskSensor> CreateDiskSensor(const Preferences& prefs,
-    Timer& timer,
+extern std::unique_ptr<DiskSensor> CreateDiskSensor(const Context& ctx,
     const std::string& prefPrefix,
     const std::string& procDiskStatsPath = "/proc/diskstats");

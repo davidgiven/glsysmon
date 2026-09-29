@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+class Context;
 class Preferences;
 class Sensor;
 class Sensors;
@@ -38,32 +39,32 @@ public:
 };
 
 extern std::unique_ptr<View> CreateClockView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateClockView(
-    const Preferences& prefs, std::unique_ptr<ClockSensor> sensor);
+    const Context& ctx, std::unique_ptr<ClockSensor> sensor);
 extern std::unique_ptr<View> CreateCpuView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateCpuView(
-    const Preferences& prefs, std::unique_ptr<CpuSensor> sensor);
+    const Context& ctx, std::unique_ptr<CpuSensor> sensor);
 extern std::unique_ptr<View> CreateHostnameView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateHostnameView(
-    const Preferences& prefs, std::unique_ptr<HostnameSensor> sensor);
+    const Context& ctx, std::unique_ptr<HostnameSensor> sensor);
 extern std::unique_ptr<View> CreateTemperatureView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateTemperatureView(
-    const Preferences& prefs, std::unique_ptr<TemperatureSensor> sensor);
+    const Context& ctx, std::unique_ptr<TemperatureSensor> sensor);
 extern std::unique_ptr<View> CreateNetworkView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateNetworkView(
-    const Preferences& prefs, std::unique_ptr<NetworkSensor> sensor);
+    const Context& ctx, std::unique_ptr<NetworkSensor> sensor);
 extern std::unique_ptr<View> CreateDiskView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateDiskView(
-    const Preferences& prefs, std::unique_ptr<DiskSensor> sensor);
+    const Context& ctx, std::unique_ptr<DiskSensor> sensor);
 extern std::unique_ptr<View> CreateMemoryView(
-    const Preferences& prefs, Sensors& sensors);
+    const Context& ctx, Sensors& sensors);
 extern std::unique_ptr<View> CreateMemoryView(
-    const Preferences& prefs, std::unique_ptr<MemorySensor> sensor);
+    const Context& ctx, std::unique_ptr<MemorySensor> sensor);
 extern std::unique_ptr<View> CreateBubbleFishyMonView(
-    const Preferences& prefs, Sensors& sensors, class Timer& timer);
+    const Context& ctx, Sensors& sensors);

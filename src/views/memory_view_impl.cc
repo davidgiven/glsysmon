@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "utils.h"
@@ -23,15 +24,14 @@ namespace
     class MemoryViewImpl : public ViewGraphMixin
     {
     public:
-        explicit MemoryViewImpl(const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit MemoryViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateMemorySensor(GetPrefName()))
         {
         }
 
-        explicit MemoryViewImpl(
-            const Preferences& prefs, std::unique_ptr<MemorySensor> sensor):
-            _prefs(prefs),
+        explicit MemoryViewImpl(const Context& ctx, std::unique_ptr<MemorySensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -44,7 +44,7 @@ namespace
             if (_sensor->GetChannels() == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_prefs);
+            const int graphHeight = GetGraphHeight(_context.preferences);
 
             Style::GraphGroup("Memory",
                 [&]
@@ -79,7 +79,7 @@ namespace
 
                     const MemorySample& last = samples[sampleCount - 1];
                     DrawGraph(
-                        _prefs,
+                        _context.preferences,
                         "",
                         std::to_string(std::llround(
                             100.0 * last.usedRam / last.totalRam)) +
@@ -116,20 +116,18 @@ namespace
         }
 
     private:
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<MemorySensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateMemoryView(
-    const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateMemoryView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<MemoryViewImpl>(prefs, sensors);
+    return std::make_unique<MemoryViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateMemoryView(
-    const Preferences& prefs, std::unique_ptr<MemorySensor> sensor)
+std::unique_ptr<View> CreateMemoryView(const Context& ctx, std::unique_ptr<MemorySensor> sensor)
 {
-    return std::make_unique<MemoryViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<MemoryViewImpl>(ctx, std::move(sensor));
 }

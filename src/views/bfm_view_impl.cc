@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "display/bfm_gpu_bridge.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
 #include "sensors/memory_poller.h"
@@ -67,30 +68,28 @@ namespace
     class BubbleFishyMonViewImpl : public View
     {
     public:
-        explicit BubbleFishyMonViewImpl(
-            const Preferences& prefs, Sensors& sensors, Timer& timer):
-            _prefs(prefs),
-            _timer(timer),
+        explicit BubbleFishyMonViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _memoryPoller(sensors.CreateMemoryPoller()),
             _networkPoller(sensors.CreateNetworkPoller()),
             _cpuPoller(sensors.CreateCpuPoller())
         {
             srand(0);
             bfm_glsysmon_init();
-            ApplyFishMode(GetFishMode(_prefs));
-            ApplyDuckMode(GetDuckMode(_prefs));
-            ApplyBubblesMode(GetBubblesMode(_prefs));
+            ApplyFishMode(GetFishMode(_context.preferences));
+            ApplyDuckMode(GetDuckMode(_context.preferences));
+            ApplyBubblesMode(GetBubblesMode(_context.preferences));
             {
-                int w = GetWidth(_prefs);
-                int h = GetHeight(_prefs);
+                int w = GetWidth(_context.preferences);
+                int h = GetHeight(_context.preferences);
                 bfm_set_size(w, h);
             }
             _inited = true;
-            double interval = GetUpdateInterval(_prefs);
+            double interval = GetUpdateInterval(_context.preferences);
             _interval = interval;
             _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
-            Timer::Time now = _timer.Now();
-            _scheduled = _timer.Schedule(now + _delta,
+            Timer::Time now = _context.timer.Now();
+            _scheduled = _context.timer.Schedule(now + _delta,
                 [this](Timer::Time t)
                 {
                     Tick(t);
@@ -100,7 +99,7 @@ namespace
         ~BubbleFishyMonViewImpl() override
         {
             if (_scheduled != 0)
-                _timer.Cancel(_scheduled);
+                _context.timer.Cancel(_scheduled);
             if (BfmGetGpuDevice() != nullptr && BfmGetGpuDevice() == _device)
                 DestroyGpuResources();
             else
@@ -119,8 +118,8 @@ namespace
             if (device == nullptr)
                 return;
 
-            int width = GetWidth(_prefs);
-            int height = GetHeight(_prefs);
+            int width = GetWidth(_context.preferences);
+            int height = GetHeight(_context.preferences);
             int curW = 0;
             int curH = 0;
             bfm_get_size(&curW, &curH);
@@ -180,10 +179,10 @@ namespace
                 SetUpdateInterval(preferences, interval);
                 interval = static_cast<float>(GetUpdateInterval(preferences));
                 if (_scheduled != 0)
-                    _timer.Cancel(_scheduled);
+                    _context.timer.Cancel(_scheduled);
                 _interval = interval;
                 _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
-                _scheduled = _timer.Schedule(_timer.Now() + _delta,
+                _scheduled = _context.timer.Schedule(_context.timer.Now() + _delta,
                     [this](Timer::Time t)
                     {
                         Tick(t);
@@ -375,10 +374,10 @@ namespace
 
         void Tick(Timer::Time t)
         {
-            FishMode fishMode = GetFishMode(_prefs);
+            FishMode fishMode = GetFishMode(_context.preferences);
             ApplyFishMode(fishMode);
-            ApplyDuckMode(GetDuckMode(_prefs));
-            ApplyBubblesMode(GetBubblesMode(_prefs));
+            ApplyDuckMode(GetDuckMode(_context.preferences));
+            ApplyBubblesMode(GetBubblesMode(_context.preferences));
 
             {
                 auto data = _memoryPoller->PollCached();
@@ -487,7 +486,7 @@ namespace
             }
 
             bubblemon_update(0);
-            _scheduled = _timer.Schedule(t + _delta,
+            _scheduled = _context.timer.Schedule(t + _delta,
                 [this](Timer::Time nt)
                 {
                     Tick(nt);
@@ -495,8 +494,8 @@ namespace
         }
         void EnsureGpuResources(SDL_GPUDevice* device)
         {
-            int width = GetWidth(_prefs);
-            int height = GetHeight(_prefs);
+            int width = GetWidth(_context.preferences);
+            int height = GetHeight(_context.preferences);
             if (device != _device)
             {
                 DestroyGpuResources();
@@ -602,8 +601,7 @@ namespace
             SDL_SubmitGPUCommandBuffer(cb);
         }
 
-        const Preferences& _prefs;
-        Timer& _timer;
+        const Context& _context;
         std::shared_ptr<MemoryPoller> _memoryPoller;
         std::shared_ptr<NetworkPoller> _networkPoller;
         std::shared_ptr<CpuPoller> _cpuPoller;
@@ -624,8 +622,7 @@ namespace
 
 } // namespace
 
-std::unique_ptr<View> CreateBubbleFishyMonView(
-    const Preferences& prefs, Sensors& sensors, Timer& timer)
+std::unique_ptr<View> CreateBubbleFishyMonView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<BubbleFishyMonViewImpl>(prefs, sensors, timer);
+    return std::make_unique<BubbleFishyMonViewImpl>(ctx, sensors);
 }

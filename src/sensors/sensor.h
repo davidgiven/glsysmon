@@ -2,13 +2,22 @@
 
 #include <string>
 
+class Context;
 class Preferences;
 
 // Fetches a piece of system data. Implementations live in sensor_*.cc.
 class Sensor
 {
 public:
-    explicit Sensor(const std::string& prefPrefix): _prefPrefix(prefPrefix)
+    explicit Sensor(const Context& ctx, const std::string& prefPrefix):
+        _ctx(&ctx),
+        _prefPrefix(prefPrefix)
+    {
+    }
+
+    explicit Sensor(const std::string& prefPrefix):
+        _ctx(nullptr),
+        _prefPrefix(prefPrefix)
     {
     }
 
@@ -21,5 +30,6 @@ public:
     virtual void DrawConfiguration(Preferences& preferences);
 
 protected:
+    const Context* _ctx = nullptr;
     std::string _prefPrefix;
 };

@@ -7,18 +7,21 @@
 #include <memory>
 #include <string>
 
-class Preferences;
-class Timer;
+class Context;
 
 class CpuSensor : public Sensor, public SensorGraphMixin<CpuSample>
 {
 public:
+    explicit CpuSensor(const Context& ctx, const std::string& prefPrefix):
+        Sensor(ctx, prefPrefix)
+    {
+    }
+
     explicit CpuSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
 
     virtual ~CpuSensor() = default;
 };
 
-extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs,
-    Timer& timer,
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Context& ctx,
     const std::string& prefPrefix,
     std::shared_ptr<CpuPoller> poller);

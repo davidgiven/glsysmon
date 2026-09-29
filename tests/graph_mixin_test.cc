@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "app.h"
+#include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/sensor_graph_mixin.h"
@@ -250,7 +253,28 @@ TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
         out << "cpu2 50 0 50 500 0 0 0 0 0 0\n";
     }
     auto timer = CreateTimer();
-    auto sensor = CreateCpuSensor(*prefs, *timer, "cpu", CreateCpuPoller(path));
+    auto imgui = CreateImGui();
+    struct DummyApp : public App
+    {
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override
+        {
+            return nullptr;
+        }
+        Context& GetContext() override
+        {
+            static auto dp = CreateMapPreferences();
+            static auto dt = CreateTimer();
+            static auto di = CreateImGui();
+            static Context dc(*this, *di, *dp, *dt);
+            return dc;
+        }
+        void Quit() override {}
+    } dummyApp;
+    Context ctx(dummyApp, *imgui, *prefs, *timer);
+    auto sensor = CreateCpuSensor(ctx, "cpu", CreateCpuPoller(path));
     auto* gm = dynamic_cast<SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(gm != nullptr);
     CHECK(gm->GetChannelName(0) == "0");

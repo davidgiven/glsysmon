@@ -3,6 +3,8 @@
 #include <memory>
 #include "preferences/preferences.h"
 
+class Context;
+
 // Application entry interface. Implementations live in imgui_app_impl.cc.
 // The main loop lives in main.cc, which drives Setup()/MainLoop()/Shutdown().
 class App
@@ -26,6 +28,8 @@ public:
 
     // Return the current preferences object.
     virtual std::shared_ptr<Preferences> GetPreferences() = 0;
+
+    virtual Context& GetContext() = 0;
 
     virtual void Quit() = 0;
 };

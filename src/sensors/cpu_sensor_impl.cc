@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "cpu_poller.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -20,12 +21,10 @@ namespace
     class CpuSensorImpl : public CpuSensor
     {
     public:
-        explicit CpuSensorImpl(const Preferences& prefs,
-            Timer& timer,
+        explicit CpuSensorImpl(const Context& ctx,
             const std::string& prefPrefix,
-            std::shared_ptr<CpuPoller> poller):
-            CpuSensor(prefPrefix),
-            _timer(timer),
+            std::shared_ptr<CpuPoller> poller): CpuSensor(ctx, prefPrefix),
+            _ctx(ctx),
             _poller(std::move(poller))
         {
             auto initial = _poller->Poll();
@@ -45,8 +44,12 @@ namespace
                         return a < b;
                     }
                 });
-            InitGraph(prefs, _prefPrefix, _cpuNames.size(), CpuSample{}, 5);
-            Tick(_timer.Now());
+            InitGraph(_ctx,
+                _prefPrefix,
+                _cpuNames.size(),
+                CpuSample{},
+                5);
+            Tick(_ctx.timer.Now());
         }
 
         const CpuSample* GetSamples(std::size_t cpu) const override
@@ -84,7 +87,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _timer.Schedule(t + this->_delta,
+                _ctx.timer.Schedule(t + this->_delta,
                     std::bind(
                         &CpuSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -109,7 +112,7 @@ namespace
                     AddSample(i, it->second);
                 }
             }
-            _timer.Schedule(t + this->_delta,
+            _ctx.timer.Schedule(t + this->_delta,
                 std::bind(&CpuSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -120,18 +123,16 @@ namespace
                 AddSample(i, zero);
         }
 
-        Timer& _timer;
+        const Context& _ctx;
         std::shared_ptr<CpuPoller> _poller;
         std::vector<std::string> _cpuNames;
     };
 
 } // namespace
 
-std::unique_ptr<CpuSensor> CreateCpuSensor(const Preferences& prefs,
-    Timer& timer,
+std::unique_ptr<CpuSensor> CreateCpuSensor(const Context& ctx,
     const std::string& prefPrefix,
     std::shared_ptr<CpuPoller> poller)
 {
-    return std::make_unique<CpuSensorImpl>(
-        prefs, timer, prefPrefix, std::move(poller));
+    return std::make_unique<CpuSensorImpl>(ctx, prefPrefix, std::move(poller));
 }

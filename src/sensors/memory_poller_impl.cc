@@ -1,3 +1,4 @@
+#include "context.h"
 #include "memory_poller.h"
 
 #include "utils.h"
@@ -94,4 +95,12 @@ std::unique_ptr<MemoryPoller> CreateMemoryPoller(
     const std::string& procMemInfoPath)
 {
     return std::make_unique<MemoryPollerImpl>(procMemInfoPath);
+}
+
+std::unique_ptr<MemoryPoller> CreateMemoryPoller(
+    const Context& ctx, const std::string& procMemInfoPath)
+{
+    auto poller = CreateMemoryPoller(procMemInfoPath);
+    poller->SetCacheIntervalFromContext(ctx);
+    return poller;
 }

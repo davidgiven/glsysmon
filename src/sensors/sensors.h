@@ -15,14 +15,13 @@
 #include "network_sensor.h"
 #include "temperature_sensor.h"
 
-class Preferences;
-class Sensor;
+class Context;
 class Timer;
 
 class Sensors
 {
 public:
-    explicit Sensors(const Preferences& prefs, Timer& timer);
+    explicit Sensors(const Context& ctx);
     virtual ~Sensors() = default;
 
     Sensors(const Sensors&) = delete;
@@ -54,14 +53,10 @@ public:
     virtual std::shared_ptr<CpuPoller> CreateCpuPoller(
         const std::string& procStatPath = "/proc/stat") const;
 
-    Timer& GetTimer() const
-    {
-        return _timer;
-    }
+    Timer& GetTimer() const;
 
 private:
-    const Preferences& _prefs;
-    Timer& _timer;
+    const Context& _ctx;
     mutable std::shared_ptr<NetworkPoller> _networkPoller;
     mutable std::shared_ptr<MemoryPoller> _memoryPoller;
     mutable std::shared_ptr<CpuPoller> _cpuPoller;

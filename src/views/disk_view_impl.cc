@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "globals.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "views/style.h"
@@ -23,15 +24,14 @@ namespace
     class DiskViewImpl : public ViewGraphMixin
     {
     public:
-        explicit DiskViewImpl(const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit DiskViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateDiskSensor(GetPrefName()))
         {
         }
 
-        explicit DiskViewImpl(
-            const Preferences& prefs, std::unique_ptr<DiskSensor> sensor):
-            _prefs(prefs),
+        explicit DiskViewImpl(const Context& ctx, std::unique_ptr<DiskSensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -42,8 +42,8 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight = GetGraphHeight(_prefs);
-            auto allowedSet = GetDevices(_prefs);
+            const int graphHeight = GetGraphHeight(_context.preferences);
+            auto allowedSet = GetDevices(_context.preferences);
 
             Style::GraphGroup("Disk",
                 [&]
@@ -69,7 +69,7 @@ namespace
                         double yMax = maxVal * 1.1;
 
                         DrawGraph(
-                            _prefs,
+                            _context.preferences,
                             channelName,
                             "",
                             n,
@@ -193,19 +193,18 @@ namespace
             prefs.SetStringSet(GetPrefName() + ".devices", value);
         }
 
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<DiskSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateDiskView(const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateDiskView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<DiskViewImpl>(prefs, sensors);
+    return std::make_unique<DiskViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateDiskView(
-    const Preferences& prefs, std::unique_ptr<DiskSensor> sensor)
+std::unique_ptr<View> CreateDiskView(const Context& ctx, std::unique_ptr<DiskSensor> sensor)
 {
-    return std::make_unique<DiskViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<DiskViewImpl>(ctx, std::move(sensor));
 }

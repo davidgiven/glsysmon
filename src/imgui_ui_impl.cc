@@ -10,6 +10,7 @@
 
 #include "app.h"
 #include "configuration.h"
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 #include "timer.h"
@@ -21,16 +22,16 @@ namespace
     class ImGuiUiImpl : public Ui
     {
     public:
-        explicit ImGuiUiImpl(const Preferences& prefs, Timer& timer, App& app):
-            _prefs(prefs),
-            _ownedSensors(std::make_unique<Sensors>(prefs, timer)),
+        explicit ImGuiUiImpl(const Context& ctx):
+            _context(ctx),
+            _ownedSensors(std::make_unique<Sensors>(ctx)),
             _sensors(*_ownedSensors),
-            _views(prefs, _sensors, timer),
-            _app(app),
+            _views(ctx, _sensors),
+            _app(ctx.app),
             _configurationWindow(_views, _app)
         {
             for (const std::string& name :
-                GlobalPreferencesFetcher::GetViews(prefs))
+                GlobalPreferencesFetcher::GetViews(ctx.preferences))
             {
                 View* view = _views.Get(name);
                 if (view == nullptr)
@@ -39,16 +40,15 @@ namespace
             }
         }
 
-        explicit ImGuiUiImpl(
-            const Preferences& prefs, Sensors& sensors, App& app):
-            _prefs(prefs),
+        explicit ImGuiUiImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensors(sensors),
-            _views(prefs, _sensors, sensors.GetTimer()),
-            _app(app),
+            _views(ctx, _sensors),
+            _app(ctx.app),
             _configurationWindow(_views, _app)
         {
             for (const std::string& name :
-                GlobalPreferencesFetcher::GetViews(prefs))
+                GlobalPreferencesFetcher::GetViews(ctx.preferences))
             {
                 View* view = _views.Get(name);
                 if (view == nullptr)
@@ -75,7 +75,8 @@ namespace
             for (View* view : _activeViews)
             {
                 std::string enabledKey = view->GetPrefName() + ".enabled";
-                bool enabled = _prefs.GetBoolean(enabledKey).value_or(true);
+                bool enabled =
+                    _context.preferences.GetBoolean(enabledKey).value_or(true);
                 if (!enabled)
                     continue;
                 view->Draw();
@@ -128,7 +129,7 @@ namespace
         }
 
     private:
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<Sensors> _ownedSensors;
         Sensors& _sensors;
         Views _views;
@@ -141,13 +142,12 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Ui> CreateUi(const Preferences& prefs, Timer& timer, App& app)
+std::unique_ptr<Ui> CreateUi(const Context& ctx)
 {
-    return std::make_unique<ImGuiUiImpl>(prefs, timer, app);
+    return std::make_unique<ImGuiUiImpl>(ctx);
 }
 
-std::unique_ptr<Ui> CreateUi(
-    const Preferences& prefs, Sensors& sensors, App& app)
+std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<ImGuiUiImpl>(prefs, sensors, app);
+    return std::make_unique<ImGuiUiImpl>(ctx, sensors);
 }

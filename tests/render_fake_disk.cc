@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "app.h"
+#include "context.h"
+#include "imguiif.h"
 #include "display/imgui_frame_renderer.h"
 #include "preferences/preferences.h"
 #include "render_lib.h"
@@ -87,8 +89,8 @@ namespace
     class FakeSensors : public Sensors
     {
     public:
-        FakeSensors(const Preferences& prefs, Timer& timer):
-            Sensors(prefs, timer)
+        FakeSensors(const Context& ctx):
+            Sensors(ctx)
         {
         }
 
@@ -105,6 +107,8 @@ namespace
     class FakeApp : public App
     {
     public:
+        FakeApp() {}
+
         void Setup() override {}
 
         void MainLoop() override {}
@@ -114,6 +118,16 @@ namespace
         std::shared_ptr<Preferences> GetPreferences() override
         {
             return nullptr;
+        }
+
+        Context& GetContext() override
+        {
+            static std::shared_ptr<Preferences> dummyPrefs =
+                CreateMapPreferences();
+            static auto dummyTimer = CreateTimer();
+            static auto dummyImgui = CreateImGui();
+            static Context dummyCtx(*this, *dummyImgui, *dummyPrefs, *dummyTimer);
+            return dummyCtx;
         }
 
         void Quit() override {}
@@ -128,9 +142,11 @@ int main()
         "--views=DiskView", "--disk.devices=sda,sdb", "--disk.maximum=1000000"};
     auto prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
-    FakeSensors sensors(*prefs, *timer);
+    auto imgui = CreateImGui();
     FakeApp app;
-    auto ui = CreateUi(*prefs, sensors, app);
+    Context ctx(app, *imgui, *prefs, *timer);
+    FakeSensors sensors(ctx);
+    auto ui = CreateUi(ctx, sensors);
     auto renderer = CreateImGuiFrameRenderer();
     return render_lib::Run("render_fake_disk", *ui, *renderer);
 }

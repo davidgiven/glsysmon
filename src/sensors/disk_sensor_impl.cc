@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_rx_tx_graph_mixin.h"
 #include "timer.h"
@@ -28,18 +29,19 @@ namespace
     class DiskSensorImpl : public DiskSensor
     {
     public:
-        explicit DiskSensorImpl(const Preferences& prefs,
-            Timer& timer,
+        explicit DiskSensorImpl(const Context& ctx,
             const std::string& prefPrefix,
-            const std::string& procDiskStatsPath):
-            DiskSensor(prefPrefix),
-            _timer(timer),
+            const std::string& procDiskStatsPath): DiskSensor(ctx, prefPrefix),
+            _ctx(ctx),
             _procDiskStatsPath(procDiskStatsPath)
         {
             _deviceNames = DiscoverDevices(_procDiskStatsPath);
-            InitGraph(prefs, _prefPrefix, _deviceNames.size(), RxTxSample{});
+            InitGraph(_ctx,
+                _prefPrefix,
+                _deviceNames.size(),
+                RxTxSample{});
             _prev.resize(_deviceNames.size());
-            Tick(_timer.Now());
+            Tick(_ctx.timer.Now());
         }
 
         const RxTxSample* GetSamples(std::size_t channel) const override
@@ -142,7 +144,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _timer.Schedule(t + this->_delta,
+                _ctx.timer.Schedule(t + this->_delta,
                     std::bind(
                         &DiskSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -181,7 +183,7 @@ namespace
                 }
                 _prev = cur;
             }
-            _timer.Schedule(t + this->_delta,
+            _ctx.timer.Schedule(t + this->_delta,
                 std::bind(&DiskSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -192,7 +194,7 @@ namespace
                 AddSample(i, zero);
         }
 
-        Timer& _timer;
+        const Context& _ctx;
         std::string _procDiskStatsPath;
         std::vector<std::string> _deviceNames;
         std::vector<RawDisk> _prev;
@@ -201,11 +203,9 @@ namespace
 
 } // namespace
 
-std::unique_ptr<DiskSensor> CreateDiskSensor(const Preferences& prefs,
-    Timer& timer,
+std::unique_ptr<DiskSensor> CreateDiskSensor(const Context& ctx,
     const std::string& prefPrefix,
     const std::string& procDiskStatsPath)
 {
-    return std::make_unique<DiskSensorImpl>(
-        prefs, timer, prefPrefix, procDiskStatsPath);
+    return std::make_unique<DiskSensorImpl>(ctx, prefPrefix, procDiskStatsPath);
 }

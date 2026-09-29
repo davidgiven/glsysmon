@@ -3,6 +3,8 @@
 #include "poller.h"
 #include "sensor_rx_tx_graph_mixin.h"
 
+class Context;
+
 #include <map>
 #include <memory>
 #include <string>
@@ -15,3 +17,6 @@ public:
 
 extern std::unique_ptr<NetworkPoller> CreateNetworkPoller(
     const std::string& procNetDevPath = "/proc/net/dev");
+
+extern std::unique_ptr<NetworkPoller> CreateNetworkPoller(
+    const Context& ctx, const std::string& procNetDevPath = "/proc/net/dev");

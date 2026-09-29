@@ -6,17 +6,19 @@
 
 #include <memory>
 
-class Preferences;
-class Timer;
+class Context;
 
 // Fetches the current system hostname. Implementations live in
 // src/sensors/hostname_sensor_impl.cc.
 class HostnameSensor : public Sensor
 {
 public:
-    explicit HostnameSensor(const std::string& prefPrefix): Sensor(prefPrefix)
+    explicit HostnameSensor(const Context& ctx, const std::string& prefPrefix):
+        Sensor(ctx, prefPrefix)
     {
     }
+
+    explicit HostnameSensor(const std::string& prefPrefix): Sensor(prefPrefix) {}
 
     virtual ~HostnameSensor() = default;
 
@@ -25,4 +27,4 @@ public:
 };
 
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Preferences& prefs, Timer& timer, const std::string& prefPrefix);
+    const Context& ctx, const std::string& prefPrefix);

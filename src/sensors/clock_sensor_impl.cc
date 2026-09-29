@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "timer.h"
 
@@ -17,14 +18,11 @@ namespace
     class ClockSensorImpl : public ClockSensor
     {
     public:
-        explicit ClockSensorImpl(const Preferences& prefs,
-            Timer& timer,
-            const std::string& prefPrefix):
-            ClockSensor(prefPrefix),
-            _prefs(prefs),
-            _timer(timer)
+        explicit ClockSensorImpl(
+            const Context& ctx, const std::string& prefPrefix): ClockSensor(ctx, prefPrefix),
+            _ctx(ctx)
         {
-            Tick(_timer.Now());
+            Tick(_ctx.timer.Now());
         }
 
         std::tm GetLocalTime() override
@@ -52,19 +50,18 @@ namespace
                 _tm = {};
             else
                 _tm = local;
-            _timer.Schedule(t + 1'000'000'000ULL,
+            _ctx.timer.Schedule(t + 1'000'000'000ULL,
                 std::bind(&ClockSensorImpl::Tick, this, std::placeholders::_1));
         }
 
-        const Preferences& _prefs;
-        Timer& _timer;
+        const Context& _ctx;
         std::tm _tm{};
     };
 
 } // namespace
 
 std::unique_ptr<ClockSensor> CreateClockSensor(
-    const Preferences& prefs, Timer& timer, const std::string& prefPrefix)
+    const Context& ctx, const std::string& prefPrefix)
 {
-    return std::make_unique<ClockSensorImpl>(prefs, timer, prefPrefix);
+    return std::make_unique<ClockSensorImpl>(ctx, prefPrefix);
 }

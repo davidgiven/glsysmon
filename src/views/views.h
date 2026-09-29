@@ -7,14 +7,13 @@
 
 #include "views/view.h"
 
-class Preferences;
+class Context;
 class Sensors;
-class Timer;
 
 class Views
 {
 public:
-    explicit Views(const Preferences& prefs, Sensors& sensors, Timer& timer);
+    explicit Views(const Context& ctx, Sensors& sensors);
 
     Views(const Views&) = delete;
     Views& operator=(const Views&) = delete;
@@ -30,12 +29,10 @@ public:
     void Reset();
 
 private:
-    using Factory = std::unique_ptr<View> (*)(
-        const Preferences&, Sensors&, Timer&);
+    using Factory = std::unique_ptr<View> (*)(const Context&, Sensors&);
     static const std::map<std::string, Factory> _factories;
 
-    const Preferences& _prefs;
+    const Context& _context;
     Sensors& _sensors;
-    Timer& _timer;
     mutable std::map<std::string, std::unique_ptr<View>> _views;
 };

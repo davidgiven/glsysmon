@@ -9,6 +9,9 @@
 #include <string>
 #include <thread>
 
+#include "app.h"
+#include "context.h"
+#include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/memory_poller.h"
 #include "sensors/poller.h"
@@ -314,7 +317,28 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
     auto mapPrefs = CreateMapPreferences();
     mapPrefs->SetInteger("poller.cache_interval", 200);
     auto timer = CreateTimer();
-    Sensors sensors(*mapPrefs, *timer);
+    auto imgui = CreateImGui();
+    struct DummyApp : public App
+    {
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override
+        {
+            return nullptr;
+        }
+        Context& GetContext() override
+        {
+            static auto dp = CreateMapPreferences();
+            static auto dt = CreateTimer();
+            static auto di = CreateImGui();
+            static Context dc(*this, *di, *dp, *dt);
+            return dc;
+        }
+        void Quit() override {}
+    } dummyApp;
+    Context ctx(dummyApp, *imgui, *mapPrefs, *timer);
+    Sensors sensors(ctx);
 
     const std::string path = ".obj/test_poller_sensors_interval";
     {

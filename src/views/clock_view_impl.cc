@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
 
@@ -22,15 +23,14 @@ namespace
     class ClockViewImpl : public View
     {
     public:
-        explicit ClockViewImpl(const Preferences& prefs, Sensors& sensors):
-            _prefs(prefs),
+        explicit ClockViewImpl(const Context& ctx, Sensors& sensors):
+            _context(ctx),
             _sensor(sensors.CreateClockSensor(GetPrefName()))
         {
         }
 
-        explicit ClockViewImpl(
-            const Preferences& prefs, std::unique_ptr<ClockSensor> sensor):
-            _prefs(prefs),
+        explicit ClockViewImpl(const Context& ctx, std::unique_ptr<ClockSensor> sensor):
+            _context(ctx),
             _sensor(std::move(sensor))
         {
         }
@@ -38,7 +38,7 @@ namespace
         void Draw() override
         {
             std::tm tm = _sensor->GetLocalTime();
-            std::string format = GetFormat(_prefs);
+            std::string format = GetFormat(_context.preferences);
             ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_Text];
             std::ostringstream oss;
             oss << std::format("<div style=\"color: #{:02X}{:02X}{:02X};\">",
@@ -124,20 +124,18 @@ namespace
             prefs.SetString(GetPrefName() + ".format", value);
         }
 
-        const Preferences& _prefs;
+        const Context& _context;
         std::unique_ptr<ClockSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateClockView(
-    const Preferences& prefs, Sensors& sensors)
+std::unique_ptr<View> CreateClockView(const Context& ctx, Sensors& sensors)
 {
-    return std::make_unique<ClockViewImpl>(prefs, sensors);
+    return std::make_unique<ClockViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateClockView(
-    const Preferences& prefs, std::unique_ptr<ClockSensor> sensor)
+std::unique_ptr<View> CreateClockView(const Context& ctx, std::unique_ptr<ClockSensor> sensor)
 {
-    return std::make_unique<ClockViewImpl>(prefs, std::move(sensor));
+    return std::make_unique<ClockViewImpl>(ctx, std::move(sensor));
 }
