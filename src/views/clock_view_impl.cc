@@ -46,8 +46,11 @@ namespace
             std::string text = oss.str();
             std::istringstream iss(text);
             std::string line;
+            double scale = GetTextScale(_context.preferences);
+            _context.imgui.SetWindowFontScale(static_cast<float>(scale));
             while (std::getline(iss, line))
                 Style::DrawCentredText(_context.imgui, line);
+            _context.imgui.SetWindowFontScale(1.0f);
         }
 
         void DrawConfiguration(Preferences& preferences) override
@@ -90,6 +93,10 @@ namespace
                     Callback::Resize,
                     &buf))
                 SetFormat(preferences, buf);
+
+            double textScale = GetTextScale(preferences);
+            if (_context.imgui.InputDouble("Text scale", &textScale))
+                SetTextScale(preferences, textScale);
         }
 
         std::string GetHumanName() const override
@@ -132,6 +139,16 @@ namespace
         void SetFormat(Preferences& prefs, const std::string& value) const
         {
             prefs.SetString(GetPrefName() + ".format", value);
+        }
+
+        double GetTextScale(const Preferences& prefs) const
+        {
+            return prefs.GetDouble(GetPrefName() + ".text_scale").value_or(1.2);
+        }
+
+        void SetTextScale(Preferences& prefs, double value) const
+        {
+            prefs.SetDouble(GetPrefName() + ".text_scale", value);
         }
 
         const Context& _context;
