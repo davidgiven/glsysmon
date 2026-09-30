@@ -3004,15 +3004,12 @@ namespace
         }
         void ImPlot_ShowStyleEditor(ImPlotStyle* ref = nullptr) override
         {
-            // ImPlot::ShowStyleEditor(ref);
+            (void)ref;
         }
-        void ImPlot_ShowUserGuide() override
-        {
-            // ImPlot::ShowUserGuide();
-        }
+        void ImPlot_ShowUserGuide() override {}
         void ImPlot_ShowMetricsWindow(bool* p_popen = nullptr) override
         {
-            // ImPlot::ShowMetricsWindow(p_popen);
+            (void)p_popen;
         }
         void ImPlot_ShowDemoWindow(bool* p_open = nullptr) override
         {

@@ -34,6 +34,8 @@ TEST_CASE(
             ImGuiSelectableFlags flags = 0,
             const ImVec2& size = ImVec2(0, 0)) override
         {
+            (void)flags;
+            (void)size;
             if (label == std::string("eth0"))
             {
                 *p_selected = !*p_selected;
@@ -78,6 +80,8 @@ TEST_CASE(
             ImGuiSelectableFlags flags = 0,
             const ImVec2& size = ImVec2(0, 0)) override
         {
+            (void)flags;
+            (void)size;
             if (label == std::string("eth0"))
             {
                 *p_selected = !*p_selected;

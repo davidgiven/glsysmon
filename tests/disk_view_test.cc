@@ -33,6 +33,8 @@ TEST_CASE("DiskViewImpl DrawConfiguration with empty list adds clicked device")
             ImGuiSelectableFlags flags = 0,
             const ImVec2& size = ImVec2(0, 0)) override
         {
+            (void)flags;
+            (void)size;
             if (label == std::string("sda"))
             {
                 *p_selected = !*p_selected;
@@ -77,6 +79,8 @@ TEST_CASE(
             ImGuiSelectableFlags flags = 0,
             const ImVec2& size = ImVec2(0, 0)) override
         {
+            (void)flags;
+            (void)size;
             if (label == std::string("sda"))
             {
                 *p_selected = !*p_selected;
