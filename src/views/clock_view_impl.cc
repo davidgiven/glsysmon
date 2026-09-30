@@ -1,11 +1,9 @@
 #include "views/view.h"
 
 #include <imgui.h>
-#include <imhtml.hpp>
 
 #include <algorithm>
 #include <ctime>
-#include <format>
 #include <iomanip>
 #include <memory>
 #include <optional>
@@ -17,6 +15,7 @@
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
+#include "views/style.h"
 
 namespace
 {
@@ -30,7 +29,8 @@ namespace
         {
         }
 
-        explicit ClockViewImpl(const Context& ctx, std::unique_ptr<ClockSensor> sensor):
+        explicit ClockViewImpl(
+            const Context& ctx, std::unique_ptr<ClockSensor> sensor):
             _context(ctx),
             _sensor(std::move(sensor))
         {
@@ -40,15 +40,14 @@ namespace
         {
             std::tm tm = _sensor->GetLocalTime();
             std::string format = GetFormat(_context.preferences);
-            ImVec4 col = _context.imgui.GetStyle().Colors[ImGuiCol_Text];
             std::ostringstream oss;
-            oss << std::format("<div style=\"color: #{:02X}{:02X}{:02X};\">",
-                       static_cast<int>(col.x * 255),
-                       static_cast<int>(col.y * 255),
-                       static_cast<int>(col.z * 255))
-                << std::put_time(&tm, format.c_str()) << "</div>";
-            std::string html = oss.str();
-            ImHTML::Canvas("clock", html.c_str());
+            oss << std::put_time(&tm, format.c_str());
+
+            std::string text = oss.str();
+            std::istringstream iss(text);
+            std::string line;
+            while (std::getline(iss, line))
+                Style::DrawCentredText(_context.imgui, line);
         }
 
         void DrawConfiguration(Preferences& preferences) override
@@ -127,7 +126,7 @@ namespace
         std::string GetFormat(const Preferences& prefs) const
         {
             return prefs.GetString(GetPrefName() + ".format")
-                .value_or("<center>%Y-%m-%d<br>%H:%M:%S</center>");
+                .value_or("%Y-%m-%d\n%H:%M:%S");
         }
 
         void SetFormat(Preferences& prefs, const std::string& value) const
@@ -146,7 +145,8 @@ std::unique_ptr<View> CreateClockView(const Context& ctx, Sensors& sensors)
     return std::make_unique<ClockViewImpl>(ctx, sensors);
 }
 
-std::unique_ptr<View> CreateClockView(const Context& ctx, std::unique_ptr<ClockSensor> sensor)
+std::unique_ptr<View> CreateClockView(
+    const Context& ctx, std::unique_ptr<ClockSensor> sensor)
 {
     return std::make_unique<ClockViewImpl>(ctx, std::move(sensor));
 }
