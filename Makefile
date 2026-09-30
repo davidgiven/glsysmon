@@ -14,10 +14,6 @@ IMGUI_DIR      := dep/imgui
 IMGUI_CFLAGS   := -isystem $(IMGUI_DIR)
 IMPLOT_DIR     := dep/implot
 IMPLOT_CFLAGS  := -isystem $(IMPLOT_DIR)
-IMHTML_DIR      := dep/imhtml
-IMHTML_CFLAGS   := -isystem $(IMHTML_DIR)
-LITEHTML_CFLAGS := $(shell $(PKG_CONFIG) --cflags gumbo 2>/dev/null) -I/usr/include/litehtml
-LITEHTML_LIBS   := -llitehtml $(shell $(PKG_CONFIG) --libs gumbo 2>/dev/null)
 X11_CFLAGS     := $(shell $(PKG_CONFIG) --cflags x11)
 X11_LIBS       := $(shell $(PKG_CONFIG) --libs x11)
 WAYLAND_CFLAGS := $(shell $(PKG_CONFIG) --cflags wayland-client)
@@ -59,7 +55,7 @@ XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protoco
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
 
-COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(IMHTML_CFLAGS) $(LITEHTML_CFLAGS) $(X11_CFLAGS) \
+COMMON_CFLAGS := $(CXXFLAGS) -I$(CURDIR)/src -I$(BUILD) $(SDL_CFLAGS) $(IMGUI_CFLAGS) $(IMPLOT_CFLAGS) $(X11_CFLAGS) \
                   $(WAYLAND_CFLAGS) $(TOMLPLUSPLUS_CFLAGS) $(MAGIC_ENUM_CFLAGS) $(PROFILER_CFLAGS) -MMD -MP
 
 BFM_CFLAGS := -DGLSYSMON_BFM -DENABLE_FISH -DENABLE_DUCK -DENABLE_CPU -DUPSIDE_DOWN_DUCK -isystem $(CURDIR)/dep/bfm/include -isystem $(CURDIR)/dep/bfm
@@ -130,14 +126,11 @@ IMPLOT_OBJS := \
 	$(BUILD)/implot.o \
 	$(BUILD)/implot_items.o
 
-IMHTML_OBJS := \
-	$(BUILD)/imhtml.o
-
 WAYLAND_OBJS := \
 	$(GEN)/wlr-layer-shell-client-protocol.o \
 	$(GEN)/xdg-shell-client-protocol.o
 
-OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
+OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 
 TEST_BUILD  := $(BUILD)/tests
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
@@ -207,13 +200,12 @@ TEST_OBJS := \
 	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BFM_OBJS) \
-	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(IMHTML_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
+	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 
 DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/memory_poller_test.d $(TEST_BUILD)/cpu_poller_test.d $(TEST_BUILD)/poller_test.d $(TEST_BUILD)/render_frame.d \
          $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
          $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
          $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
-         $(BUILD)/imhtml.d \
          $(DROIDSANS_GEN_CPP:.cpp=.d) $(CODICON_GEN_CPP:.cpp=.d)
 
 TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
@@ -225,7 +217,7 @@ all: $(BIN) $(TEST_LOGS)
 $(BIN): $(OBJS)
 	@echo $@
 	@$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
-		$(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) $(PROFILER_LIBS)
+		$(TOMLPLUSPLUS_LIBS) $(PROFILER_LIBS)
 
 $(DROIDSANS_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
 	@echo $@
@@ -322,11 +314,6 @@ $(BUILD)/implot_items.o: $(IMPLOT_DIR)/implot_items.cpp
 	@mkdir -p $(BUILD)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
-$(BUILD)/imhtml.o: $(IMHTML_DIR)/imhtml.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
 $(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
 	@echo $@
 	@mkdir -p $(BUILD)
@@ -344,7 +331,7 @@ $(TEST_BUILD)/%.o: tests/%.cc
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
 	@echo $@
@@ -352,58 +339,58 @@ $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
 
 $(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_POLLER): $(TEST_BUILD)/poller_test.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_CPU): $(TEST_BUILD)/render_fake_cpu.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_TEMPERATURE): $(TEST_BUILD)/render_fake_temperature.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_NETWORK): $(TEST_BUILD)/render_fake_network.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_RENDER_DISK): $(TEST_BUILD)/render_fake_disk.o \
 	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS) \
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
 
 $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
@@ -412,15 +399,15 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 
 $(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) $(LITEHTML_LIBS)
+	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
 .PRECIOUS: $(TEST_LOGS)
 

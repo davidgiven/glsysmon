@@ -42,8 +42,6 @@ How?
 
 It's known to build on Ubuntu, Debian and Fedora. You need these libraries:
 
-- libgumbo-dev
-- liblitehtml-dev
 - libmagicenum-dev
 - libsdl3-dev
 - libstb-dev
@@ -70,7 +68,6 @@ The `dep` directory contains third-party code which is vendored into the final b
 
 - `imgui` --- the `docking` branch of [Dear Imgui](https://github.com/ocornut/imgui); MIT licensed.
 - `implot` --- the [implot](https://github.com/epezent/implot) immediate-mode plotting library; MIT licensed.
-- `imhtml` --- the [imhtml](https://github.com/BigJk/ImHTML) HTML-rendering library, heavily modified; MIT licensed.
 - `codicons` --- [GitHub's icon library](https://github.com/microsoft/vscode-codicons); Creative Commons Attribution 4.0 licensed.
 - `bfm` --- [BubbleFishyMon](https://github.com/JNRowe/bfm); GPL2 licensed.
 
