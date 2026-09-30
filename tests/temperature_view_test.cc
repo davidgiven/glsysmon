@@ -114,3 +114,47 @@ TEST_CASE(
     else
         CHECK(result->empty());
 }
+
+TEST_CASE("TemperatureViewImpl Draw with single device calls BeginPlot once")
+{
+    auto prefs = CreateMapPreferences();
+    prefs->SetStringSet("temperature.sensors", std::set<std::string>{"temp0"});
+    prefs->SetBoolean("temperature.show_value", false);
+
+    class MockImGui : public MockImGuiIf
+    {
+    public:
+        int beginPlotCount = 0;
+        std::string lastLabel;
+
+        bool BeginPlot(const char* title_id,
+            const ImVec2& size = ImVec2(-1, 0),
+            ImPlotFlags flags = 0) override
+        {
+            (void)size;
+            (void)flags;
+            beginPlotCount++;
+            if (title_id)
+                lastLabel = title_id;
+            return false;
+        }
+    };
+
+    auto timer = CreateTimer();
+    MockImGui mockImgui;
+    FakeApp app;
+    Context ctx(app, mockImgui, *prefs, *timer);
+
+    std::vector<std::string> names = {"temp0"};
+    std::vector<std::vector<double>> samples(1);
+    samples[0] = {30.0, 40.0, 50.0};
+
+    auto sensor = std::make_unique<MockTemperatureSensor>(names, samples);
+    auto view = CreateTemperatureView(ctx, std::move(sensor));
+    REQUIRE(view != nullptr);
+
+    view->Draw();
+
+    CHECK(mockImgui.beginPlotCount == 1);
+    CHECK(mockImgui.lastLabel == "##temp0");
+}

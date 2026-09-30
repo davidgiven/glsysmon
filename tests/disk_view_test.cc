@@ -112,3 +112,50 @@ TEST_CASE(
     else
         CHECK(result->empty());
 }
+
+TEST_CASE("DiskViewImpl Draw with single device calls BeginPlot once")
+{
+    auto prefs = CreateMapPreferences();
+    prefs->SetStringSet("disk.devices", std::set<std::string>{"sda"});
+
+    class MockImGui : public MockImGuiIf
+    {
+    public:
+        int beginPlotCount = 0;
+        std::string lastLabel;
+
+        bool BeginPlot(const char* title_id,
+            const ImVec2& size = ImVec2(-1, 0),
+            ImPlotFlags flags = 0) override
+        {
+            (void)size;
+            (void)flags;
+            beginPlotCount++;
+            if (title_id)
+                lastLabel = title_id;
+            return false;
+        }
+    };
+
+    auto timer = CreateTimer();
+    MockImGui mockImgui;
+    FakeApp app;
+    Context ctx(app, mockImgui, *prefs, *timer);
+
+    std::vector<std::string> names = {"sda"};
+    std::vector<std::vector<DiskSample>> samples(1);
+    samples[0] = {
+        {100, 200},
+        {150, 250},
+        {200, 300}
+    };
+
+    auto sensor = std::make_unique<MockDiskSensor>(names, samples);
+    auto view = CreateDiskView(ctx, std::move(sensor));
+    REQUIRE(view != nullptr);
+
+    view->Draw();
+
+    CHECK(mockImgui.beginPlotCount == 1);
+    CHECK(mockImgui.lastLabel == "##sda");
+}
