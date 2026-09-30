@@ -124,12 +124,15 @@ namespace
             ViewGraphMixin::DrawConfiguration(preferences);
 
             // Temperature range
-            float minMax[2] = {static_cast<float>(GetMinimum(preferences)),
-                static_cast<float>(GetMaximum(preferences))};
-            if (_context.imgui.DragFloat2("Min/Max (°C)", minMax))
+            int minimum = GetMinimum(preferences);
+            if (_context.imgui.InputInt("Minimum (°C)", &minimum))
             {
-                SetMinimum(preferences, static_cast<int>(minMax[0]));
-                SetMaximum(preferences, static_cast<int>(minMax[1]));
+                SetMinimum(preferences, minimum);
+            }
+            int maximum = GetMaximum(preferences);
+            if (_context.imgui.InputInt("Maximum (°C)", &maximum))
+            {
+                SetMaximum(preferences, maximum);
             }
 
             bool showValue = GetShowValue(preferences);

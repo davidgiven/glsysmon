@@ -33,9 +33,8 @@ void SensorGraphMixinBase::InitGraphBase(const Context& ctx,
 void SensorGraphMixinBase::DrawIntervalConfiguration(
     ImGuiIf& imgui, Preferences& preferences, const std::string& prefPrefix)
 {
-    float interval =
-        static_cast<float>(GetUpdateInterval(preferences, prefPrefix, 2.0));
-    if (imgui.InputFloat("Update interval (Hz)", &interval))
+    double interval = GetUpdateInterval(preferences, prefPrefix, 2.0);
+    if (imgui.InputDouble("Update interval (Hz)", &interval))
     {
         SetUpdateInterval(preferences, prefPrefix, interval);
     }

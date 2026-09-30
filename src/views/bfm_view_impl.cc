@@ -142,14 +142,17 @@ namespace
                 scale = 1;
             ImVec2 imgSize((float)(width * scale), (float)(height * scale));
             float cursorX = _context.imgui.GetCursorPosX();
-            _context.imgui.SetCursorPosX(cursorX + (availWidth - imgSize.x) * 0.5f);
+            _context.imgui.SetCursorPosX(
+                cursorX + (availWidth - imgSize.x) * 0.5f);
 
             ImDrawList* dl = _context.imgui.GetWindowDrawList();
             dl->AddCallback(
-                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerNearest, nullptr);
+                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerNearest,
+                nullptr);
             _context.imgui.Image((ImTextureID)(intptr_t)_texture, imgSize);
             dl->AddCallback(
-                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerLinear, nullptr);
+                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerLinear,
+                nullptr);
         }
 
         std::string GetHumanName() const override
@@ -184,38 +187,32 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            float interval = static_cast<float>(GetUpdateInterval(preferences));
-            if (_context.imgui.InputFloat("Update frequency", &interval))
+            double interval = GetUpdateInterval(preferences);
+            if (_context.imgui.InputDouble("Update frequency", &interval))
             {
                 SetUpdateInterval(preferences, interval);
-                interval = static_cast<float>(GetUpdateInterval(preferences));
+                interval = GetUpdateInterval(preferences);
                 if (_scheduled != 0)
                     _context.timer.Cancel(_scheduled);
                 _interval = interval;
                 _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
-                _scheduled = _context.timer.Schedule(_context.timer.Now() + _delta,
-                    [this](Timer::Time t)
-                    {
-                        Tick(t);
-                    });
+                _scheduled =
+                    _context.timer.Schedule(_context.timer.Now() + _delta,
+                        [this](Timer::Time t)
+                        {
+                            Tick(t);
+                        });
             }
 
-            float size[2] = {static_cast<float>(GetWidth(preferences)),
-                static_cast<float>(GetHeight(preferences))};
-            if (_context.imgui.DragFloat2("Size", size, 1.0f, 10.0f, 256.0f))
+            int width = GetWidth(preferences);
+            if (_context.imgui.InputInt("Width", &width))
             {
-                int w = static_cast<int>(std::lround(size[0]));
-                int h = static_cast<int>(std::lround(size[1]));
-                if (w < 10)
-                    w = 10;
-                if (w > 256)
-                    w = 256;
-                if (h < 10)
-                    h = 10;
-                if (h > 256)
-                    h = 256;
-                SetWidth(preferences, w);
-                SetHeight(preferences, h);
+                SetWidth(preferences, width);
+            }
+            int height = GetHeight(preferences);
+            if (_context.imgui.InputInt("Height", &height))
+            {
+                SetHeight(preferences, height);
             }
 
             FishMode currentFishMode = GetFishMode(preferences);
@@ -237,7 +234,8 @@ namespace
             int bubblesIndex = static_cast<int>(currentBubblesMode);
             constexpr const char* kBubblesNames[] = {"no bubbles", "bubbles"};
             const char* bubblesLabel(kBubblesNames[bubblesIndex]);
-            if (_context.imgui.SliderInt("Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
+            if (_context.imgui.SliderInt(
+                    "Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
                 SetBubblesMode(
                     preferences, static_cast<BubblesMode>(bubblesIndex));
         }
@@ -633,7 +631,8 @@ namespace
 
 } // namespace
 
-std::unique_ptr<View> CreateBubbleFishyMonView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateBubbleFishyMonView(
+    const Context& ctx, Sensors& sensors)
 {
     return std::make_unique<BubbleFishyMonViewImpl>(ctx, sensors);
 }

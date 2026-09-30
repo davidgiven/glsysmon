@@ -31,7 +31,7 @@ void ConfigurationWindow::DrawGlobalConfiguration()
 {
     // Panel width
     int size = _pendingPreferences->GetInteger("size").value_or(100);
-    if (_imgui.SliderInt("Width", &size, 1, 300))
+    if (_imgui.InputInt("Width", &size))
     {
         _pendingPreferences->SetInteger("size", size);
     }
@@ -50,7 +50,7 @@ void ConfigurationWindow::DrawGlobalConfiguration()
 
     // Font size
     int fontSize = _pendingPreferences->GetInteger("font_size").value_or(16);
-    if (_imgui.DragInt("Font size", &fontSize, 0.25f, 1, 100))
+    if (_imgui.InputInt("Font size", &fontSize))
     {
         _pendingPreferences->SetInteger("font_size", fontSize);
     }
@@ -58,11 +58,9 @@ void ConfigurationWindow::DrawGlobalConfiguration()
     // Small font scale factor (for labels in graphs)
     double scale =
         GlobalPreferencesFetcher::GetSmallFontScale(*_pendingPreferences);
-    float scaleF = static_cast<float>(scale);
-    if (_imgui.DragFloat(
-            "Small font scale", &scaleF, 0.01f, 0.1f, 2.0f, "%.3f"))
+    if (_imgui.InputDouble("Small font scale", &scale))
     {
-        _pendingPreferences->SetDouble("small_font_scale", scaleF);
+        _pendingPreferences->SetDouble("small_font_scale", scale);
     }
 }
 
