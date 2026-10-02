@@ -338,7 +338,7 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
         void Quit() override {}
     } dummyApp;
     Context ctx(dummyApp, *imgui, *mapPrefs, *timer);
-    Sensors sensors(ctx);
+    auto sensors = CreateSensors(ctx);
 
     const std::string path = ".obj/test_poller_sensors_interval";
     {
@@ -347,16 +347,24 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
         out << "MemAvailable:   5500 kB\n";
     }
 
-    auto memPoller = sensors.CreateMemoryPoller(path);
+    auto cpuPoller = sensors->CreateCpuPoller(path);
+    REQUIRE(cpuPoller != nullptr);
+    CHECK(cpuPoller->GetCacheIntervalMs() == 200);
+
+    auto memPoller = sensors->CreateMemoryPoller(path);
     REQUIRE(memPoller != nullptr);
     CHECK(memPoller->GetCacheIntervalMs() == 200);
 
-    auto netPoller = sensors.CreateNetworkPoller(path);
+    auto netPoller = sensors->CreateNetworkPoller(path);
     REQUIRE(netPoller != nullptr);
     CHECK(netPoller->GetCacheIntervalMs() == 200);
 
     mapPrefs->SetInteger("poller.cache_interval", 300);
-    auto memPoller2 = sensors.CreateMemoryPoller(path);
+    auto cpuPoller2 = sensors->CreateCpuPoller(path);
+    CHECK(cpuPoller == cpuPoller2);
+    CHECK(cpuPoller2->GetCacheIntervalMs() == 300);
+
+    auto memPoller2 = sensors->CreateMemoryPoller(path);
     CHECK(memPoller == memPoller2);
     CHECK(memPoller2->GetCacheIntervalMs() == 300);
 

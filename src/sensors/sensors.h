@@ -21,43 +21,41 @@ class Timer;
 class Sensors
 {
 public:
-    explicit Sensors(const Context& ctx);
     virtual ~Sensors() = default;
 
     Sensors(const Sensors&) = delete;
     Sensors& operator=(const Sensors&) = delete;
 
     virtual std::unique_ptr<ClockSensor> CreateClockSensor(
-        const std::string& prefPrefix) const;
+        const std::string& prefPrefix) const = 0;
     virtual std::unique_ptr<CpuSensor> CreateCpuSensor(
         const std::string& prefPrefix,
-        const std::string& procStatPath = "/proc/stat") const;
+        const std::string& procStatPath = "/proc/stat") const = 0;
     virtual std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-        const std::string& prefPrefix) const;
+        const std::string& prefPrefix) const = 0;
     virtual std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
         const std::string& prefPrefix,
-        const std::string& hwmonRoot = "/sys/class/hwmon") const;
+        const std::string& hwmonRoot = "/sys/class/hwmon") const = 0;
     virtual std::unique_ptr<NetworkSensor> CreateNetworkSensor(
         const std::string& prefPrefix,
-        const std::string& procNetDevPath = "/proc/net/dev") const;
+        const std::string& procNetDevPath = "/proc/net/dev") const = 0;
     virtual std::unique_ptr<DiskSensor> CreateDiskSensor(
         const std::string& prefPrefix,
-        const std::string& procDiskStatsPath = "/proc/diskstats") const;
+        const std::string& procDiskStatsPath = "/proc/diskstats") const = 0;
     virtual std::unique_ptr<MemorySensor> CreateMemorySensor(
         const std::string& prefPrefix,
-        const std::string& procMemInfoPath = "/proc/meminfo") const;
+        const std::string& procMemInfoPath = "/proc/meminfo") const = 0;
     virtual std::shared_ptr<NetworkPoller> CreateNetworkPoller(
-        const std::string& procNetDevPath = "/proc/net/dev") const;
+        const std::string& procNetDevPath = "/proc/net/dev") const = 0;
     virtual std::shared_ptr<MemoryPoller> CreateMemoryPoller(
-        const std::string& procMemInfoPath = "/proc/meminfo") const;
+        const std::string& procMemInfoPath = "/proc/meminfo") const = 0;
     virtual std::shared_ptr<CpuPoller> CreateCpuPoller(
-        const std::string& procStatPath = "/proc/stat") const;
+        const std::string& procStatPath = "/proc/stat") const = 0;
 
-    Timer& GetTimer() const;
+    virtual Timer& GetTimer() const = 0;
 
-private:
-    const Context& _ctx;
-    mutable std::shared_ptr<NetworkPoller> _networkPoller;
-    mutable std::shared_ptr<MemoryPoller> _memoryPoller;
-    mutable std::shared_ptr<CpuPoller> _cpuPoller;
+protected:
+    Sensors() = default;
 };
+
+extern std::unique_ptr<Sensors> CreateSensors(const Context& ctx);

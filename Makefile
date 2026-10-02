@@ -267,19 +267,11 @@ $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_poller_impl.o \
 	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
 	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/utils.o \
 	$(BUILD)/views/style.o \
@@ -328,7 +320,15 @@ $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o \
 	@echo $@
 	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_CPU) $(TEST_MEMORY) $(TEST_POLLER): $(TEST_BUILD)/%: $(TEST_BUILD)/%.o \
+$(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(BUILD)/sensors/cpu_poller_impl.o
+	@echo $@
+	@$(CXX) -o $@ $^
+
+$(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(BUILD)/sensors/memory_poller_impl.o
+	@echo $@
+	@$(CXX) -o $@ $^
+
+$(TEST_POLLER): $(TEST_BUILD)/poller_test.o \
 	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
@@ -366,19 +366,7 @@ $(TEST_RENDER): $(TEST_BUILD)/render_fake_%: $(TEST_BUILD)/render_fake_%.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
-	$(BUILD)/sensors/cpu_poller_impl.o \
-	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
-	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/utils.o \
 	$(BUILD)/views/style.o \
@@ -410,19 +398,7 @@ $(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
-	$(BUILD)/sensors/cpu_poller_impl.o \
-	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
-	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/style.o \
 	$(BUILD)/views/view.o \
@@ -439,19 +415,7 @@ $(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
-	$(BUILD)/sensors/cpu_poller_impl.o \
-	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
-	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/utils.o \
 	$(BUILD)/views/style.o \
@@ -469,19 +433,7 @@ $(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
-	$(BUILD)/sensors/cpu_poller_impl.o \
-	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
 	$(BUILD)/sensors/sensor.o \
-	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
 	$(BUILD)/timer.o \
 	$(BUILD)/views/style.o \
 	$(BUILD)/views/view.o \

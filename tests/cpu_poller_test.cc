@@ -6,13 +6,7 @@
 #include <string>
 #include <thread>
 
-#include "app.h"
-#include "context.h"
-#include "imguiif.h"
-#include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
-#include "sensors/sensors.h"
-#include "timer.h"
 
 TEST_CASE("CpuPoller first Poll returns zeros")
 {
@@ -181,66 +175,6 @@ TEST_CASE("CpuPoller handles newly appeared cpu")
     CHECK(r2["2"].user == doctest::Approx(0.0f));
     CHECK(r2["2"].system == doctest::Approx(0.0f));
     CHECK(r2["2"].nice == doctest::Approx(0.0f));
-
-    std::remove(path.c_str());
-}
-
-TEST_CASE("CpuPoller via Sensors factory")
-{
-    CliArgs args;
-    auto prefs = CreatePreferences(args);
-    auto timer = CreateTimer();
-    auto imgui = CreateImGui();
-    struct DummyApp : public App
-    {
-        void Setup() override {}
-        void MainLoop() override {}
-        void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override
-        {
-            return nullptr;
-        }
-        Context& GetContext() override
-        {
-            static auto dp = CreateMapPreferences();
-            static auto dt = CreateTimer();
-            static auto di = CreateImGui();
-            static Context dc(*this, *di, *dp, *dt);
-            return dc;
-        }
-        void Quit() override {}
-    } dummyApp;
-    Context ctx(dummyApp, *imgui, *prefs, *timer);
-    Sensors sensors(ctx);
-
-    const std::string path = ".obj/test_cpu_sensors";
-    {
-        std::ofstream out(path);
-        REQUIRE(out.is_open());
-        out << "cpu0 10 0 10 100 0 0 0 0 0 0\n";
-        out << "cpu1 10 0 10 100 0 0 0 0 0 0\n";
-    }
-
-    auto poller = sensors.CreateCpuPoller(path);
-    REQUIRE(poller != nullptr);
-    auto r1 = poller->Poll();
-    REQUIRE(r1.size() == 2);
-    CHECK(r1["0"].user == doctest::Approx(0.0f));
-
-    {
-        std::ofstream out(path);
-        REQUIRE(out.is_open());
-        out << "cpu0 20 0 20 120 0 0 0 0 0 0\n";
-        out << "cpu1 20 0 20 120 0 0 0 0 0 0\n";
-    }
-
-    auto r2 = poller->Poll();
-    REQUIRE(r2.size() == 2);
-    // idle 100->120 +20, nonIdle 20->40 +20 => total 40 => user 10/40=0.25
-    CHECK(r2["0"].user == doctest::Approx(0.25f));
-
-    auto poller2 = sensors.CreateCpuPoller(path);
-    CHECK(poller == poller2);
 
     std::remove(path.c_str());
 }

@@ -5,13 +5,7 @@
 #include <fstream>
 #include <string>
 
-#include "app.h"
-#include "context.h"
-#include "imguiif.h"
-#include "preferences/preferences.h"
 #include "sensors/memory_poller.h"
-#include "sensors/sensors.h"
-#include "timer.h"
 
 TEST_CASE("MemoryPoller reads fake meminfo and computes usedRam")
 {
@@ -114,54 +108,6 @@ TEST_CASE("MemoryPoller returns empty when required fields missing")
     }
     auto result2 = poller->Poll();
     CHECK(result2.empty());
-
-    std::remove(path.c_str());
-}
-
-TEST_CASE("MemoryPoller via Sensors factory")
-{
-    CliArgs args;
-    auto prefs = CreatePreferences(args);
-    auto timer = CreateTimer();
-    auto imgui = CreateImGui();
-    struct DummyApp : public App
-    {
-        void Setup() override {}
-        void MainLoop() override {}
-        void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override
-        {
-            return nullptr;
-        }
-        Context& GetContext() override
-        {
-            static auto dp = CreateMapPreferences();
-            static auto dt = CreateTimer();
-            static auto di = CreateImGui();
-            static Context dc(*this, *di, *dp, *dt);
-            return dc;
-        }
-        void Quit() override {}
-    } dummyApp;
-    Context ctx(dummyApp, *imgui, *prefs, *timer);
-    Sensors sensors(ctx);
-
-    const std::string path = ".obj/test_meminfo_sensors";
-    {
-        std::ofstream out(path);
-        out << "MemTotal:       32000 kB\n";
-        out << "MemAvailable:   16000 kB\n";
-    }
-
-    auto poller = sensors.CreateMemoryPoller(path);
-    REQUIRE(poller != nullptr);
-    auto result = poller->Poll();
-    REQUIRE(result.size() == 1);
-    CHECK(result["mem"].totalRam == 32000 * 1024);
-    CHECK(result["mem"].usedRam == (32000 - 16000) * 1024);
-
-    auto poller2 = sensors.CreateMemoryPoller(path);
-    CHECK(poller == poller2);
 
     std::remove(path.c_str());
 }

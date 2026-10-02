@@ -17,6 +17,7 @@
 #include "display/imgui_frame_renderer.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
+#include "sensors/sensors.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -158,6 +159,11 @@ namespace
         void SetUi(std::unique_ptr<Ui> ui)
         {
             _ui = std::move(ui);
+        }
+
+        void SetSensors(std::unique_ptr<Sensors> sensors)
+        {
+            _sensors = std::move(sensors);
         }
 
         void Setup() override
@@ -315,6 +321,7 @@ namespace
         std::unique_ptr<Timer> _timer;
         std::unique_ptr<ImGuiIf> _imgui;
         std::unique_ptr<Context> _context;
+        std::unique_ptr<Sensors> _sensors;
         std::unique_ptr<Ui> _ui;
         std::unique_ptr<Dock> _dock;
         std::unique_ptr<SdlSession> _sdl;
@@ -340,7 +347,10 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
         prefs,
         std::move(timer),
         std::move(imgui));
-    auto ui = CreateUi(static_cast<ImGuiAppImpl*>(app.get())->GetContext());
-    static_cast<ImGuiAppImpl*>(app.get())->SetUi(std::move(ui));
+    auto* appImpl = static_cast<ImGuiAppImpl*>(app.get());
+    auto sensors = CreateSensors(appImpl->GetContext());
+    auto ui = CreateUi(appImpl->GetContext(), *sensors);
+    appImpl->SetSensors(std::move(sensors));
+    appImpl->SetUi(std::move(ui));
     return app;
 }

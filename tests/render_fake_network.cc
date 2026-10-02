@@ -14,7 +14,7 @@
 #include "preferences/preferences.h"
 #include "render_lib.h"
 #include "sensors/network_sensor.h"
-#include "sensors/sensors.h"
+#include "mock_sensors.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -86,10 +86,10 @@ namespace
         std::vector<std::string> _names;
     };
 
-    class FakeSensors : public Sensors
+    class FakeSensors : public MockSensors
     {
     public:
-        FakeSensors(const Context& ctx): Sensors(ctx) {}
+        FakeSensors(const Context& ctx): MockSensors(ctx.timer) {}
 
         std::unique_ptr<NetworkSensor> CreateNetworkSensor(
             const std::string& prefPrefix,

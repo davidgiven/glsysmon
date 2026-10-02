@@ -14,7 +14,7 @@
 #include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/hostname_sensor.h"
-#include "sensors/sensors.h"
+#include "mock_sensors.h"
 #include "timer.h"
 #include "ui.h"
 #include "views/view.h"
@@ -47,6 +47,34 @@ namespace
         {
             (void)preferences;
         }
+    };
+
+    class TestSensors : public MockSensors
+    {
+    public:
+        explicit TestSensors(const Context& ctx):
+            MockSensors(ctx.timer),
+            _ctx(ctx)
+        {
+        }
+
+        std::unique_ptr<CpuSensor> CreateCpuSensor(
+            const std::string& prefPrefix,
+            const std::string& procStatPath) const override
+        {
+            return ::CreateCpuSensor(
+                _ctx, prefPrefix, ::CreateCpuPoller(procStatPath));
+        }
+
+        std::unique_ptr<HostnameSensor> CreateHostnameSensor(
+            const std::string& prefPrefix) const override
+        {
+            (void)prefPrefix;
+            return std::make_unique<FakeHostnameSensor>();
+        }
+
+    private:
+        const Context& _ctx;
     };
 
     class FakeApp : public App
@@ -117,12 +145,14 @@ namespace
 TEST_CASE("CreateUi creates a UI component")
 {
     CliArgs args;
+    args.values = {"--views=HostnameView"};
     auto prefs = CreatePreferences(args);
     auto timer = CreateTimer();
     auto imgui = CreateImGui();
     FakeApp app;
     Context ctx(app, *imgui, *prefs, *timer);
-    auto ui = CreateUi(ctx);
+    TestSensors sensors(ctx);
+    auto ui = CreateUi(ctx, sensors);
     CHECK(ui != nullptr);
 }
 
@@ -149,7 +179,7 @@ TEST_CASE("CreateHostnameView creates a view component")
     auto imgui = CreateImGui();
     FakeApp app;
     Context ctx(app, *imgui, *prefs, *timer);
-    Sensors sensors(ctx);
+    TestSensors sensors(ctx);
     auto view = CreateHostnameView(ctx, sensors);
     CHECK(view != nullptr);
 }
@@ -162,7 +192,7 @@ TEST_CASE("View catalogue exposes HostnameView and resolves it")
     auto imgui = CreateImGui();
     FakeApp app;
     Context ctx(app, *imgui, *prefs, *timer);
-    Sensors sensors(ctx);
+    TestSensors sensors(ctx);
     Views views(ctx, sensors);
     View* view = views.Get("HostnameView");
     REQUIRE(view != nullptr);
@@ -333,7 +363,7 @@ TEST_CASE("CpuSensorImpl reads dummy proc file")
     }
 
     // Via Sensors factory
-    Sensors sensors(ctx);
+    TestSensors sensors(ctx);
     auto factorySensor = sensors.CreateCpuSensor("cpu", path);
     CHECK(factorySensor->GetChannels() == 2);
     // Via view-owned sensor

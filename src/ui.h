@@ -16,5 +16,4 @@ public:
     virtual void Draw() = 0;
 };
 
-extern std::unique_ptr<Ui> CreateUi(const Context& ctx);
 extern std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors);

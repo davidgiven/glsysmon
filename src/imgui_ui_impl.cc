@@ -23,24 +23,6 @@ namespace
     class ImGuiUiImpl : public Ui
     {
     public:
-        explicit ImGuiUiImpl(const Context& ctx):
-            _context(ctx),
-            _ownedSensors(std::make_unique<Sensors>(ctx)),
-            _sensors(*_ownedSensors),
-            _views(ctx, _sensors),
-            _app(ctx.app),
-            _configurationWindow(_views, _app, _context.imgui)
-        {
-            for (const std::string& name :
-                GlobalPreferencesFetcher::GetViews(ctx.preferences))
-            {
-                View* view = _views.Get(name);
-                if (view == nullptr)
-                    continue;
-                _activeViews.push_back(view);
-            }
-        }
-
         explicit ImGuiUiImpl(const Context& ctx, Sensors& sensors):
             _context(ctx),
             _sensors(sensors),
@@ -110,7 +92,8 @@ namespace
                 if (_viewportFocusRequested)
                 {
                     ImGuiViewport* vp = _context.imgui.GetWindowViewport();
-                    if (vp != nullptr && vp != _context.imgui.GetMainViewport() &&
+                    if (vp != nullptr &&
+                        vp != _context.imgui.GetMainViewport() &&
                         vp->PlatformHandle != nullptr)
                     {
                         SDL_Window* sdlWin = SDL_GetWindowFromID(
@@ -129,7 +112,6 @@ namespace
 
     private:
         const Context& _context;
-        std::unique_ptr<Sensors> _ownedSensors;
         Sensors& _sensors;
         Views _views;
         App& _app;
@@ -140,11 +122,6 @@ namespace
     };
 
 } // namespace
-
-std::unique_ptr<Ui> CreateUi(const Context& ctx)
-{
-    return std::make_unique<ImGuiUiImpl>(ctx);
-}
 
 std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors)
 {
