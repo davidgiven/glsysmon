@@ -16,6 +16,12 @@
 
 jmp_buf g_restartJmp;
 
+enum class Side
+{
+    Left,
+    Right
+};
+
 ConfigurationWindow::ConfigurationWindow(
     const Views& views, App& app, ImGuiIf& imgui):
     _views(views),
@@ -37,16 +43,18 @@ void ConfigurationWindow::DrawGlobalConfiguration()
     }
 
     // Dock side
-    static constexpr const char* kSideLabels[] = {"left", "right"};
-    static constexpr const char* kSideValues[] = {"left", "right"};
-    std::string currentSide =
-        _pendingPreferences->GetString("side").value_or("left");
-    int sideIndex = indexOf(kSideValues, currentSide).value_or(0);
-
-    if (_imgui.SliderInt("Side", &sideIndex, 0, 1, kSideLabels[sideIndex]))
-    {
-        _pendingPreferences->SetString("side", kSideValues[sideIndex]);
-    }
+    Side currentSide =
+        _pendingPreferences->GetEnum<Side>("side").value_or(Side::Left);
+    int sideIndex = static_cast<int>(currentSide);
+    static constexpr const char* kSideNames[] = {"left", "right"};
+    const char* sideLabel(kSideNames[sideIndex]);
+    if (_app.GetImGui().SliderInt("Side",
+            &sideIndex,
+            0,
+            magic_enum::enum_count<Side>() - 1,
+            sideLabel))
+        _pendingPreferences->SetEnum<Side>(
+            "side", static_cast<Side>(sideIndex));
 
     // Font size
     int fontSize = _pendingPreferences->GetInteger("font_size").value_or(16);
