@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 CXX      ?= g++
 CC       ?= gcc
 CXXFLAGS ?= -std=c++20 -Wall -Wextra -O2 -g -I.
@@ -48,9 +50,8 @@ WAYLAND_XML               := third_party/wayland/wlr-layer-shell-unstable-v1.xml
 WAYLAND_PROTOCOL_HEADER   := $(GEN)/wlr-layer-shell-client-protocol.h
 WAYLAND_PROTOCOL_CODE     := $(GEN)/wlr-layer-shell-client-protocol.c
 
-#xdg - shell is referenced by the layer - shell get_popup request; \
-    Debian ships the
-#XML in wayland - protocols.Only its interface tables(for xdg_popup) are needed.
+# The layer-shell get_popup request references xdg-shell. Only its interface
+# tables (for xdg_popup) are needed.
 XDG_SHELL_XML               := $(firstword $(wildcard /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml) $(wildcard /usr/share/qt6/wayland/protocols/xdg-shell/xdg-shell.xml))
 XDG_SHELL_PROTOCOL_HEADER   := $(GEN)/xdg-shell-client-protocol.h
 XDG_SHELL_PROTOCOL_CODE     := $(GEN)/xdg-shell-client-protocol.c
@@ -133,6 +134,7 @@ WAYLAND_OBJS := \
 OBJS := $(SRC_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(WAYLAND_OBJS)
 
 TEST_BUILD  := $(BUILD)/tests
+TEST_SOURCES := $(wildcard tests/*.cc)
 TEST_CFLAGS := $(COMMON_CFLAGS) $(STB_CFLAGS) -I$(CURDIR)/src
 
 TEST_UNIT   := $(TEST_BUILD)/unit_tests
@@ -157,56 +159,9 @@ TEST_TEMPERATURE_VIEW := $(TEST_BUILD)/temperature_view_test
 TEST_BINS := $(TEST_UNIT) $(TEST_TIMER) $(TEST_GRAPH_MIXIN) $(TEST_PREFERENCES) $(TEST_UTILS) $(TEST_MEMORY) $(TEST_CPU) $(TEST_POLLER) $(TEST_RENDER) $(TEST_DISK_VIEW) $(TEST_NETWORK_VIEW) $(TEST_TEMPERATURE_VIEW)
 TEST_LOGS := $(addsuffix .log,$(TEST_BINS))
 
-# Objects needed by every test binary: the modules the app's components pull in.
-TEST_OBJS := \
-	$(BUILD)/fake_app_lib.o \
-	$(BUILD)/context.o \
-	$(BUILD)/configuration.o \
-	$(BUILD)/display/bfm_gpu_bridge.o \
-	$(BUILD)/imguiif_impl.o \
-	$(BUILD)/imgui_ui_impl.o \
-	$(BUILD)/display/imgui_frame_renderer_impl.o \
-	$(BUILD)/preferences/preferences.o \
-	$(BUILD)/preferences/string_value.o \
-	$(BUILD)/preferences/cli_preferences_impl.o \
-	$(BUILD)/preferences/toml_preferences_impl.o \
-	$(BUILD)/preferences/combined_preferences_impl.o \
-	$(BUILD)/preferences/map_preferences_impl.o \
-	$(BUILD)/sensors/sensors.o \
-	$(BUILD)/views/style.o \
-	$(BUILD)/timer.o \
-	$(BUILD)/utils.o \
-	$(BUILD)/views/view.o \
-	$(BUILD)/views/view_graph_mixin.o \
-	$(BUILD)/views/views.o \
-	$(BUILD)/views/bfm_view_impl.o \
-	$(BUILD)/views/clock_view_impl.o \
-	$(BUILD)/views/cpu_view_impl.o \
-	$(BUILD)/views/disk_view_impl.o \
-	$(BUILD)/views/hostname_view_impl.o \
-	$(BUILD)/views/memory_view_impl.o \
-	$(BUILD)/views/network_view_impl.o \
-	$(BUILD)/views/temperature_view_impl.o \
-	$(BUILD)/sensors/clock_sensor_impl.o \
-	$(BUILD)/sensors/cpu_poller_impl.o \
-	$(BUILD)/sensors/cpu_sensor_impl.o \
-	$(BUILD)/sensors/disk_sensor_impl.o \
-	$(BUILD)/sensors/hostname_sensor_impl.o \
-	$(BUILD)/sensors/memory_poller_impl.o \
-	$(BUILD)/sensors/memory_sensor_impl.o \
-	$(BUILD)/sensors/network_poller_impl.o \
-	$(BUILD)/sensors/network_sensor_impl.o \
-	$(BUILD)/sensors/sensor.o \
-	$(BUILD)/sensors/sensor_graph_mixin.o \
-	$(BUILD)/sensors/temperature_sensor_impl.o \
-	$(BFM_OBJS) \
-	$(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) $(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
-
-DEPS := $(OBJS:.o=.d) $(TEST_BUILD)/unit_tests.d $(TEST_BUILD)/timer_tests.d $(TEST_BUILD)/graph_mixin_test.d $(TEST_BUILD)/utils_test.d $(TEST_BUILD)/memory_poller_test.d $(TEST_BUILD)/cpu_poller_test.d $(TEST_BUILD)/poller_test.d $(TEST_BUILD)/render_frame.d \
-         $(TEST_BUILD)/render_lib.d $(TEST_BUILD)/render_fake_hostname.d \
-         $(TEST_BUILD)/render_fake_clock.d $(TEST_BUILD)/render_fake_cpu.d \
-         $(TEST_BUILD)/render_fake_temperature.d $(TEST_BUILD)/render_fake_network.d $(TEST_BUILD)/render_fake_disk.d \
-         $(DROIDSANS_GEN_CPP:.cpp=.d) $(CODICON_GEN_CPP:.cpp=.d)
+DEPS := $(OBJS:.o=.d) \
+	$(patsubst tests/%.cc,$(TEST_BUILD)/%.d,$(TEST_SOURCES)) \
+	$(DROIDSANS_GEN_CPP:.cpp=.d) $(CODICON_GEN_CPP:.cpp=.d)
 
 TEST_RENDER_COMMON_OBJS := $(TEST_BUILD)/render_frame.o \
 	$(TEST_BUILD)/render_lib.o
@@ -256,10 +211,6 @@ $(GEN)/wlr-layer-shell-client-protocol.c: $(WAYLAND_XML)
 	@mkdir -p $(GEN)
 	@$(WAYLAND_SCANNER) private-code < $< > $@
 
-$(GEN)/wlr-layer-shell-client-protocol.o: $(GEN)/wlr-layer-shell-client-protocol.c
-	@echo $@
-	@$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
-
 $(GEN)/xdg-shell-client-protocol.h: $(XDG_SHELL_XML)
 	@echo $@
 	@mkdir -p $(GEN)
@@ -270,7 +221,7 @@ $(GEN)/xdg-shell-client-protocol.c: $(XDG_SHELL_XML)
 	@mkdir -p $(GEN)
 	@$(WAYLAND_SCANNER) private-code < $< > $@
 
-$(GEN)/xdg-shell-client-protocol.o: $(GEN)/xdg-shell-client-protocol.c
+$(GEN)/%-client-protocol.o: $(GEN)/%-client-protocol.c
 	@echo $@
 	@$(CC) -O2 $(WAYLAND_CFLAGS) -MMD -MP -c -o $@ $<
 
@@ -284,42 +235,17 @@ $(BUILD)/%.o: src/%.cc $(WAYLAND_PROTOCOL_HEADER)
 	@mkdir -p $(dir $@)
 	@$(CXX) $(COMMON_CFLAGS) -c -o $@ $<
 
-$(BUILD)/imgui.o: $(IMGUI_DIR)/imgui.cpp
+$(IMGUI_OBJS): $(BUILD)/%.o: $(IMGUI_DIR)/%.cpp
 	@echo $@
 	@mkdir -p $(BUILD)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
-$(BUILD)/imgui_draw.o: $(IMGUI_DIR)/imgui_draw.cpp
+$(IMPLOT_OBJS): $(BUILD)/%.o: $(IMPLOT_DIR)/%.cpp
 	@echo $@
 	@mkdir -p $(BUILD)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
-$(BUILD)/imgui_tables.o: $(IMGUI_DIR)/imgui_tables.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/imgui_widgets.o: $(IMGUI_DIR)/imgui_widgets.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/implot.o: $(IMPLOT_DIR)/implot.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/implot_items.o: $(IMPLOT_DIR)/implot_items.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/imgui_impl_sdl3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdl3.cpp
-	@echo $@
-	@mkdir -p $(BUILD)
-	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
-
-$(BUILD)/imgui_impl_sdlgpu3.o: $(IMGUI_BACKENDS_DIR)/imgui_impl_sdlgpu3.cpp
+$(BACKEND_OBJS): $(BUILD)/%.o: $(IMGUI_BACKENDS_DIR)/%.cpp
 	@echo $@
 	@mkdir -p $(BUILD)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
@@ -329,7 +255,47 @@ $(TEST_BUILD)/%.o: tests/%.cc
 	@mkdir -p $(TEST_BUILD)
 	@$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
-$(TEST_UNIT): $(TEST_BUILD)/unit_tests.o $(TEST_OBJS)
+$(TEST_UNIT): $(TEST_BUILD)/unit_tests.o \
+	$(BUILD)/context.o \
+	$(BUILD)/configuration.o \
+	$(BUILD)/display/bfm_gpu_bridge.o \
+	$(BUILD)/display/imgui_frame_renderer_impl.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/utils.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
+	$(BUILD)/views/views.o \
+	$(BUILD)/views/bfm_view_impl.o \
+	$(BUILD)/views/clock_view_impl.o \
+	$(BUILD)/views/cpu_view_impl.o \
+	$(BUILD)/views/disk_view_impl.o \
+	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/memory_view_impl.o \
+	$(BUILD)/views/network_view_impl.o \
+	$(BUILD)/views/temperature_view_impl.o \
+	$(BFM_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) \
+	$(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 	@echo $@
 	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
 
@@ -337,58 +303,98 @@ $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
-$(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o $(TEST_OBJS)
+$(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o \
+	$(BUILD)/context.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/timer.o $(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o $(TEST_OBJS)
+$(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(TEST_OBJS)
+$(TEST_CPU) $(TEST_MEMORY) $(TEST_POLLER): $(TEST_BUILD)/%: $(TEST_BUILD)/%.o \
+	$(BUILD)/context.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o $(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
-
-$(TEST_POLLER): $(TEST_BUILD)/poller_test.o $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
-
-$(TEST_RENDER_HOSTNAME): $(TEST_BUILD)/render_fake_hostname.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
-		$(STB_LIBS)
-
-$(TEST_RENDER_CLOCK): $(TEST_BUILD)/render_fake_clock.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
-		$(STB_LIBS)
-
-$(TEST_RENDER_CPU): $(TEST_BUILD)/render_fake_cpu.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
-		$(STB_LIBS)
-
-$(TEST_RENDER_TEMPERATURE): $(TEST_BUILD)/render_fake_temperature.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
-		$(STB_LIBS)
-
-$(TEST_RENDER_NETWORK): $(TEST_BUILD)/render_fake_network.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
-	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
-		$(STB_LIBS)
-
-$(TEST_RENDER_DISK): $(TEST_BUILD)/render_fake_disk.o \
-	$(TEST_RENDER_COMMON_OBJS) $(TEST_OBJS)
+$(TEST_RENDER): $(TEST_BUILD)/render_fake_%: $(TEST_BUILD)/render_fake_%.o \
+	$(TEST_RENDER_COMMON_OBJS) \
+	$(BUILD)/context.o \
+	$(BUILD)/configuration.o \
+	$(BUILD)/display/bfm_gpu_bridge.o \
+	$(BUILD)/display/imgui_frame_renderer_impl.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/imgui_ui_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/cli_preferences_impl.o \
+	$(BUILD)/preferences/toml_preferences_impl.o \
+	$(BUILD)/preferences/combined_preferences_impl.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/utils.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
+	$(BUILD)/views/views.o \
+	$(BUILD)/views/bfm_view_impl.o \
+	$(BUILD)/views/clock_view_impl.o \
+	$(BUILD)/views/cpu_view_impl.o \
+	$(BUILD)/views/disk_view_impl.o \
+	$(BUILD)/views/hostname_view_impl.o \
+	$(BUILD)/views/memory_view_impl.o \
+	$(BUILD)/views/network_view_impl.o \
+	$(BUILD)/views/temperature_view_impl.o \
+	$(BFM_OBJS) $(IMGUI_OBJS) $(IMPLOT_OBJS) $(BACKEND_OBJS) \
+	$(DROIDSANS_GEN_OBJ) $(CODICON_GEN_OBJ)
 	@echo $@
 	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS) \
 		$(STB_LIBS)
@@ -397,17 +403,93 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
-$(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
+$(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o \
+	$(TEST_BUILD)/mock_imgui_lib.o \
+	$(BUILD)/fake_app_lib.o \
+	$(BUILD)/context.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
+	$(BUILD)/views/disk_view_impl.o \
+	$(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^
 
-$(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
+$(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o \
+	$(TEST_BUILD)/mock_imgui_lib.o \
+	$(BUILD)/fake_app_lib.o \
+	$(BUILD)/context.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/utils.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
+	$(BUILD)/views/network_view_impl.o \
+	$(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^
 
-$(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o $(TEST_BUILD)/mock_imgui_lib.o $(TEST_OBJS)
+$(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o \
+	$(TEST_BUILD)/mock_imgui_lib.o \
+	$(BUILD)/fake_app_lib.o \
+	$(BUILD)/context.o \
+	$(BUILD)/imguiif_impl.o \
+	$(BUILD)/preferences/preferences.o \
+	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/sensors/sensors.o \
+	$(BUILD)/sensors/clock_sensor_impl.o \
+	$(BUILD)/sensors/cpu_poller_impl.o \
+	$(BUILD)/sensors/cpu_sensor_impl.o \
+	$(BUILD)/sensors/disk_sensor_impl.o \
+	$(BUILD)/sensors/hostname_sensor_impl.o \
+	$(BUILD)/sensors/memory_poller_impl.o \
+	$(BUILD)/sensors/memory_sensor_impl.o \
+	$(BUILD)/sensors/network_poller_impl.o \
+	$(BUILD)/sensors/network_sensor_impl.o \
+	$(BUILD)/sensors/sensor.o \
+	$(BUILD)/sensors/sensor_graph_mixin.o \
+	$(BUILD)/sensors/temperature_sensor_impl.o \
+	$(BUILD)/timer.o \
+	$(BUILD)/views/style.o \
+	$(BUILD)/views/view.o \
+	$(BUILD)/views/view_graph_mixin.o \
+	$(BUILD)/views/temperature_view_impl.o \
+	$(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
-	@$(CXX) -o $@ $^ $(SDL_LIBS) $(TOMLPLUSPLUS_LIBS)
+	@$(CXX) -o $@ $^
 
 .PRECIOUS: $(TEST_LOGS)
 
@@ -433,11 +515,10 @@ test: $(TEST_LOGS)
 SRC_CC := $(wildcard src/*.cc) $(wildcard src/preferences/*.cc) \
            $(wildcard src/display/*.cc) $(wildcard src/views/*.cc) \
            $(wildcard src/sensors/*.cc)
-TEST_CC := $(wildcard tests/*.cc)
-compile_commands.json: $(SRC_CC) $(TEST_CC)
+compile_commands.json: $(SRC_CC) $(TEST_SOURCES)
 	@echo $@
 	@mkdir -p $(BUILD)
-	@{ printf '[\n'; first=1; for f in $(sort $(SRC_CC) $(TEST_CC)); do \
+	@{ printf '[\n'; first=1; for f in $(sort $(SRC_CC) $(TEST_SOURCES)); do \
 		if [ $$first -eq 1 ]; then first=0; else printf ',\n'; fi; \
 		obj_dir="$(CURDIR)/$(BUILD)"; \
 		if [ "$$(dirname "$$f")" = "tests" ]; then obj_dir="$$obj_dir/tests"; \
@@ -452,4 +533,6 @@ clean:
 
 -include $(DEPS)
 
-.PHONY: all run test clean
+.DELETE_ON_ERROR:
+
+.PHONY: all run test clean pprof
