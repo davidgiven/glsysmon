@@ -10,20 +10,20 @@ void FakeApp::MainLoop() {}
 
 void FakeApp::Shutdown() {}
 
-std::shared_ptr<Preferences> FakeApp::GetPreferences()
+std::shared_ptr<Preferences> FakeApp::GetSharedPreferences()
 {
     static auto dp = CreateMapPreferences();
     return dp;
 }
 
-Preferences& FakeApp::GetPreferencesRef()
+Preferences& FakeApp::GetPreferences()
 {
-    return *GetPreferences();
+    return *GetSharedPreferences();
 }
 
-const Preferences& FakeApp::GetPreferencesRef() const
+const Preferences& FakeApp::GetPreferences() const
 {
-    return *const_cast<FakeApp*>(this)->GetPreferences();
+    return *const_cast<FakeApp*>(this)->GetSharedPreferences();
 }
 
 Timer& FakeApp::GetTimer()

@@ -42,7 +42,7 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
+            const int graphHeight = GetGraphHeight(_app.GetPreferences());
 
             Style::GraphGroup(_app.GetImGui(), "CPU usage",
                 [&]
@@ -65,7 +65,7 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        DrawGraph(_app.GetImGui(), _app.GetPreferencesRef(),
+                        DrawGraph(_app.GetImGui(), _app.GetPreferences(),
                             _sensor->GetChannelName(cpu),
                             "",
                             n,

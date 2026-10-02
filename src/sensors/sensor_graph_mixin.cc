@@ -27,7 +27,7 @@ void SensorGraphMixinBase::InitGraphBase(App& app,
     std::size_t& sampleCount,
     double defaultInterval)
 {
-    InitGraphBase(app.GetPreferencesRef(), prefPrefix, sampleCount, defaultInterval);
+    InitGraphBase(app.GetPreferences(), prefPrefix, sampleCount, defaultInterval);
 }
 
 void SensorGraphMixinBase::DrawIntervalConfiguration(

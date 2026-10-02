@@ -43,11 +43,11 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int yMin = GetMinimum(_app.GetPreferencesRef());
-            const int yMax = GetMaximum(_app.GetPreferencesRef());
-            const auto allowedSet = GetSensors(_app.GetPreferencesRef());
-            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
-            const bool showValue = GetShowValue(_app.GetPreferencesRef());
+            const int yMin = GetMinimum(_app.GetPreferences());
+            const int yMax = GetMaximum(_app.GetPreferences());
+            const auto allowedSet = GetSensors(_app.GetPreferences());
+            const int graphHeight = GetGraphHeight(_app.GetPreferences());
+            const bool showValue = GetShowValue(_app.GetPreferences());
 
             Style::GraphGroup(_app.GetImGui(),
                 "Temperature",
@@ -73,7 +73,7 @@ namespace
                                 "°C";
                         DrawGraph(
                             _app.GetImGui(),
-                            _app.GetPreferencesRef(),
+                            _app.GetPreferences(),
                             title,
                             subtitle,
                             n,

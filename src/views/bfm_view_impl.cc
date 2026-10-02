@@ -77,16 +77,16 @@ namespace
         {
             srand(0);
             bfm_glsysmon_init();
-            ApplyFishMode(GetFishMode(_app.GetPreferencesRef()));
-            ApplyDuckMode(GetDuckMode(_app.GetPreferencesRef()));
-            ApplyBubblesMode(GetBubblesMode(_app.GetPreferencesRef()));
+            ApplyFishMode(GetFishMode(_app.GetPreferences()));
+            ApplyDuckMode(GetDuckMode(_app.GetPreferences()));
+            ApplyBubblesMode(GetBubblesMode(_app.GetPreferences()));
             {
-                int w = GetWidth(_app.GetPreferencesRef());
-                int h = GetHeight(_app.GetPreferencesRef());
+                int w = GetWidth(_app.GetPreferences());
+                int h = GetHeight(_app.GetPreferences());
                 bfm_set_size(w, h);
             }
             _inited = true;
-            double interval = GetUpdateInterval(_app.GetPreferencesRef());
+            double interval = GetUpdateInterval(_app.GetPreferences());
             _interval = interval;
             _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
             Timer::Time now = _app.GetTimer().Now();
@@ -119,8 +119,8 @@ namespace
             if (device == nullptr)
                 return;
 
-            int width = GetWidth(_app.GetPreferencesRef());
-            int height = GetHeight(_app.GetPreferencesRef());
+            int width = GetWidth(_app.GetPreferences());
+            int height = GetHeight(_app.GetPreferences());
             int curW = 0;
             int curH = 0;
             bfm_get_size(&curW, &curH);
@@ -383,10 +383,10 @@ namespace
 
         void Tick(Timer::Time t)
         {
-            FishMode fishMode = GetFishMode(_app.GetPreferencesRef());
+            FishMode fishMode = GetFishMode(_app.GetPreferences());
             ApplyFishMode(fishMode);
-            ApplyDuckMode(GetDuckMode(_app.GetPreferencesRef()));
-            ApplyBubblesMode(GetBubblesMode(_app.GetPreferencesRef()));
+            ApplyDuckMode(GetDuckMode(_app.GetPreferences()));
+            ApplyBubblesMode(GetBubblesMode(_app.GetPreferences()));
 
             {
                 auto data = _memoryPoller->PollCached();
@@ -503,8 +503,8 @@ namespace
         }
         void EnsureGpuResources(SDL_GPUDevice* device)
         {
-            int width = GetWidth(_app.GetPreferencesRef());
-            int height = GetHeight(_app.GetPreferencesRef());
+            int width = GetWidth(_app.GetPreferences());
+            int height = GetHeight(_app.GetPreferences());
             if (device != _device)
             {
                 DestroyGpuResources();

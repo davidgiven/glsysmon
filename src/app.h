@@ -28,9 +28,9 @@ public:
     virtual void Shutdown() = 0;
 
     // Return the current preferences object.
-    virtual std::shared_ptr<Preferences> GetPreferences() = 0;
-    virtual Preferences& GetPreferencesRef() = 0;
-    virtual const Preferences& GetPreferencesRef() const = 0;
+    virtual std::shared_ptr<Preferences> GetSharedPreferences() = 0;
+    virtual Preferences& GetPreferences() = 0;
+    virtual const Preferences& GetPreferences() const = 0;
 
     virtual Timer& GetTimer() = 0;
     virtual ImGuiIf& GetImGui() = 0;

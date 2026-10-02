@@ -43,8 +43,8 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
-            auto allowedSet = GetDevices(_app.GetPreferencesRef());
+            const int graphHeight = GetGraphHeight(_app.GetPreferences());
+            auto allowedSet = GetDevices(_app.GetPreferences());
 
             Style::GraphGroup(_app.GetImGui(), "Disk",
                 [&]
@@ -69,7 +69,7 @@ namespace
                             maxVal = 1;
                         double yMax = maxVal * 1.1;
 
-                        DrawGraph(_app.GetImGui(), _app.GetPreferencesRef(),
+                        DrawGraph(_app.GetImGui(), _app.GetPreferences(),
                             channelName,
                             "",
                             n,

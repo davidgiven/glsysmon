@@ -39,14 +39,14 @@ namespace
         void Draw() override
         {
             std::tm tm = _sensor->GetLocalTime();
-            std::string format = GetFormat(_app.GetPreferencesRef());
+            std::string format = GetFormat(_app.GetPreferences());
             std::ostringstream oss;
             oss << std::put_time(&tm, format.c_str());
 
             std::string text = oss.str();
             std::istringstream iss(text);
             std::string line;
-            double scale = GetTextScale(_app.GetPreferencesRef());
+            double scale = GetTextScale(_app.GetPreferences());
             _app.GetImGui().SetWindowFontScale(static_cast<float>(scale));
             while (std::getline(iss, line))
                 Style::DrawCentredText(_app.GetImGui(), line);

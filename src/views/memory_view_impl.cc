@@ -45,7 +45,7 @@ namespace
             if (_sensor->GetChannels() == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
+            const int graphHeight = GetGraphHeight(_app.GetPreferences());
 
             Style::GraphGroup(_app.GetImGui(), "Memory",
                 [&]
@@ -79,7 +79,7 @@ namespace
                     }
 
                     const MemorySample& last = samples[sampleCount - 1];
-                    DrawGraph(_app.GetImGui(), _app.GetPreferencesRef(),
+                    DrawGraph(_app.GetImGui(), _app.GetPreferences(),
                         "",
                         std::to_string(std::llround(
                             100.0 * last.usedRam / last.totalRam)) +

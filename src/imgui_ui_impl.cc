@@ -29,7 +29,7 @@ namespace
             _configurationWindow(_views, _app, _app.GetImGui())
         {
             for (const std::string& name :
-                GlobalPreferencesFetcher::GetViews(app.GetPreferencesRef()))
+                GlobalPreferencesFetcher::GetViews(app.GetPreferences()))
             {
                 View* view = _views.Get(name);
                 if (view == nullptr)
@@ -56,7 +56,7 @@ namespace
             {
                 std::string enabledKey = view->GetPrefName() + ".enabled";
                 bool enabled =
-                    _app.GetPreferencesRef().GetBoolean(enabledKey).value_or(true);
+                    _app.GetPreferences().GetBoolean(enabledKey).value_or(true);
                 if (!enabled)
                     continue;
                 view->Draw();

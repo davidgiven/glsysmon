@@ -78,7 +78,7 @@ namespace
                 _networkPoller = ::CreateNetworkPoller(procNetDevPath);
             _networkPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _app.GetPreferencesRef()));
+                    _app.GetPreferences()));
             return _networkPoller;
         }
 
@@ -89,7 +89,7 @@ namespace
                 _memoryPoller = ::CreateMemoryPoller(procMemInfoPath);
             _memoryPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _app.GetPreferencesRef()));
+                    _app.GetPreferences()));
             return _memoryPoller;
         }
 
@@ -100,7 +100,7 @@ namespace
                 _cpuPoller = ::CreateCpuPoller(procStatPath);
             _cpuPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _app.GetPreferencesRef()));
+                    _app.GetPreferences()));
             return _cpuPoller;
         }
 

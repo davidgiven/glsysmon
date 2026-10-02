@@ -23,7 +23,7 @@ ConfigurationWindow::ConfigurationWindow(
     _imgui(imgui),
     _pendingMapPreferences(CreateMapPreferences()),
     _pendingPreferences(CreateCombinedPreferences(
-        {_pendingMapPreferences, app.GetPreferences()}))
+        {_pendingMapPreferences, app.GetSharedPreferences()}))
 {
 }
 

@@ -76,5 +76,5 @@ template <typename T>
 void Poller<T>::SetCacheIntervalFromApp(App& app)
 {
     SetCacheIntervalMs(
-        GlobalPreferencesFetcher::GetPollerCacheInterval(app.GetPreferencesRef()));
+        GlobalPreferencesFetcher::GetPollerCacheInterval(app.GetPreferences()));
 }

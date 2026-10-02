@@ -34,15 +34,15 @@ namespace
         void Setup() override {}
         void MainLoop() override {}
         void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override
+        std::shared_ptr<Preferences> GetSharedPreferences() override
         {
             return _prefs;
         }
-        Preferences& GetPreferencesRef() override
+        Preferences& GetPreferences() override
         {
             return *_prefs;
         }
-        const Preferences& GetPreferencesRef() const override
+        const Preferences& GetPreferences() const override
         {
             return *_prefs;
         }

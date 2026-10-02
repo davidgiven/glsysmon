@@ -27,9 +27,9 @@ namespace {
         void Setup() override {}
         void MainLoop() override {}
         void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
-        Preferences& GetPreferencesRef() override { return *_prefs; }
-        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        std::shared_ptr<Preferences> GetSharedPreferences() override { return _prefs; }
+        Preferences& GetPreferences() override { return *_prefs; }
+        const Preferences& GetPreferences() const override { return *_prefs; }
         Timer& GetTimer() override { return _timer; }
         ImGuiIf& GetImGui() override { return _imgui; }
         const Timer& GetTimer() const override { return _timer; }

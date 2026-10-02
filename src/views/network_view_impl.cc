@@ -46,9 +46,9 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
-            const bool showNumbers = GetShowNumbers(_app.GetPreferencesRef());
-            auto allowedSet = GetInterfaces(_app.GetPreferencesRef());
+            const int graphHeight = GetGraphHeight(_app.GetPreferences());
+            const bool showNumbers = GetShowNumbers(_app.GetPreferences());
+            auto allowedSet = GetInterfaces(_app.GetPreferences());
 
             Style::GraphGroup(_app.GetImGui(),
                 "Network",
@@ -66,7 +66,7 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax = GetMaximum(_app.GetPreferencesRef());
+                        double yMax = GetMaximum(_app.GetPreferences());
                         if (yMax <= 0)
                         {
                             double maxVal = 0;
@@ -91,7 +91,7 @@ namespace
 
                         DrawGraph(
                             _app.GetImGui(),
-                            _app.GetPreferencesRef(),
+                            _app.GetPreferences(),
                             channelName,
                             subtitle,
                             n,
