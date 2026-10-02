@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 #include "views/view_graph_mixin.h"
 
@@ -12,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -23,14 +23,14 @@ namespace
     class CpuViewImpl : public ViewGraphMixin
     {
     public:
-        explicit CpuViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit CpuViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensor(sensors.CreateCpuSensor(GetPrefName()))
         {
         }
 
-        explicit CpuViewImpl(const Context& ctx, std::unique_ptr<CpuSensor> sensor):
-            _context(ctx),
+        explicit CpuViewImpl(App& app, std::unique_ptr<CpuSensor> sensor):
+            _app(app),
             _sensor(std::move(sensor))
         {
         }
@@ -42,9 +42,9 @@ namespace
             if (cpuCount == 0 || sampleCount == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_context.preferences);
+            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
 
-            Style::GraphGroup(_context.imgui, "CPU usage",
+            Style::GraphGroup(_app.GetImGui(), "CPU usage",
                 [&]
                 {
                     for (std::size_t cpu = 0; cpu < cpuCount; ++cpu)
@@ -65,7 +65,7 @@ namespace
                                 samples[i].nice;
                         }
                         const char* labels[] = {"user", "system", "nice"};
-                        DrawGraph(_context.imgui, _context.preferences,
+                        DrawGraph(_app.GetImGui(), _app.GetPreferencesRef(),
                             _sensor->GetChannelName(cpu),
                             "",
                             n,
@@ -73,7 +73,7 @@ namespace
                             1,
                             [&]
                             {
-                                _context.imgui.PlotBarGroups(labels,
+                                _app.GetImGui().PlotBarGroups(labels,
                                     values.data(),
                                     3,
                                     n,
@@ -99,12 +99,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -118,18 +118,18 @@ namespace
         }
 
     private:
-        const Context& _context;
+        App& _app;
         std::unique_ptr<CpuSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateCpuView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateCpuView(App& app, Sensors& sensors)
 {
-    return std::make_unique<CpuViewImpl>(ctx, sensors);
+    return std::make_unique<CpuViewImpl>(app, sensors);
 }
 
-std::unique_ptr<View> CreateCpuView(const Context& ctx, std::unique_ptr<CpuSensor> sensor)
+std::unique_ptr<View> CreateCpuView(App& app, std::unique_ptr<CpuSensor> sensor)
 {
-    return std::make_unique<CpuViewImpl>(ctx, std::move(sensor));
+    return std::make_unique<CpuViewImpl>(app, std::move(sensor));
 }

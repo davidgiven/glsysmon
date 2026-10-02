@@ -1,6 +1,5 @@
 #include "sensors/sensor.h"
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 
@@ -11,10 +10,10 @@ void Sensor::DrawConfiguration(Preferences& preferences)
 
 ImGuiIf& Sensor::GetImGui()
 {
-    return _ctx->imgui;
+    return _app->GetImGui();
 }
 
 const ImGuiIf& Sensor::GetImGui() const
 {
-    return _ctx->imgui;
+    return _app->GetImGui();
 }

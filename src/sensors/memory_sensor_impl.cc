@@ -1,3 +1,4 @@
+#include "app.h"
 #include "memory_sensor.h"
 
 #include <imgui.h>
@@ -8,7 +9,6 @@
 #include <string>
 
 #include "memory_poller.h"
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -19,14 +19,14 @@ namespace
     class MemorySensorImpl : public MemorySensor
     {
     public:
-        explicit MemorySensorImpl(const Context& ctx,
+        explicit MemorySensorImpl(App& app,
             const std::string& prefPrefix,
-            std::shared_ptr<MemoryPoller> poller): MemorySensor(ctx, prefPrefix),
-            _ctx(ctx),
+            std::shared_ptr<MemoryPoller> poller): MemorySensor(app, prefPrefix),
+            _app(app),
             _poller(std::move(poller))
         {
-            InitGraph(_ctx, _prefPrefix, 1, MemorySample{0, 0});
-            Tick(_ctx.timer.Now());
+            InitGraph(_app, _prefPrefix, 1, MemorySample{0, 0});
+            Tick(_app.GetTimer().Now());
         }
 
         const MemorySample* GetSamples(std::size_t channel) const override
@@ -55,7 +55,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
+            DrawIntervalConfiguration(_app.GetImGui(), preferences, _prefPrefix);
         }
 
     private:
@@ -64,7 +64,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _ctx.timer.Schedule(t + this->_delta,
+                _app.GetTimer().Schedule(t + this->_delta,
                     std::bind(
                         &MemorySensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -87,7 +87,7 @@ namespace
                     AddSample(0, it->second);
                 }
             }
-            _ctx.timer.Schedule(t + this->_delta,
+            _app.GetTimer().Schedule(t + this->_delta,
                 std::bind(
                     &MemorySensorImpl::Tick, this, std::placeholders::_1));
         }
@@ -99,16 +99,16 @@ namespace
                 AddSample(i, zero);
         }
 
-        const Context& _ctx;
+        App& _app;
         std::shared_ptr<MemoryPoller> _poller;
     };
 
 } // namespace
 
-std::unique_ptr<MemorySensor> CreateMemorySensor(const Context& ctx,
+std::unique_ptr<MemorySensor> CreateMemorySensor(App& app,
     const std::string& prefPrefix,
     std::shared_ptr<MemoryPoller> poller)
 {
     return std::make_unique<MemorySensorImpl>(
-        ctx, prefPrefix, std::move(poller));
+        app, prefPrefix, std::move(poller));
 }

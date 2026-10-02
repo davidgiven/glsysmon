@@ -1,3 +1,4 @@
+#include "app.h"
 #include "cpu_sensor.h"
 
 #include <imgui.h>
@@ -10,7 +11,6 @@
 #include <vector>
 
 #include "cpu_poller.h"
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -21,10 +21,10 @@ namespace
     class CpuSensorImpl : public CpuSensor
     {
     public:
-        explicit CpuSensorImpl(const Context& ctx,
+        explicit CpuSensorImpl(App& app,
             const std::string& prefPrefix,
-            std::shared_ptr<CpuPoller> poller): CpuSensor(ctx, prefPrefix),
-            _ctx(ctx),
+            std::shared_ptr<CpuPoller> poller): CpuSensor(app, prefPrefix),
+            _app(app),
             _poller(std::move(poller))
         {
             auto initial = _poller->Poll();
@@ -44,12 +44,12 @@ namespace
                         return a < b;
                     }
                 });
-            InitGraph(_ctx,
+            InitGraph(_app,
                 _prefPrefix,
                 _cpuNames.size(),
                 CpuSample{},
                 5);
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         const CpuSample* GetSamples(std::size_t cpu) const override
@@ -78,7 +78,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
+            DrawIntervalConfiguration(_app.GetImGui(), preferences, _prefPrefix);
         }
 
     private:
@@ -87,7 +87,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _ctx.timer.Schedule(t + this->_delta,
+                _app.GetTimer().Schedule(t + this->_delta,
                     std::bind(
                         &CpuSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -112,7 +112,7 @@ namespace
                     AddSample(i, it->second);
                 }
             }
-            _ctx.timer.Schedule(t + this->_delta,
+            _app.GetTimer().Schedule(t + this->_delta,
                 std::bind(&CpuSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -123,16 +123,16 @@ namespace
                 AddSample(i, zero);
         }
 
-        const Context& _ctx;
+        App& _app;
         std::shared_ptr<CpuPoller> _poller;
         std::vector<std::string> _cpuNames;
     };
 
 } // namespace
 
-std::unique_ptr<CpuSensor> CreateCpuSensor(const Context& ctx,
+std::unique_ptr<CpuSensor> CreateCpuSensor(App& app,
     const std::string& prefPrefix,
     std::shared_ptr<CpuPoller> poller)
 {
-    return std::make_unique<CpuSensorImpl>(ctx, prefPrefix, std::move(poller));
+    return std::make_unique<CpuSensorImpl>(app, prefPrefix, std::move(poller));
 }

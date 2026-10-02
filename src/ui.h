@@ -1,8 +1,10 @@
 #pragma once
 
+#include "app.h"
+
 #include <memory>
 
-class Context;
+class App;
 class Sensors;
 
 struct SDL_Window;
@@ -16,4 +18,4 @@ public:
     virtual void Draw() = 0;
 };
 
-extern std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors);
+extern std::unique_ptr<Ui> CreateUi(App& app, Sensors& sensors);

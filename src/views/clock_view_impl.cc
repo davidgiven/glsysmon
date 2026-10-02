@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 
 #include <imgui.h>
@@ -11,7 +12,6 @@
 #include <string>
 #include <vector>
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -23,15 +23,15 @@ namespace
     class ClockViewImpl : public View
     {
     public:
-        explicit ClockViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit ClockViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensor(sensors.CreateClockSensor(GetPrefName()))
         {
         }
 
         explicit ClockViewImpl(
-            const Context& ctx, std::unique_ptr<ClockSensor> sensor):
-            _context(ctx),
+            App& app, std::unique_ptr<ClockSensor> sensor):
+            _app(app),
             _sensor(std::move(sensor))
         {
         }
@@ -39,18 +39,18 @@ namespace
         void Draw() override
         {
             std::tm tm = _sensor->GetLocalTime();
-            std::string format = GetFormat(_context.preferences);
+            std::string format = GetFormat(_app.GetPreferencesRef());
             std::ostringstream oss;
             oss << std::put_time(&tm, format.c_str());
 
             std::string text = oss.str();
             std::istringstream iss(text);
             std::string line;
-            double scale = GetTextScale(_context.preferences);
-            _context.imgui.SetWindowFontScale(static_cast<float>(scale));
+            double scale = GetTextScale(_app.GetPreferencesRef());
+            _app.GetImGui().SetWindowFontScale(static_cast<float>(scale));
             while (std::getline(iss, line))
-                Style::DrawCentredText(_context.imgui, line);
-            _context.imgui.SetWindowFontScale(1.0f);
+                Style::DrawCentredText(_app.GetImGui(), line);
+            _app.GetImGui().SetWindowFontScale(1.0f);
         }
 
         void DrawConfiguration(Preferences& preferences) override
@@ -79,13 +79,13 @@ namespace
             for (char c : buf)
                 if (c == '\n')
                     ++lines;
-            float line_h = _context.imgui.GetTextLineHeight();
+            float line_h = _app.GetImGui().GetTextLineHeight();
             float h =
                 line_h * static_cast<float>(std::clamp(lines + 1, 3, 10)) +
-                _context.imgui.GetStyle().FramePadding.y * 2.0f;
+                _app.GetImGui().GetStyle().FramePadding.y * 2.0f;
             ImVec2 size(-FLT_MIN, h);
 
-            if (_context.imgui.InputTextMultiline("Format",
+            if (_app.GetImGui().InputTextMultiline("Format",
                     buf.data(),
                     buf.capacity() + 1,
                     size,
@@ -95,7 +95,7 @@ namespace
                 SetFormat(preferences, buf);
 
             double textScale = GetTextScale(preferences);
-            if (_context.imgui.InputDouble("Text scale", &textScale))
+            if (_app.GetImGui().InputDouble("Text scale", &textScale))
                 SetTextScale(preferences, textScale);
         }
 
@@ -111,12 +111,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -151,19 +151,19 @@ namespace
             prefs.SetDouble(GetPrefName() + ".text_scale", value);
         }
 
-        const Context& _context;
+        App& _app;
         std::unique_ptr<ClockSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateClockView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateClockView(App& app, Sensors& sensors)
 {
-    return std::make_unique<ClockViewImpl>(ctx, sensors);
+    return std::make_unique<ClockViewImpl>(app, sensors);
 }
 
 std::unique_ptr<View> CreateClockView(
-    const Context& ctx, std::unique_ptr<ClockSensor> sensor)
+    App& app, std::unique_ptr<ClockSensor> sensor)
 {
-    return std::make_unique<ClockViewImpl>(ctx, std::move(sensor));
+    return std::make_unique<ClockViewImpl>(app, std::move(sensor));
 }

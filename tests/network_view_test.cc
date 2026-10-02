@@ -11,7 +11,6 @@
 #include <implot.h>
 
 #include "app.h"
-#include "context.h"
 #include "fake_app_lib.h"
 #include "imguiif.h"
 #include "mock_imgui_lib.h"
@@ -19,11 +18,35 @@
 #include "preferences/preferences.h"
 #include "timer.h"
 #include "views/view.h"
+namespace {
+    class TestApp : public App
+    {
+    public:
+        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+            _prefs(std::move(prefs)), _timer(timer), _imgui(imgui) {}
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
+        Preferences& GetPreferencesRef() override { return *_prefs; }
+        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        Timer& GetTimer() override { return _timer; }
+        ImGuiIf& GetImGui() override { return _imgui; }
+        const Timer& GetTimer() const override { return _timer; }
+        const ImGuiIf& GetImGui() const override { return _imgui; }
+        void Quit() override {}
+    private:
+        std::shared_ptr<Preferences> _prefs;
+        Timer& _timer;
+        ImGuiIf& _imgui;
+    };
+}
+
 
 TEST_CASE(
     "NetworkViewImpl DrawConfiguration with empty list adds clicked device")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     CHECK_FALSE(prefs->GetStringSet("network.interfaces").has_value());
 
     class MockImGui : public MockImGuiIf
@@ -47,8 +70,7 @@ TEST_CASE(
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"eth0", "eth1"};
     std::vector<std::vector<NetworkSample>> samples(2);
@@ -67,7 +89,7 @@ TEST_CASE(
 TEST_CASE(
     "NetworkViewImpl DrawConfiguration with set device removes clicked device")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     prefs->SetStringSet("network.interfaces", std::set<std::string>{"eth0"});
     REQUIRE(prefs->GetStringSet("network.interfaces").has_value());
     REQUIRE(prefs->GetStringSet("network.interfaces")->contains("eth0"));
@@ -93,8 +115,7 @@ TEST_CASE(
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"eth0", "eth1"};
     std::vector<std::vector<NetworkSample>> samples(2);
@@ -116,7 +137,7 @@ TEST_CASE(
 
 TEST_CASE("NetworkViewImpl Draw with single device calls BeginPlot once")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     prefs->SetStringSet("network.interfaces", std::set<std::string>{"eth0"});
     prefs->SetBoolean("network.show_numbers", false);
 
@@ -141,8 +162,7 @@ TEST_CASE("NetworkViewImpl Draw with single device calls BeginPlot once")
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"eth0"};
     std::vector<std::vector<NetworkSample>> samples(1);

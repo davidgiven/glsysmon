@@ -1,8 +1,8 @@
+#include "app.h"
 #include "sensor_graph_mixin.h"
 
 #include <imgui.h>
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 
@@ -22,12 +22,12 @@ void SensorGraphMixinBase::InitGraphBase(const Preferences& prefs,
     _delta = static_cast<std::uint64_t>(1'000'000'000ULL / interval);
 }
 
-void SensorGraphMixinBase::InitGraphBase(const Context& ctx,
+void SensorGraphMixinBase::InitGraphBase(App& app,
     const std::string& prefPrefix,
     std::size_t& sampleCount,
     double defaultInterval)
 {
-    InitGraphBase(ctx.preferences, prefPrefix, sampleCount, defaultInterval);
+    InitGraphBase(app.GetPreferencesRef(), prefPrefix, sampleCount, defaultInterval);
 }
 
 void SensorGraphMixinBase::DrawIntervalConfiguration(

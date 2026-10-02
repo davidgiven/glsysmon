@@ -1,11 +1,13 @@
 #pragma once
 
+#include "app.h"
+
 #include <chrono>
 #include <map>
 #include <optional>
 #include <string>
 
-class Context;
+class App;
 
 // Fetches a piece of system data. Implementations live in poller_*.cc.
 template <typename T>
@@ -38,7 +40,7 @@ public:
         return static_cast<int>(_cacheInterval.count());
     }
 
-    void SetCacheIntervalFromContext(const Context& ctx);
+    void SetCacheIntervalFromApp(App& app);
 
 protected:
     virtual std::chrono::steady_clock::time_point Now() const
@@ -68,12 +70,11 @@ std::map<std::string, T> Poller<T>::PollCached()
     return _cached;
 }
 
-#include "context.h"
 #include "preferences/preferences.h"
 
 template <typename T>
-void Poller<T>::SetCacheIntervalFromContext(const Context& ctx)
+void Poller<T>::SetCacheIntervalFromApp(App& app)
 {
     SetCacheIntervalMs(
-        GlobalPreferencesFetcher::GetPollerCacheInterval(ctx.preferences));
+        GlobalPreferencesFetcher::GetPollerCacheInterval(app.GetPreferencesRef()));
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,7 +17,7 @@
 #include "network_sensor.h"
 #include "temperature_sensor.h"
 
-class Context;
+class App;
 class Timer;
 
 class Sensors
@@ -58,4 +60,4 @@ protected:
     Sensors() = default;
 };
 
-extern std::unique_ptr<Sensors> CreateSensors(const Context& ctx);
+extern std::unique_ptr<Sensors> CreateSensors(App& app);

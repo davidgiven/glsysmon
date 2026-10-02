@@ -1,10 +1,11 @@
 #pragma once
 
+#include "app.h"
+
 #include <map>
 #include "preferences/preferences.h"
 
 class App;
-class Context;
 class ImGuiIf;
 class Views;
 

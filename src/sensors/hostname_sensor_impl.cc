@@ -1,3 +1,4 @@
+#include "app.h"
 #include "hostname_sensor.h"
 
 #include <imgui.h>
@@ -9,7 +10,6 @@
 #include <memory>
 #include <string>
 
-#include "context.h"
 #include "preferences/preferences.h"
 #include "timer.h"
 
@@ -20,10 +20,10 @@ namespace
     {
     public:
         explicit HostnameSensorImpl(
-            const Context& ctx, const std::string& prefPrefix): HostnameSensor(ctx, prefPrefix),
-            _ctx(ctx)
+            App& app, const std::string& prefPrefix): HostnameSensor(app, prefPrefix),
+            _app(app)
         {
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         std::string GetHostname() override
@@ -49,19 +49,19 @@ namespace
                 _hostname.clear();
             else
                 _hostname = buffer.data();
-            _ctx.timer.Schedule(t + 10'000'000'000ULL,
+            _app.GetTimer().Schedule(t + 10'000'000'000ULL,
                 std::bind(
                     &HostnameSensorImpl::Tick, this, std::placeholders::_1));
         }
 
-        const Context& _ctx;
+        App& _app;
         std::string _hostname;
     };
 
 } // namespace
 
 std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Context& ctx, const std::string& prefPrefix)
+    App& app, const std::string& prefPrefix)
 {
-    return std::make_unique<HostnameSensorImpl>(ctx, prefPrefix);
+    return std::make_unique<HostnameSensorImpl>(app, prefPrefix);
 }

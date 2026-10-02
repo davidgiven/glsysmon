@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 #include "views/view_graph_mixin.h"
 
@@ -14,7 +15,6 @@
 #include <vector>
 
 #include "globals.h"
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -27,15 +27,15 @@ namespace
     class NetworkViewImpl : public ViewGraphMixin
     {
     public:
-        explicit NetworkViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit NetworkViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensor(sensors.CreateNetworkSensor(GetPrefName()))
         {
         }
 
         explicit NetworkViewImpl(
-            const Context& ctx, std::unique_ptr<NetworkSensor> sensor):
-            _context(ctx),
+            App& app, std::unique_ptr<NetworkSensor> sensor):
+            _app(app),
             _sensor(std::move(sensor))
         {
         }
@@ -46,11 +46,11 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int graphHeight = GetGraphHeight(_context.preferences);
-            const bool showNumbers = GetShowNumbers(_context.preferences);
-            auto allowedSet = GetInterfaces(_context.preferences);
+            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
+            const bool showNumbers = GetShowNumbers(_app.GetPreferencesRef());
+            auto allowedSet = GetInterfaces(_app.GetPreferencesRef());
 
-            Style::GraphGroup(_context.imgui,
+            Style::GraphGroup(_app.GetImGui(),
                 "Network",
                 [&]
                 {
@@ -66,7 +66,7 @@ namespace
                             continue;
                         const int n = static_cast<int>(sampleCount);
 
-                        double yMax = GetMaximum(_context.preferences);
+                        double yMax = GetMaximum(_app.GetPreferencesRef());
                         if (yMax <= 0)
                         {
                             double maxVal = 0;
@@ -90,8 +90,8 @@ namespace
                         }
 
                         DrawGraph(
-                            _context.imgui,
-                            _context.preferences,
+                            _app.GetImGui(),
+                            _app.GetPreferencesRef(),
                             channelName,
                             subtitle,
                             n,
@@ -99,8 +99,8 @@ namespace
                             yMax,
                             [&]
                             {
-                                ImVec4 col = _context.imgui.GetColormapColor(0);
-                                _context.imgui.PlotShaded("rx",
+                                ImVec4 col = _app.GetImGui().GetColormapColor(0);
+                                _app.GetImGui().PlotShaded("rx",
                                     &samples[0].rxBps,
                                     n,
                                     0.0,
@@ -117,8 +117,8 @@ namespace
                                 for (int i = 0; i < n; ++i)
                                     txInv[static_cast<std::size_t>(i)] =
                                         yMax - samples[i].txBps;
-                                col = _context.imgui.GetColormapColor(1);
-                                _context.imgui.PlotShaded("tx",
+                                col = _app.GetImGui().GetColormapColor(1);
+                                _app.GetImGui().PlotShaded("tx",
                                     txInv,
                                     n,
                                     yMax,
@@ -146,12 +146,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -169,7 +169,7 @@ namespace
             ViewGraphMixin::DrawConfiguration(preferences);
 
             bool showNumbers = GetShowNumbers(preferences);
-            if (_context.imgui.Checkbox("Show numbers", &showNumbers))
+            if (_app.GetImGui().Checkbox("Show numbers", &showNumbers))
                 SetShowNumbers(preferences, showNumbers);
 
             // Y-axis maximum
@@ -180,7 +180,7 @@ namespace
             double currentMaximum = GetMaximum(preferences);
             int maximumIndex = static_cast<int>(
                 indexOf(kMaximumValues, currentMaximum).value_or(0));
-            if (_context.imgui.SliderInt("Maximum (B/s)",
+            if (_app.GetImGui().SliderInt("Maximum (B/s)",
                     &maximumIndex,
                     0,
                     4,
@@ -193,19 +193,19 @@ namespace
             auto allowedSet = GetInterfaces(preferences);
 
             bool changed = false;
-            ImGuiStyle& style = _context.imgui.GetStyle();
+            ImGuiStyle& style = _app.GetImGui().GetStyle();
             float window_visible_x2 =
-                _context.imgui.GetWindowPos().x +
-                _context.imgui.GetWindowContentRegionMax().x;
+                _app.GetImGui().GetWindowPos().x +
+                _app.GetImGui().GetWindowContentRegionMax().x;
 
             for (size_t i = 0; i < _sensor->GetChannels(); ++i)
             {
                 auto name = _sensor->GetChannelName(i);
-                _context.imgui.PushID(static_cast<int>(i));
+                _app.GetImGui().PushID(static_cast<int>(i));
                 bool state = allowedSet.contains(name);
-                float width = _context.imgui.CalcTextSize(name.c_str()).x +
+                float width = _app.GetImGui().CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (_context.imgui.Selectable(
+                if (_app.GetImGui().Selectable(
                         name.c_str(), &state, 0, ImVec2(width, 0)))
                 {
                     if (state)
@@ -214,18 +214,18 @@ namespace
                         allowedSet.erase(name);
                     changed = true;
                 }
-                _context.imgui.PopID();
+                _app.GetImGui().PopID();
 
                 if (i + 1 < _sensor->GetChannels())
                 {
                     std::string nextName = _sensor->GetChannelName(i + 1);
                     float nextWidth =
-                        _context.imgui.CalcTextSize(nextName.c_str()).x +
+                        _app.GetImGui().CalcTextSize(nextName.c_str()).x +
                         style.FramePadding.x * 2.0f;
-                    float last_x2 = _context.imgui.GetItemRectMax().x;
+                    float last_x2 = _app.GetImGui().GetItemRectMax().x;
                     float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
                     if (next_x2 < window_visible_x2)
-                        _context.imgui.SameLine();
+                        _app.GetImGui().SameLine();
                 }
             }
 
@@ -267,19 +267,19 @@ namespace
             prefs.SetBoolean(GetPrefName() + ".show_numbers", value);
         }
 
-        const Context& _context;
+        App& _app;
         std::unique_ptr<NetworkSensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateNetworkView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateNetworkView(App& app, Sensors& sensors)
 {
-    return std::make_unique<NetworkViewImpl>(ctx, sensors);
+    return std::make_unique<NetworkViewImpl>(app, sensors);
 }
 
 std::unique_ptr<View> CreateNetworkView(
-    const Context& ctx, std::unique_ptr<NetworkSensor> sensor)
+    App& app, std::unique_ptr<NetworkSensor> sensor)
 {
-    return std::make_unique<NetworkViewImpl>(ctx, std::move(sensor));
+    return std::make_unique<NetworkViewImpl>(app, std::move(sensor));
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app.h"
+
 #include "sensor.h"
 #include "sensor_rx_tx_graph_mixin.h"
 
@@ -7,15 +9,15 @@
 #include <string>
 
 class NetworkPoller;
-class Context;
+class App;
 
 using NetworkSample = RxTxSample;
 
 class NetworkSensor : public Sensor, public SensorRxTxGraphMixin
 {
 public:
-    explicit NetworkSensor(const Context& ctx, const std::string& prefPrefix):
-        Sensor(ctx, prefPrefix)
+    explicit NetworkSensor(App& app, const std::string& prefPrefix):
+        Sensor(app, prefPrefix)
     {
     }
 
@@ -24,10 +26,10 @@ public:
     virtual ~NetworkSensor() = default;
 };
 
-extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(const Context& ctx,
+extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(App& app,
     const std::string& prefPrefix,
     const std::string& procNetDevPath = "/proc/net/dev");
 
-extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(const Context& ctx,
+extern std::unique_ptr<NetworkSensor> CreateNetworkSensor(App& app,
     const std::string& prefPrefix,
     std::shared_ptr<NetworkPoller> poller);

@@ -1,4 +1,4 @@
-#include "context.h"
+#include "app.h"
 #include "network_poller.h"
 
 #include "utils.h"
@@ -118,9 +118,9 @@ std::unique_ptr<NetworkPoller> CreateNetworkPoller(
 }
 
 std::unique_ptr<NetworkPoller> CreateNetworkPoller(
-    const Context& ctx, const std::string& procNetDevPath)
+    App& app, const std::string& procNetDevPath)
 {
     auto poller = CreateNetworkPoller(procNetDevPath);
-    poller->SetCacheIntervalFromContext(ctx);
+    poller->SetCacheIntervalFromApp(app);
     return poller;
 }

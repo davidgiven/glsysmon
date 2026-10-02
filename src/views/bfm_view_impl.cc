@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 
 #include <imgui.h>
@@ -12,7 +13,6 @@
 #include <vector>
 
 #include "display/bfm_gpu_bridge.h"
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_poller.h"
@@ -69,28 +69,28 @@ namespace
     class BubbleFishyMonViewImpl : public View
     {
     public:
-        explicit BubbleFishyMonViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit BubbleFishyMonViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _memoryPoller(sensors.CreateMemoryPoller()),
             _networkPoller(sensors.CreateNetworkPoller()),
             _cpuPoller(sensors.CreateCpuPoller())
         {
             srand(0);
             bfm_glsysmon_init();
-            ApplyFishMode(GetFishMode(_context.preferences));
-            ApplyDuckMode(GetDuckMode(_context.preferences));
-            ApplyBubblesMode(GetBubblesMode(_context.preferences));
+            ApplyFishMode(GetFishMode(_app.GetPreferencesRef()));
+            ApplyDuckMode(GetDuckMode(_app.GetPreferencesRef()));
+            ApplyBubblesMode(GetBubblesMode(_app.GetPreferencesRef()));
             {
-                int w = GetWidth(_context.preferences);
-                int h = GetHeight(_context.preferences);
+                int w = GetWidth(_app.GetPreferencesRef());
+                int h = GetHeight(_app.GetPreferencesRef());
                 bfm_set_size(w, h);
             }
             _inited = true;
-            double interval = GetUpdateInterval(_context.preferences);
+            double interval = GetUpdateInterval(_app.GetPreferencesRef());
             _interval = interval;
             _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
-            Timer::Time now = _context.timer.Now();
-            _scheduled = _context.timer.Schedule(now + _delta,
+            Timer::Time now = _app.GetTimer().Now();
+            _scheduled = _app.GetTimer().Schedule(now + _delta,
                 [this](Timer::Time t)
                 {
                     Tick(t);
@@ -100,7 +100,7 @@ namespace
         ~BubbleFishyMonViewImpl() override
         {
             if (_scheduled != 0)
-                _context.timer.Cancel(_scheduled);
+                _app.GetTimer().Cancel(_scheduled);
             if (BfmGetGpuDevice() != nullptr && BfmGetGpuDevice() == _device)
                 DestroyGpuResources();
             else
@@ -119,8 +119,8 @@ namespace
             if (device == nullptr)
                 return;
 
-            int width = GetWidth(_context.preferences);
-            int height = GetHeight(_context.preferences);
+            int width = GetWidth(_app.GetPreferencesRef());
+            int height = GetHeight(_app.GetPreferencesRef());
             int curW = 0;
             int curH = 0;
             bfm_get_size(&curW, &curH);
@@ -133,7 +133,7 @@ namespace
 
             Upload(device);
 
-            float availWidth = _context.imgui.GetContentRegionAvail().x;
+            float availWidth = _app.GetImGui().GetContentRegionAvail().x;
             if (availWidth <= 0)
                 return;
 
@@ -141,17 +141,17 @@ namespace
             if (scale < 1)
                 scale = 1;
             ImVec2 imgSize((float)(width * scale), (float)(height * scale));
-            float cursorX = _context.imgui.GetCursorPosX();
-            _context.imgui.SetCursorPosX(
+            float cursorX = _app.GetImGui().GetCursorPosX();
+            _app.GetImGui().SetCursorPosX(
                 cursorX + (availWidth - imgSize.x) * 0.5f);
 
-            ImDrawList* dl = _context.imgui.GetWindowDrawList();
+            ImDrawList* dl = _app.GetImGui().GetWindowDrawList();
             dl->AddCallback(
-                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerNearest,
+                _app.GetImGui().GetPlatformIO().DrawCallback_SetSamplerNearest,
                 nullptr);
-            _context.imgui.Image((ImTextureID)(intptr_t)_texture, imgSize);
+            _app.GetImGui().Image((ImTextureID)(intptr_t)_texture, imgSize);
             dl->AddCallback(
-                _context.imgui.GetPlatformIO().DrawCallback_SetSamplerLinear,
+                _app.GetImGui().GetPlatformIO().DrawCallback_SetSamplerLinear,
                 nullptr);
         }
 
@@ -167,12 +167,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -188,16 +188,16 @@ namespace
         void DrawConfiguration(Preferences& preferences) override
         {
             double interval = GetUpdateInterval(preferences);
-            if (_context.imgui.InputDouble("Update frequency", &interval))
+            if (_app.GetImGui().InputDouble("Update frequency", &interval))
             {
                 SetUpdateInterval(preferences, interval);
                 interval = GetUpdateInterval(preferences);
                 if (_scheduled != 0)
-                    _context.timer.Cancel(_scheduled);
+                    _app.GetTimer().Cancel(_scheduled);
                 _interval = interval;
                 _delta = static_cast<Timer::Time>(1'000'000'000.0 / _interval);
                 _scheduled =
-                    _context.timer.Schedule(_context.timer.Now() + _delta,
+                    _app.GetTimer().Schedule(_app.GetTimer().Now() + _delta,
                         [this](Timer::Time t)
                         {
                             Tick(t);
@@ -205,12 +205,12 @@ namespace
             }
 
             int width = GetWidth(preferences);
-            if (_context.imgui.InputInt("Width", &width))
+            if (_app.GetImGui().InputInt("Width", &width))
             {
                 SetWidth(preferences, width);
             }
             int height = GetHeight(preferences);
-            if (_context.imgui.InputInt("Height", &height))
+            if (_app.GetImGui().InputInt("Height", &height))
             {
                 SetHeight(preferences, height);
             }
@@ -219,7 +219,7 @@ namespace
             int fishIndex = static_cast<int>(currentFishMode);
             constexpr const char* kFishNames[] = {"off", "random", "network"};
             const char* fishLabel(kFishNames[fishIndex]);
-            if (_context.imgui.SliderInt("Fish", &fishIndex, 0, 2, fishLabel))
+            if (_app.GetImGui().SliderInt("Fish", &fishIndex, 0, 2, fishLabel))
                 SetFishMode(preferences, static_cast<FishMode>(fishIndex));
 
             DuckMode currentDuckMode = GetDuckMode(preferences);
@@ -227,14 +227,14 @@ namespace
             constexpr const char* kDuckNames[] = {
                 "no duck", "duck", "invertable duck"};
             const char* duckLabel(kDuckNames[duckIndex]);
-            if (_context.imgui.SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
+            if (_app.GetImGui().SliderInt("Duck", &duckIndex, 0, 2, duckLabel))
                 SetDuckMode(preferences, static_cast<DuckMode>(duckIndex));
 
             BubblesMode currentBubblesMode = GetBubblesMode(preferences);
             int bubblesIndex = static_cast<int>(currentBubblesMode);
             constexpr const char* kBubblesNames[] = {"no bubbles", "bubbles"};
             const char* bubblesLabel(kBubblesNames[bubblesIndex]);
-            if (_context.imgui.SliderInt(
+            if (_app.GetImGui().SliderInt(
                     "Bubbles", &bubblesIndex, 0, 1, bubblesLabel))
                 SetBubblesMode(
                     preferences, static_cast<BubblesMode>(bubblesIndex));
@@ -383,10 +383,10 @@ namespace
 
         void Tick(Timer::Time t)
         {
-            FishMode fishMode = GetFishMode(_context.preferences);
+            FishMode fishMode = GetFishMode(_app.GetPreferencesRef());
             ApplyFishMode(fishMode);
-            ApplyDuckMode(GetDuckMode(_context.preferences));
-            ApplyBubblesMode(GetBubblesMode(_context.preferences));
+            ApplyDuckMode(GetDuckMode(_app.GetPreferencesRef()));
+            ApplyBubblesMode(GetBubblesMode(_app.GetPreferencesRef()));
 
             {
                 auto data = _memoryPoller->PollCached();
@@ -495,7 +495,7 @@ namespace
             }
 
             bubblemon_update(0);
-            _scheduled = _context.timer.Schedule(t + _delta,
+            _scheduled = _app.GetTimer().Schedule(t + _delta,
                 [this](Timer::Time nt)
                 {
                     Tick(nt);
@@ -503,8 +503,8 @@ namespace
         }
         void EnsureGpuResources(SDL_GPUDevice* device)
         {
-            int width = GetWidth(_context.preferences);
-            int height = GetHeight(_context.preferences);
+            int width = GetWidth(_app.GetPreferencesRef());
+            int height = GetHeight(_app.GetPreferencesRef());
             if (device != _device)
             {
                 DestroyGpuResources();
@@ -610,7 +610,7 @@ namespace
             SDL_SubmitGPUCommandBuffer(cb);
         }
 
-        const Context& _context;
+        App& _app;
         std::shared_ptr<MemoryPoller> _memoryPoller;
         std::shared_ptr<NetworkPoller> _networkPoller;
         std::shared_ptr<CpuPoller> _cpuPoller;
@@ -632,7 +632,7 @@ namespace
 } // namespace
 
 std::unique_ptr<View> CreateBubbleFishyMonView(
-    const Context& ctx, Sensors& sensors)
+    App& app, Sensors& sensors)
 {
-    return std::make_unique<BubbleFishyMonViewImpl>(ctx, sensors);
+    return std::make_unique<BubbleFishyMonViewImpl>(app, sensors);
 }

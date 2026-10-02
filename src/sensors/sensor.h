@@ -1,8 +1,10 @@
 #pragma once
 
+#include "app.h"
+
 #include <string>
 
-class Context;
+class App;
 class ImGuiIf;
 class Preferences;
 
@@ -10,14 +12,14 @@ class Preferences;
 class Sensor
 {
 public:
-    explicit Sensor(const Context& ctx, const std::string& prefPrefix):
-        _ctx(&ctx),
+    explicit Sensor(App& app, const std::string& prefPrefix):
+        _app(&app),
         _prefPrefix(prefPrefix)
     {
     }
 
     explicit Sensor(const std::string& prefPrefix):
-        _ctx(nullptr),
+        _app(nullptr),
         _prefPrefix(prefPrefix)
     {
     }
@@ -34,6 +36,6 @@ public:
     virtual const ImGuiIf& GetImGui() const;
 
 protected:
-    const Context* _ctx = nullptr;
+    App* _app = nullptr;
     std::string _prefPrefix;
 };

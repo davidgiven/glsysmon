@@ -1,3 +1,4 @@
+#include "app.h"
 #include "disk_sensor.h"
 
 #include <imgui.h>
@@ -12,7 +13,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_rx_tx_graph_mixin.h"
 #include "timer.h"
@@ -29,19 +29,19 @@ namespace
     class DiskSensorImpl : public DiskSensor
     {
     public:
-        explicit DiskSensorImpl(const Context& ctx,
+        explicit DiskSensorImpl(App& app,
             const std::string& prefPrefix,
-            const std::string& procDiskStatsPath): DiskSensor(ctx, prefPrefix),
-            _ctx(ctx),
+            const std::string& procDiskStatsPath): DiskSensor(app, prefPrefix),
+            _app(app),
             _procDiskStatsPath(procDiskStatsPath)
         {
             _deviceNames = DiscoverDevices(_procDiskStatsPath);
-            InitGraph(_ctx,
+            InitGraph(_app,
                 _prefPrefix,
                 _deviceNames.size(),
                 RxTxSample{});
             _prev.resize(_deviceNames.size());
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         const RxTxSample* GetSamples(std::size_t channel) const override
@@ -70,7 +70,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
+            DrawIntervalConfiguration(_app.GetImGui(), preferences, _prefPrefix);
         }
 
     private:
@@ -144,7 +144,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _ctx.timer.Schedule(t + this->_delta,
+                _app.GetTimer().Schedule(t + this->_delta,
                     std::bind(
                         &DiskSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -183,7 +183,7 @@ namespace
                 }
                 _prev = cur;
             }
-            _ctx.timer.Schedule(t + this->_delta,
+            _app.GetTimer().Schedule(t + this->_delta,
                 std::bind(&DiskSensorImpl::Tick, this, std::placeholders::_1));
         }
 
@@ -194,7 +194,7 @@ namespace
                 AddSample(i, zero);
         }
 
-        const Context& _ctx;
+        App& _app;
         std::string _procDiskStatsPath;
         std::vector<std::string> _deviceNames;
         std::vector<RawDisk> _prev;
@@ -203,9 +203,9 @@ namespace
 
 } // namespace
 
-std::unique_ptr<DiskSensor> CreateDiskSensor(const Context& ctx,
+std::unique_ptr<DiskSensor> CreateDiskSensor(App& app,
     const std::string& prefPrefix,
     const std::string& procDiskStatsPath)
 {
-    return std::make_unique<DiskSensorImpl>(ctx, prefPrefix, procDiskStatsPath);
+    return std::make_unique<DiskSensorImpl>(app, prefPrefix, procDiskStatsPath);
 }

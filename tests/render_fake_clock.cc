@@ -8,7 +8,6 @@
 #include <string>
 
 #include "app.h"
-#include "context.h"
 #include "imguiif.h"
 #include "display/imgui_frame_renderer.h"
 #include "preferences/preferences.h"
@@ -20,6 +19,28 @@
 
 namespace
 {
+    class TestApp : public App
+    {
+    public:
+        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+            _prefs(std::move(prefs)), _timer(timer), _imgui(imgui) {}
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
+        Preferences& GetPreferencesRef() override { return *_prefs; }
+        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        Timer& GetTimer() override { return _timer; }
+        ImGuiIf& GetImGui() override { return _imgui; }
+        const Timer& GetTimer() const override { return _timer; }
+        const ImGuiIf& GetImGui() const override { return _imgui; }
+        void Quit() override {}
+    private:
+        std::shared_ptr<Preferences> _prefs;
+        Timer& _timer;
+        ImGuiIf& _imgui;
+    };
+
 
     class FakeClockSensor : public ClockSensor
     {
@@ -57,7 +78,7 @@ namespace
     class FakeSensors : public MockSensors
     {
     public:
-        FakeSensors(const Context& ctx): MockSensors(ctx.timer) {}
+        FakeSensors(App& app): MockSensors(app.GetTimer()) {}
 
         std::unique_ptr<ClockSensor> CreateClockSensor(
             const std::string& prefPrefix) const override
@@ -67,7 +88,7 @@ namespace
         }
     };
 
-    class FakeApp : public App
+        class FakeApp : public App
     {
     public:
         FakeApp() {}
@@ -78,21 +99,13 @@ namespace
 
         void Shutdown() override {}
 
-        std::shared_ptr<Preferences> GetPreferences() override
-        {
-            return nullptr;
-        }
-
-        Context& GetContext() override
-        {
-            static std::shared_ptr<Preferences> dummyPrefs =
-                CreateMapPreferences();
-            static auto dummyTimer = CreateTimer();
-            static auto dummyImgui = CreateImGui();
-            static Context dummyCtx(
-                *this, *dummyImgui, *dummyPrefs, *dummyTimer);
-            return dummyCtx;
-        }
+        std::shared_ptr<Preferences> GetPreferences() override { return nullptr; }
+        Preferences& GetPreferencesRef() override { static auto p = CreateMapPreferences(); return *p; }
+        const Preferences& GetPreferencesRef() const override { static auto p = CreateMapPreferences(); return *p; }
+        Timer& GetTimer() override { static auto t = CreateTimer(); return *t; }
+        ImGuiIf& GetImGui() override { static auto i = CreateImGui(); return *i; }
+        const Timer& GetTimer() const override { static auto t = CreateTimer(); return *t; }
+        const ImGuiIf& GetImGui() const override { static auto i = CreateImGui(); return *i; }
 
         void Quit() override {}
     };
@@ -103,13 +116,12 @@ int main()
 {
     CliArgs args;
     args.values = {"--views=ClockView"};
-    auto prefs = render_lib::CreateTestPreferences(args);
+    std::shared_ptr<Preferences> prefs = render_lib::CreateTestPreferences(args);
     auto timer = CreateTimer();
     auto imgui = CreateImGui();
-    FakeApp app;
-    Context ctx(app, *imgui, *prefs, *timer);
-    FakeSensors sensors(ctx);
-    auto ui = CreateUi(ctx, sensors);
+    TestApp app(prefs, *timer, *imgui);
+    FakeSensors sensors(app);
+    auto ui = CreateUi(app, sensors);
     auto renderer = CreateImGuiFrameRenderer(*prefs);
     return render_lib::Run("render_fake_clock", *ui, *renderer);
 }

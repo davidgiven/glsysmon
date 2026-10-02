@@ -1,10 +1,12 @@
 #pragma once
 
+#include "app.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-class Context;
+class App;
 class ImGuiIf;
 class Preferences;
 class Sensor;
@@ -43,32 +45,32 @@ public:
 };
 
 extern std::unique_ptr<View> CreateClockView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateClockView(
-    const Context& ctx, std::unique_ptr<ClockSensor> sensor);
+    App& app, std::unique_ptr<ClockSensor> sensor);
 extern std::unique_ptr<View> CreateCpuView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateCpuView(
-    const Context& ctx, std::unique_ptr<CpuSensor> sensor);
+    App& app, std::unique_ptr<CpuSensor> sensor);
 extern std::unique_ptr<View> CreateHostnameView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateHostnameView(
-    const Context& ctx, std::unique_ptr<HostnameSensor> sensor);
+    App& app, std::unique_ptr<HostnameSensor> sensor);
 extern std::unique_ptr<View> CreateTemperatureView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateTemperatureView(
-    const Context& ctx, std::unique_ptr<TemperatureSensor> sensor);
+    App& app, std::unique_ptr<TemperatureSensor> sensor);
 extern std::unique_ptr<View> CreateNetworkView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateNetworkView(
-    const Context& ctx, std::unique_ptr<NetworkSensor> sensor);
+    App& app, std::unique_ptr<NetworkSensor> sensor);
 extern std::unique_ptr<View> CreateDiskView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateDiskView(
-    const Context& ctx, std::unique_ptr<DiskSensor> sensor);
+    App& app, std::unique_ptr<DiskSensor> sensor);
 extern std::unique_ptr<View> CreateMemoryView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);
 extern std::unique_ptr<View> CreateMemoryView(
-    const Context& ctx, std::unique_ptr<MemorySensor> sensor);
+    App& app, std::unique_ptr<MemorySensor> sensor);
 extern std::unique_ptr<View> CreateBubbleFishyMonView(
-    const Context& ctx, Sensors& sensors);
+    App& app, Sensors& sensors);

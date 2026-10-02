@@ -10,7 +10,6 @@
 
 #include "app.h"
 #include "configuration.h"
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -23,15 +22,14 @@ namespace
     class ImGuiUiImpl : public Ui
     {
     public:
-        explicit ImGuiUiImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit ImGuiUiImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensors(sensors),
-            _views(ctx, _sensors),
-            _app(ctx.app),
-            _configurationWindow(_views, _app, _context.imgui)
+            _views(app, _sensors),
+            _configurationWindow(_views, _app, _app.GetImGui())
         {
             for (const std::string& name :
-                GlobalPreferencesFetcher::GetViews(ctx.preferences))
+                GlobalPreferencesFetcher::GetViews(app.GetPreferencesRef()))
             {
                 View* view = _views.Get(name);
                 if (view == nullptr)
@@ -42,12 +40,12 @@ namespace
 
         void Draw() override
         {
-            ImGuiViewport* viewport = _context.imgui.GetMainViewport();
-            _context.imgui.SetNextWindowPos(viewport->Pos);
-            _context.imgui.SetNextWindowSize(viewport->Size);
-            _context.imgui.PushStyleVar(
+            ImGuiViewport* viewport = _app.GetImGui().GetMainViewport();
+            _app.GetImGui().SetNextWindowPos(viewport->Pos);
+            _app.GetImGui().SetNextWindowSize(viewport->Size);
+            _app.GetImGui().PushStyleVar(
                 ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-            _context.imgui.Begin("glsysmon",
+            _app.GetImGui().Begin("glsysmon",
                 nullptr,
                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
                     ImGuiWindowFlags_NoResize |
@@ -58,17 +56,17 @@ namespace
             {
                 std::string enabledKey = view->GetPrefName() + ".enabled";
                 bool enabled =
-                    _context.preferences.GetBoolean(enabledKey).value_or(true);
+                    _app.GetPreferencesRef().GetBoolean(enabledKey).value_or(true);
                 if (!enabled)
                     continue;
                 view->Draw();
             }
 
-            _context.imgui.PopStyleVar();
+            _app.GetImGui().PopStyleVar();
 
-            _context.imgui.End();
+            _app.GetImGui().End();
 
-            if (_context.imgui.IsMouseClicked(ImGuiMouseButton_Right))
+            if (_app.GetImGui().IsMouseClicked(ImGuiMouseButton_Right))
             {
                 if (!_viewportOpen)
                     _viewportOpen = true;
@@ -82,18 +80,18 @@ namespace
                     ImGuiViewportFlags_NoAutoMerge;
                 window_class.ViewportFlagsOverrideClear =
                     ImGuiViewportFlags_NoDecoration;
-                _context.imgui.SetNextWindowClass(&window_class);
-                _context.imgui.SetNextWindowSize(
+                _app.GetImGui().SetNextWindowClass(&window_class);
+                _app.GetImGui().SetNextWindowSize(
                     ImVec2(800, 600), ImGuiCond_FirstUseEver);
-                _context.imgui.Begin("Configuration",
+                _app.GetImGui().Begin("Configuration",
                     &_viewportOpen,
                     ImGuiWindowFlags_NoTitleBar);
 
                 if (_viewportFocusRequested)
                 {
-                    ImGuiViewport* vp = _context.imgui.GetWindowViewport();
+                    ImGuiViewport* vp = _app.GetImGui().GetWindowViewport();
                     if (vp != nullptr &&
-                        vp != _context.imgui.GetMainViewport() &&
+                        vp != _app.GetImGui().GetMainViewport() &&
                         vp->PlatformHandle != nullptr)
                     {
                         SDL_Window* sdlWin = SDL_GetWindowFromID(
@@ -106,15 +104,14 @@ namespace
                     }
                 }
                 _configurationWindow.Draw(&_viewportOpen);
-                _context.imgui.End();
+                _app.GetImGui().End();
             }
         }
 
     private:
-        const Context& _context;
+        App& _app;
         Sensors& _sensors;
         Views _views;
-        App& _app;
         std::vector<View*> _activeViews;
         ConfigurationWindow _configurationWindow;
         bool _viewportOpen = false;
@@ -123,7 +120,7 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Ui> CreateUi(const Context& ctx, Sensors& sensors)
+std::unique_ptr<Ui> CreateUi(App& app, Sensors& sensors)
 {
-    return std::make_unique<ImGuiUiImpl>(ctx, sensors);
+    return std::make_unique<ImGuiUiImpl>(app, sensors);
 }

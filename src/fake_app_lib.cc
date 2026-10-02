@@ -1,6 +1,5 @@
 #include "fake_app_lib.h"
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "timer.h"
@@ -13,16 +12,40 @@ void FakeApp::Shutdown() {}
 
 std::shared_ptr<Preferences> FakeApp::GetPreferences()
 {
-    return nullptr;
+    static auto dp = CreateMapPreferences();
+    return dp;
 }
 
-Context& FakeApp::GetContext()
+Preferences& FakeApp::GetPreferencesRef()
 {
-    static auto dp = CreateMapPreferences();
+    return *GetPreferences();
+}
+
+const Preferences& FakeApp::GetPreferencesRef() const
+{
+    return *const_cast<FakeApp*>(this)->GetPreferences();
+}
+
+Timer& FakeApp::GetTimer()
+{
     static auto dt = CreateTimer();
+    return *dt;
+}
+
+ImGuiIf& FakeApp::GetImGui()
+{
     static auto di = CreateImGui();
-    static Context dc(*this, *di, *dp, *dt);
-    return dc;
+    return *di;
+}
+
+const Timer& FakeApp::GetTimer() const
+{
+    return const_cast<FakeApp*>(this)->GetTimer();
+}
+
+const ImGuiIf& FakeApp::GetImGui() const
+{
+    return const_cast<FakeApp*>(this)->GetImGui();
 }
 
 void FakeApp::Quit() {}

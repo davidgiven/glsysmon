@@ -1,3 +1,4 @@
+#include "app.h"
 #include "clock_sensor.h"
 
 #include <imgui.h>
@@ -8,7 +9,6 @@
 #include <memory>
 #include <string>
 
-#include "context.h"
 #include "preferences/preferences.h"
 #include "timer.h"
 
@@ -19,10 +19,10 @@ namespace
     {
     public:
         explicit ClockSensorImpl(
-            const Context& ctx, const std::string& prefPrefix): ClockSensor(ctx, prefPrefix),
-            _ctx(ctx)
+            App& app, const std::string& prefPrefix): ClockSensor(app, prefPrefix),
+            _app(app)
         {
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         std::tm GetLocalTime() override
@@ -50,18 +50,18 @@ namespace
                 _tm = {};
             else
                 _tm = local;
-            _ctx.timer.Schedule(t + 1'000'000'000ULL,
+            _app.GetTimer().Schedule(t + 1'000'000'000ULL,
                 std::bind(&ClockSensorImpl::Tick, this, std::placeholders::_1));
         }
 
-        const Context& _ctx;
+        App& _app;
         std::tm _tm{};
     };
 
 } // namespace
 
 std::unique_ptr<ClockSensor> CreateClockSensor(
-    const Context& ctx, const std::string& prefPrefix)
+    App& app, const std::string& prefPrefix)
 {
-    return std::make_unique<ClockSensorImpl>(ctx, prefPrefix);
+    return std::make_unique<ClockSensorImpl>(app, prefPrefix);
 }

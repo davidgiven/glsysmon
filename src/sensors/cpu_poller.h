@@ -1,12 +1,14 @@
 #pragma once
 
+#include "app.h"
+
 #include "poller.h"
 
 #include <map>
 #include <memory>
 #include <string>
 
-class Context;
+class App;
 
 struct CpuSample
 {
@@ -25,4 +27,4 @@ extern std::unique_ptr<CpuPoller> CreateCpuPoller(
     const std::string& procStatPath = "/proc/stat");
 
 extern std::unique_ptr<CpuPoller> CreateCpuPoller(
-    const Context& ctx, const std::string& procStatPath = "/proc/stat");
+    App& app, const std::string& procStatPath = "/proc/stat");

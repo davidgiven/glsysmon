@@ -1,3 +1,4 @@
+#include "app.h"
 #include "temperature_sensor.h"
 
 #include <imgui.h>
@@ -13,7 +14,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_graph_mixin.h"
 #include "timer.h"
@@ -53,10 +53,10 @@ namespace
     class TemperatureSensorImpl : public TemperatureSensor
     {
     public:
-        explicit TemperatureSensorImpl(const Context& ctx,
+        explicit TemperatureSensorImpl(App& app,
             const std::string& prefPrefix,
-            const std::string& hwmonRoot): TemperatureSensor(ctx, prefPrefix),
-            _ctx(ctx),
+            const std::string& hwmonRoot): TemperatureSensor(app, prefPrefix),
+            _app(app),
             _hwmonRoot(hwmonRoot)
         {
             _inputPaths = DiscoverInputs(_hwmonRoot);
@@ -112,11 +112,11 @@ namespace
                     _names.push_back(base);
             }
 
-            InitGraph(_ctx,
+            InitGraph(_app,
                 _prefPrefix,
                 _inputPaths.size(),
                 std::numeric_limits<double>::quiet_NaN());
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         const double* GetSamples(std::size_t channel) const override
@@ -145,7 +145,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
+            DrawIntervalConfiguration(_app.GetImGui(), preferences, _prefPrefix);
         }
 
     private:
@@ -178,12 +178,12 @@ namespace
                     AddSample(i, std::numeric_limits<double>::quiet_NaN());
                 }
             }
-            _ctx.timer.Schedule(t + this->_delta,
+            _app.GetTimer().Schedule(t + this->_delta,
                 std::bind(
                     &TemperatureSensorImpl::Tick, this, std::placeholders::_1));
         }
 
-        const Context& _ctx;
+        App& _app;
         std::string _hwmonRoot;
         std::vector<std::string> _inputPaths;
         std::vector<std::string> _names;
@@ -191,9 +191,9 @@ namespace
 
 } // namespace
 
-std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(const Context& ctx,
+std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(App& app,
     const std::string& prefPrefix,
     const std::string& hwmonRoot)
 {
-    return std::make_unique<TemperatureSensorImpl>(ctx, prefPrefix, hwmonRoot);
+    return std::make_unique<TemperatureSensorImpl>(app, prefPrefix, hwmonRoot);
 }

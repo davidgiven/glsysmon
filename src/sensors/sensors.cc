@@ -1,6 +1,6 @@
+#include "app.h"
 #include "sensors.h"
 
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensors/clock_sensor.h"
 #include "sensors/cpu_poller.h"
@@ -19,12 +19,12 @@ namespace
     class SensorsImpl final : public Sensors
     {
     public:
-        explicit SensorsImpl(const Context& ctx): _ctx(ctx) {}
+        explicit SensorsImpl(App& app): _app(app) {}
 
         std::unique_ptr<ClockSensor> CreateClockSensor(
             const std::string& prefPrefix) const override
         {
-            return ::CreateClockSensor(_ctx, prefPrefix);
+            return ::CreateClockSensor(_app, prefPrefix);
         }
 
         std::unique_ptr<CpuSensor> CreateCpuSensor(
@@ -32,20 +32,20 @@ namespace
             const std::string& procStatPath) const override
         {
             auto poller = CreateCpuPoller(procStatPath);
-            return ::CreateCpuSensor(_ctx, prefPrefix, poller);
+            return ::CreateCpuSensor(_app, prefPrefix, poller);
         }
 
         std::unique_ptr<HostnameSensor> CreateHostnameSensor(
             const std::string& prefPrefix) const override
         {
-            return ::CreateHostnameSensor(_ctx, prefPrefix);
+            return ::CreateHostnameSensor(_app, prefPrefix);
         }
 
         std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
             const std::string& prefPrefix,
             const std::string& hwmonRoot) const override
         {
-            return ::CreateTemperatureSensor(_ctx, prefPrefix, hwmonRoot);
+            return ::CreateTemperatureSensor(_app, prefPrefix, hwmonRoot);
         }
 
         std::unique_ptr<NetworkSensor> CreateNetworkSensor(
@@ -53,14 +53,14 @@ namespace
             const std::string& procNetDevPath) const override
         {
             auto poller = CreateNetworkPoller(procNetDevPath);
-            return ::CreateNetworkSensor(_ctx, prefPrefix, poller);
+            return ::CreateNetworkSensor(_app, prefPrefix, poller);
         }
 
         std::unique_ptr<DiskSensor> CreateDiskSensor(
             const std::string& prefPrefix,
             const std::string& procDiskStatsPath) const override
         {
-            return ::CreateDiskSensor(_ctx, prefPrefix, procDiskStatsPath);
+            return ::CreateDiskSensor(_app, prefPrefix, procDiskStatsPath);
         }
 
         std::unique_ptr<MemorySensor> CreateMemorySensor(
@@ -68,7 +68,7 @@ namespace
             const std::string& procMemInfoPath) const override
         {
             auto poller = CreateMemoryPoller(procMemInfoPath);
-            return ::CreateMemorySensor(_ctx, prefPrefix, poller);
+            return ::CreateMemorySensor(_app, prefPrefix, poller);
         }
 
         std::shared_ptr<NetworkPoller> CreateNetworkPoller(
@@ -78,7 +78,7 @@ namespace
                 _networkPoller = ::CreateNetworkPoller(procNetDevPath);
             _networkPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _ctx.preferences));
+                    _app.GetPreferencesRef()));
             return _networkPoller;
         }
 
@@ -89,7 +89,7 @@ namespace
                 _memoryPoller = ::CreateMemoryPoller(procMemInfoPath);
             _memoryPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _ctx.preferences));
+                    _app.GetPreferencesRef()));
             return _memoryPoller;
         }
 
@@ -100,17 +100,17 @@ namespace
                 _cpuPoller = ::CreateCpuPoller(procStatPath);
             _cpuPoller->SetCacheIntervalMs(
                 GlobalPreferencesFetcher::GetPollerCacheInterval(
-                    _ctx.preferences));
+                    _app.GetPreferencesRef()));
             return _cpuPoller;
         }
 
         Timer& GetTimer() const override
         {
-            return _ctx.timer;
+            return _app.GetTimer();
         }
 
     private:
-        const Context& _ctx;
+        App& _app;
         mutable std::shared_ptr<NetworkPoller> _networkPoller;
         mutable std::shared_ptr<MemoryPoller> _memoryPoller;
         mutable std::shared_ptr<CpuPoller> _cpuPoller;
@@ -118,7 +118,7 @@ namespace
 
 } // namespace
 
-std::unique_ptr<Sensors> CreateSensors(const Context& ctx)
+std::unique_ptr<Sensors> CreateSensors(App& app)
 {
-    return std::make_unique<SensorsImpl>(ctx);
+    return std::make_unique<SensorsImpl>(app);
 }

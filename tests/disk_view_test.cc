@@ -11,7 +11,6 @@
 #include <implot.h>
 
 #include "app.h"
-#include "context.h"
 #include "fake_app_lib.h"
 #include "imguiif.h"
 #include "mock_disk_sensor_lib.h"
@@ -19,10 +18,34 @@
 #include "preferences/preferences.h"
 #include "timer.h"
 #include "views/view.h"
+namespace {
+    class TestApp : public App
+    {
+    public:
+        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+            _prefs(std::move(prefs)), _timer(timer), _imgui(imgui) {}
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
+        Preferences& GetPreferencesRef() override { return *_prefs; }
+        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        Timer& GetTimer() override { return _timer; }
+        ImGuiIf& GetImGui() override { return _imgui; }
+        const Timer& GetTimer() const override { return _timer; }
+        const ImGuiIf& GetImGui() const override { return _imgui; }
+        void Quit() override {}
+    private:
+        std::shared_ptr<Preferences> _prefs;
+        Timer& _timer;
+        ImGuiIf& _imgui;
+    };
+}
+
 
 TEST_CASE("DiskViewImpl DrawConfiguration with empty list adds clicked device")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     CHECK_FALSE(prefs->GetStringSet("disk.devices").has_value());
 
     class MockImGui : public MockImGuiIf
@@ -46,8 +69,7 @@ TEST_CASE("DiskViewImpl DrawConfiguration with empty list adds clicked device")
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"sda", "sdb"};
     std::vector<std::vector<DiskSample>> samples(2);
@@ -66,7 +88,7 @@ TEST_CASE("DiskViewImpl DrawConfiguration with empty list adds clicked device")
 TEST_CASE(
     "DiskViewImpl DrawConfiguration with set device removes clicked device")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     prefs->SetStringSet("disk.devices", std::set<std::string>{"sda"});
     REQUIRE(prefs->GetStringSet("disk.devices").has_value());
     REQUIRE(prefs->GetStringSet("disk.devices")->contains("sda"));
@@ -92,8 +114,7 @@ TEST_CASE(
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"sda", "sdb"};
     std::vector<std::vector<DiskSample>> samples(2);
@@ -115,7 +136,7 @@ TEST_CASE(
 
 TEST_CASE("DiskViewImpl Draw with single device calls BeginPlot once")
 {
-    auto prefs = CreateMapPreferences();
+    std::shared_ptr<Preferences> prefs = CreateMapPreferences();
     prefs->SetStringSet("disk.devices", std::set<std::string>{"sda"});
 
     class MockImGui : public MockImGuiIf
@@ -139,8 +160,7 @@ TEST_CASE("DiskViewImpl Draw with single device calls BeginPlot once")
 
     auto timer = CreateTimer();
     MockImGui mockImgui;
-    FakeApp app;
-    Context ctx(app, mockImgui, *prefs, *timer);
+    TestApp ctx(prefs, *timer, mockImgui);
 
     std::vector<std::string> names = {"sda"};
     std::vector<std::vector<DiskSample>> samples(1);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -7,13 +9,13 @@
 
 #include "views/view.h"
 
-class Context;
+class App;
 class Sensors;
 
 class Views
 {
 public:
-    explicit Views(const Context& ctx, Sensors& sensors);
+    explicit Views(App& app, Sensors& sensors);
 
     Views(const Views&) = delete;
     Views& operator=(const Views&) = delete;
@@ -29,10 +31,10 @@ public:
     void Reset();
 
 private:
-    using Factory = std::unique_ptr<View> (*)(const Context&, Sensors&);
+    using Factory = std::unique_ptr<View> (*)(App&, Sensors&);
     static const std::map<std::string, Factory> _factories;
 
-    const Context& _context;
+    App& _app;
     Sensors& _sensors;
     mutable std::map<std::string, std::unique_ptr<View>> _views;
 };

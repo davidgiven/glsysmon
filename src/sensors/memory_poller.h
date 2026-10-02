@@ -1,12 +1,14 @@
 #pragma once
 
+#include "app.h"
+
 #include "poller.h"
 
 #include <map>
 #include <memory>
 #include <string>
 
-class Context;
+class App;
 
 struct MemorySample
 {
@@ -24,4 +26,4 @@ extern std::unique_ptr<MemoryPoller> CreateMemoryPoller(
     const std::string& procMemInfoPath = "/proc/meminfo");
 
 extern std::unique_ptr<MemoryPoller> CreateMemoryPoller(
-    const Context& ctx, const std::string& procMemInfoPath = "/proc/meminfo");
+    App& app, const std::string& procMemInfoPath = "/proc/meminfo");

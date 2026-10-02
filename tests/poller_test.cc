@@ -10,13 +10,36 @@
 #include <thread>
 
 #include "app.h"
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/memory_poller.h"
 #include "sensors/poller.h"
 #include "sensors/sensors.h"
 #include "timer.h"
+namespace {
+    class TestApp : public App
+    {
+    public:
+        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+            _prefs(std::move(prefs)), _timer(timer), _imgui(imgui) {}
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
+        Preferences& GetPreferencesRef() override { return *_prefs; }
+        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        Timer& GetTimer() override { return _timer; }
+        ImGuiIf& GetImGui() override { return _imgui; }
+        const Timer& GetTimer() const override { return _timer; }
+        const ImGuiIf& GetImGui() const override { return _imgui; }
+        void Quit() override {}
+    private:
+        std::shared_ptr<Preferences> _prefs;
+        Timer& _timer;
+        ImGuiIf& _imgui;
+    };
+}
+
 
 namespace
 {
@@ -318,26 +341,7 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
     mapPrefs->SetInteger("poller.cache_interval", 200);
     auto timer = CreateTimer();
     auto imgui = CreateImGui();
-    struct DummyApp : public App
-    {
-        void Setup() override {}
-        void MainLoop() override {}
-        void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override
-        {
-            return nullptr;
-        }
-        Context& GetContext() override
-        {
-            static auto dp = CreateMapPreferences();
-            static auto dt = CreateTimer();
-            static auto di = CreateImGui();
-            static Context dc(*this, *di, *dp, *dt);
-            return dc;
-        }
-        void Quit() override {}
-    } dummyApp;
-    Context ctx(dummyApp, *imgui, *mapPrefs, *timer);
+        TestApp ctx(mapPrefs, *timer, *imgui);
     auto sensors = CreateSensors(ctx);
 
     const std::string path = ".obj/test_poller_sensors_interval";

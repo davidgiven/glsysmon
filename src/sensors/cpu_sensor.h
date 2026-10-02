@@ -1,5 +1,7 @@
 #pragma once
 
+#include "app.h"
+
 #include "cpu_poller.h"
 #include "sensor.h"
 #include "sensor_graph_mixin.h"
@@ -7,13 +9,13 @@
 #include <memory>
 #include <string>
 
-class Context;
+class App;
 
 class CpuSensor : public Sensor, public SensorGraphMixin<CpuSample>
 {
 public:
-    explicit CpuSensor(const Context& ctx, const std::string& prefPrefix):
-        Sensor(ctx, prefPrefix)
+    explicit CpuSensor(App& app, const std::string& prefPrefix):
+        Sensor(app, prefPrefix)
     {
     }
 
@@ -22,6 +24,6 @@ public:
     virtual ~CpuSensor() = default;
 };
 
-extern std::unique_ptr<CpuSensor> CreateCpuSensor(const Context& ctx,
+extern std::unique_ptr<CpuSensor> CreateCpuSensor(App& app,
     const std::string& prefPrefix,
     std::shared_ptr<CpuPoller> poller);

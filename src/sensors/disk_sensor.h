@@ -1,20 +1,22 @@
 #pragma once
 
+#include "app.h"
+
 #include "sensor.h"
 #include "sensor_rx_tx_graph_mixin.h"
 
 #include <memory>
 #include <string>
 
-class Context;
+class App;
 
 using DiskSample = RxTxSample;
 
 class DiskSensor : public Sensor, public SensorRxTxGraphMixin
 {
 public:
-    explicit DiskSensor(const Context& ctx, const std::string& prefPrefix):
-        Sensor(ctx, prefPrefix)
+    explicit DiskSensor(App& app, const std::string& prefPrefix):
+        Sensor(app, prefPrefix)
     {
     }
 
@@ -23,6 +25,6 @@ public:
     virtual ~DiskSensor() = default;
 };
 
-extern std::unique_ptr<DiskSensor> CreateDiskSensor(const Context& ctx,
+extern std::unique_ptr<DiskSensor> CreateDiskSensor(App& app,
     const std::string& prefPrefix,
     const std::string& procDiskStatsPath = "/proc/diskstats");

@@ -1,20 +1,22 @@
 #pragma once
 
+#include "app.h"
+
 #include <string>
 
 #include "sensor.h"
 
 #include <memory>
 
-class Context;
+class App;
 
 // Fetches the current system hostname. Implementations live in
 // src/sensors/hostname_sensor_impl.cc.
 class HostnameSensor : public Sensor
 {
 public:
-    explicit HostnameSensor(const Context& ctx, const std::string& prefPrefix):
-        Sensor(ctx, prefPrefix)
+    explicit HostnameSensor(App& app, const std::string& prefPrefix):
+        Sensor(app, prefPrefix)
     {
     }
 
@@ -27,4 +29,4 @@ public:
 };
 
 extern std::unique_ptr<HostnameSensor> CreateHostnameSensor(
-    const Context& ctx, const std::string& prefPrefix);
+    App& app, const std::string& prefPrefix);

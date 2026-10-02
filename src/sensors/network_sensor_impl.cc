@@ -1,3 +1,4 @@
+#include "app.h"
 #include "network_sensor.h"
 
 #include <imgui.h>
@@ -10,7 +11,6 @@
 #include <vector>
 
 #include "network_poller.h"
-#include "context.h"
 #include "preferences/preferences.h"
 #include "sensor_rx_tx_graph_mixin.h"
 #include "timer.h"
@@ -21,10 +21,10 @@ namespace
     class NetworkSensorImpl : public NetworkSensor
     {
     public:
-        explicit NetworkSensorImpl(const Context& ctx,
+        explicit NetworkSensorImpl(App& app,
             const std::string& prefPrefix,
-            std::shared_ptr<NetworkPoller> poller): NetworkSensor(ctx, prefPrefix),
-            _ctx(ctx),
+            std::shared_ptr<NetworkPoller> poller): NetworkSensor(app, prefPrefix),
+            _app(app),
             _poller(std::move(poller))
         {
             auto initial = _poller->Poll();
@@ -32,11 +32,11 @@ namespace
             for (const auto& kv : initial)
                 _ifaceNames.push_back(kv.first);
             std::sort(_ifaceNames.begin(), _ifaceNames.end());
-            InitGraph(_ctx,
+            InitGraph(_app,
                 _prefPrefix,
                 _ifaceNames.size(),
                 RxTxSample{});
-            Tick(_ctx.timer.Now());
+            Tick(_app.GetTimer().Now());
         }
 
         const RxTxSample* GetSamples(std::size_t channel) const override
@@ -65,7 +65,7 @@ namespace
 
         void DrawConfiguration(Preferences& preferences) override
         {
-            DrawIntervalConfiguration(_ctx.imgui, preferences, _prefPrefix);
+            DrawIntervalConfiguration(_app.GetImGui(), preferences, _prefPrefix);
         }
 
     private:
@@ -74,7 +74,7 @@ namespace
             std::size_t channels = GetChannels();
             if (channels == 0)
             {
-                _ctx.timer.Schedule(t + this->_delta,
+                _app.GetTimer().Schedule(t + this->_delta,
                     std::bind(
                         &NetworkSensorImpl::Tick, this, std::placeholders::_1));
                 return;
@@ -102,7 +102,7 @@ namespace
                     AddSample(i, s);
                 }
             }
-            _ctx.timer.Schedule(t + this->_delta,
+            _app.GetTimer().Schedule(t + this->_delta,
                 std::bind(
                     &NetworkSensorImpl::Tick, this, std::placeholders::_1));
         }
@@ -114,26 +114,26 @@ namespace
                 AddSample(i, zero);
         }
 
-        const Context& _ctx;
+        App& _app;
         std::shared_ptr<NetworkPoller> _poller;
         std::vector<std::string> _ifaceNames;
     };
 
 } // namespace
 
-std::unique_ptr<NetworkSensor> CreateNetworkSensor(const Context& ctx,
+std::unique_ptr<NetworkSensor> CreateNetworkSensor(App& app,
     const std::string& prefPrefix,
     std::shared_ptr<NetworkPoller> poller)
 {
     return std::make_unique<NetworkSensorImpl>(
-        ctx, prefPrefix, std::move(poller));
+        app, prefPrefix, std::move(poller));
 }
 
 std::unique_ptr<NetworkSensor> CreateNetworkSensor(
-    const Context& ctx,
+    App& app,
     const std::string& prefPrefix,
     const std::string& procNetDevPath)
 {
     auto poller = CreateNetworkPoller(procNetDevPath);
-    return CreateNetworkSensor(ctx, prefPrefix, std::move(poller));
+    return CreateNetworkSensor(app, prefPrefix, std::move(poller));
 }

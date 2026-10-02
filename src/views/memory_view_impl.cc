@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 #include "views/view_graph_mixin.h"
 
@@ -12,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -25,14 +25,14 @@ namespace
     class MemoryViewImpl : public ViewGraphMixin
     {
     public:
-        explicit MemoryViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit MemoryViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensor(sensors.CreateMemorySensor(GetPrefName()))
         {
         }
 
-        explicit MemoryViewImpl(const Context& ctx, std::unique_ptr<MemorySensor> sensor):
-            _context(ctx),
+        explicit MemoryViewImpl(App& app, std::unique_ptr<MemorySensor> sensor):
+            _app(app),
             _sensor(std::move(sensor))
         {
         }
@@ -45,9 +45,9 @@ namespace
             if (_sensor->GetChannels() == 0)
                 return;
 
-            const int graphHeight = GetGraphHeight(_context.preferences);
+            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
 
-            Style::GraphGroup(_context.imgui, "Memory",
+            Style::GraphGroup(_app.GetImGui(), "Memory",
                 [&]
                 {
                     const MemorySample* samples = _sensor->GetSamples(0);
@@ -79,7 +79,7 @@ namespace
                     }
 
                     const MemorySample& last = samples[sampleCount - 1];
-                    DrawGraph(_context.imgui, _context.preferences,
+                    DrawGraph(_app.GetImGui(), _app.GetPreferencesRef(),
                         "",
                         std::to_string(std::llround(
                             100.0 * last.usedRam / last.totalRam)) +
@@ -89,7 +89,7 @@ namespace
                         yMax,
                         [&]
                         {
-                            _context.imgui.PlotLine("used", values.data(), n);
+                            _app.GetImGui().PlotLine("used", values.data(), n);
                         },
                         static_cast<float>(graphHeight));
                 });
@@ -107,12 +107,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -126,18 +126,18 @@ namespace
         }
 
     private:
-        const Context& _context;
+        App& _app;
         std::unique_ptr<MemorySensor> _sensor;
     };
 
 } // namespace
 
-std::unique_ptr<View> CreateMemoryView(const Context& ctx, Sensors& sensors)
+std::unique_ptr<View> CreateMemoryView(App& app, Sensors& sensors)
 {
-    return std::make_unique<MemoryViewImpl>(ctx, sensors);
+    return std::make_unique<MemoryViewImpl>(app, sensors);
 }
 
-std::unique_ptr<View> CreateMemoryView(const Context& ctx, std::unique_ptr<MemorySensor> sensor)
+std::unique_ptr<View> CreateMemoryView(App& app, std::unique_ptr<MemorySensor> sensor)
 {
-    return std::make_unique<MemoryViewImpl>(ctx, std::move(sensor));
+    return std::make_unique<MemoryViewImpl>(app, std::move(sensor));
 }

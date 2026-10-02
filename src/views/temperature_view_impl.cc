@@ -1,3 +1,4 @@
+#include "app.h"
 #include "views/view.h"
 #include "views/view_graph_mixin.h"
 
@@ -12,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/sensors.h"
@@ -24,15 +24,15 @@ namespace
     class TemperatureViewImpl : public ViewGraphMixin
     {
     public:
-        explicit TemperatureViewImpl(const Context& ctx, Sensors& sensors):
-            _context(ctx),
+        explicit TemperatureViewImpl(App& app, Sensors& sensors):
+            _app(app),
             _sensor(sensors.CreateTemperatureSensor(GetPrefName()))
         {
         }
 
         explicit TemperatureViewImpl(
-            const Context& ctx, std::unique_ptr<TemperatureSensor> sensor):
-            _context(ctx),
+            App& app, std::unique_ptr<TemperatureSensor> sensor):
+            _app(app),
             _sensor(std::move(sensor))
         {
         }
@@ -43,13 +43,13 @@ namespace
             const std::size_t sampleCount = _sensor->GetSampleCount();
             if (count == 0 || sampleCount == 0)
                 return;
-            const int yMin = GetMinimum(_context.preferences);
-            const int yMax = GetMaximum(_context.preferences);
-            const auto allowedSet = GetSensors(_context.preferences);
-            const int graphHeight = GetGraphHeight(_context.preferences);
-            const bool showValue = GetShowValue(_context.preferences);
+            const int yMin = GetMinimum(_app.GetPreferencesRef());
+            const int yMax = GetMaximum(_app.GetPreferencesRef());
+            const auto allowedSet = GetSensors(_app.GetPreferencesRef());
+            const int graphHeight = GetGraphHeight(_app.GetPreferencesRef());
+            const bool showValue = GetShowValue(_app.GetPreferencesRef());
 
-            Style::GraphGroup(_context.imgui,
+            Style::GraphGroup(_app.GetImGui(),
                 "Temperature",
                 [&]
                 {
@@ -72,8 +72,8 @@ namespace
                                     std::llround(samples[sampleCount - 1]))) +
                                 "°C";
                         DrawGraph(
-                            _context.imgui,
-                            _context.preferences,
+                            _app.GetImGui(),
+                            _app.GetPreferencesRef(),
                             title,
                             subtitle,
                             n,
@@ -81,7 +81,7 @@ namespace
                             yMax,
                             [&]
                             {
-                                _context.imgui.PlotLine(
+                                _app.GetImGui().PlotLine(
                                     channelName.c_str(), samples, n);
                             },
                             static_cast<float>(graphHeight));
@@ -101,12 +101,12 @@ namespace
 
         ImGuiIf& GetImGui() override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         const ImGuiIf& GetImGui() const override
         {
-            return _context.imgui;
+            return _app.GetImGui();
         }
 
         std::vector<Sensor*> GetSensors() override
@@ -125,18 +125,18 @@ namespace
 
             // Temperature range
             int minimum = GetMinimum(preferences);
-            if (_context.imgui.InputInt("Minimum (°C)", &minimum))
+            if (_app.GetImGui().InputInt("Minimum (°C)", &minimum))
             {
                 SetMinimum(preferences, minimum);
             }
             int maximum = GetMaximum(preferences);
-            if (_context.imgui.InputInt("Maximum (°C)", &maximum))
+            if (_app.GetImGui().InputInt("Maximum (°C)", &maximum))
             {
                 SetMaximum(preferences, maximum);
             }
 
             bool showValue = GetShowValue(preferences);
-            if (_context.imgui.Checkbox("Show temperature value", &showValue))
+            if (_app.GetImGui().Checkbox("Show temperature value", &showValue))
             {
                 SetShowValue(preferences, showValue);
             }
@@ -145,18 +145,18 @@ namespace
             auto allowedSet =
                 GetSensors(preferences).value_or(std::set<std::string>());
             bool changed = false;
-            ImGuiStyle& style = _context.imgui.GetStyle();
+            ImGuiStyle& style = _app.GetImGui().GetStyle();
             float window_visible_x2 =
-                _context.imgui.GetWindowPos().x +
-                _context.imgui.GetWindowContentRegionMax().x;
+                _app.GetImGui().GetWindowPos().x +
+                _app.GetImGui().GetWindowContentRegionMax().x;
             for (size_t i = 0; i < _sensor->GetChannels(); i++)
             {
                 auto name = _sensor->GetChannelName(i);
-                _context.imgui.PushID(static_cast<int>(i));
+                _app.GetImGui().PushID(static_cast<int>(i));
                 bool state = allowedSet.contains(name);
-                float width = _context.imgui.CalcTextSize(name.c_str()).x +
+                float width = _app.GetImGui().CalcTextSize(name.c_str()).x +
                               style.FramePadding.x * 2.0f;
-                if (_context.imgui.Selectable(
+                if (_app.GetImGui().Selectable(
                         name.c_str(), &state, 0, ImVec2(width, 0)))
                 {
                     if (state)
@@ -165,17 +165,17 @@ namespace
                         allowedSet.erase(name);
                     changed = true;
                 }
-                _context.imgui.PopID();
+                _app.GetImGui().PopID();
                 if (i + 1 < _sensor->GetChannels())
                 {
                     std::string nextName = _sensor->GetChannelName(i + 1);
                     float nextWidth =
-                        _context.imgui.CalcTextSize(nextName.c_str()).x +
+                        _app.GetImGui().CalcTextSize(nextName.c_str()).x +
                         style.FramePadding.x * 2.0f;
-                    float last_x2 = _context.imgui.GetItemRectMax().x;
+                    float last_x2 = _app.GetImGui().GetItemRectMax().x;
                     float next_x2 = last_x2 + style.ItemSpacing.x + nextWidth;
                     if (next_x2 < window_visible_x2)
-                        _context.imgui.SameLine();
+                        _app.GetImGui().SameLine();
                 }
             }
             if (changed)
@@ -226,20 +226,20 @@ namespace
             prefs.SetBoolean(GetPrefName() + ".show_value", value);
         }
 
-        const Context& _context;
+        App& _app;
         std::unique_ptr<TemperatureSensor> _sensor;
     };
 
 } // namespace
 
 std::unique_ptr<View> CreateTemperatureView(
-    const Context& ctx, Sensors& sensors)
+    App& app, Sensors& sensors)
 {
-    return std::make_unique<TemperatureViewImpl>(ctx, sensors);
+    return std::make_unique<TemperatureViewImpl>(app, sensors);
 }
 
 std::unique_ptr<View> CreateTemperatureView(
-    const Context& ctx, std::unique_ptr<TemperatureSensor> sensor)
+    App& app, std::unique_ptr<TemperatureSensor> sensor)
 {
-    return std::make_unique<TemperatureViewImpl>(ctx, std::move(sensor));
+    return std::make_unique<TemperatureViewImpl>(app, std::move(sensor));
 }

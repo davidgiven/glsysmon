@@ -1,51 +1,51 @@
+#include "app.h"
 #include "views.h"
 
-#include "context.h"
 #include "views/view.h"
 
 namespace
 {
 
     std::unique_ptr<View> CreateClockViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateClockView(ctx, sensors);
+        return CreateClockView(app, sensors);
     }
 
     std::unique_ptr<View> CreateCpuViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateCpuView(ctx, sensors);
+        return CreateCpuView(app, sensors);
     }
 
     std::unique_ptr<View> CreateDiskViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateDiskView(ctx, sensors);
+        return CreateDiskView(app, sensors);
     }
 
     std::unique_ptr<View> CreateHostnameViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateHostnameView(ctx, sensors);
+        return CreateHostnameView(app, sensors);
     }
 
     std::unique_ptr<View> CreateNetworkViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateNetworkView(ctx, sensors);
+        return CreateNetworkView(app, sensors);
     }
 
     std::unique_ptr<View> CreateTemperatureViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateTemperatureView(ctx, sensors);
+        return CreateTemperatureView(app, sensors);
     }
 
     std::unique_ptr<View> CreateMemoryViewWithTimer(
-        const Context& ctx, Sensors& sensors)
+        App& app, Sensors& sensors)
     {
-        return CreateMemoryView(ctx, sensors);
+        return CreateMemoryView(app, sensors);
     }
 
 } // namespace
@@ -61,8 +61,8 @@ const std::map<std::string, Views::Factory> Views::_factories{
     {"TemperatureView",    &CreateTemperatureViewWithTimer},
 };
 
-Views::Views(const Context& ctx, Sensors& sensors):
-    _context(ctx),
+Views::Views(App& app, Sensors& sensors):
+    _app(app),
     _sensors(sensors)
 {
 }
@@ -93,7 +93,7 @@ View* Views::Get(const std::string& name) const
     auto fIt = _factories.find(name);
     if (fIt == _factories.end())
         return nullptr;
-    std::unique_ptr<View> view = fIt->second(_context, _sensors);
+    std::unique_ptr<View> view = fIt->second(_app, _sensors);
     View* ptr = view.get();
     _views.emplace(name, std::move(view));
     return ptr;

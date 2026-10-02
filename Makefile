@@ -64,7 +64,6 @@ BFM_OBJS := $(BUILD)/bfm/bubblemon.o $(BUILD)/bfm/fishmon.o $(BUILD)/bfm/sys_stu
 
 SRC_OBJS := \
 	$(BUILD)/fake_app_lib.o \
-	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/display/dock.o \
@@ -256,7 +255,6 @@ $(TEST_BUILD)/%.o: tests/%.cc
 	@$(CXX) $(TEST_CFLAGS) -c -o $@ $<
 
 $(TEST_UNIT): $(TEST_BUILD)/unit_tests.o \
-	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
@@ -296,7 +294,6 @@ $(TEST_TIMER): $(TEST_BUILD)/timer_tests.o $(BUILD)/timer.o
 	@$(CXX) -o $@ $^
 
 $(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o \
-	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
@@ -329,7 +326,6 @@ $(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(BUILD)/sensors/memory_polle
 	@$(CXX) -o $@ $^
 
 $(TEST_POLLER): $(TEST_BUILD)/poller_test.o \
-	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
@@ -356,7 +352,6 @@ $(TEST_POLLER): $(TEST_BUILD)/poller_test.o \
 
 $(TEST_RENDER): $(TEST_BUILD)/render_fake_%: $(TEST_BUILD)/render_fake_%.o \
 	$(TEST_RENDER_COMMON_OBJS) \
-	$(BUILD)/context.o \
 	$(BUILD)/configuration.o \
 	$(BUILD)/display/bfm_gpu_bridge.o \
 	$(BUILD)/display/imgui_frame_renderer_impl.o \
@@ -395,7 +390,6 @@ $(TEST_UTILS): $(TEST_BUILD)/utils_test.o $(BUILD)/utils.o
 $(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o \
 	$(TEST_BUILD)/mock_imgui_lib.o \
 	$(BUILD)/fake_app_lib.o \
-	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
@@ -412,7 +406,6 @@ $(TEST_DISK_VIEW): $(TEST_BUILD)/disk_view_test.o \
 $(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o \
 	$(TEST_BUILD)/mock_imgui_lib.o \
 	$(BUILD)/fake_app_lib.o \
-	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
@@ -430,7 +423,6 @@ $(TEST_NETWORK_VIEW): $(TEST_BUILD)/network_view_test.o \
 $(TEST_TEMPERATURE_VIEW): $(TEST_BUILD)/temperature_view_test.o \
 	$(TEST_BUILD)/mock_imgui_lib.o \
 	$(BUILD)/fake_app_lib.o \
-	$(BUILD)/context.o \
 	$(BUILD)/imguiif_impl.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/map_preferences_impl.o \

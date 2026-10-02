@@ -12,7 +12,6 @@
 #include <string>
 #include <utility>
 
-#include "context.h"
 #include "display/dock.h"
 #include "display/imgui_frame_renderer.h"
 #include "imguiif.h"
@@ -135,9 +134,7 @@ namespace
             _dockFactory(std::move(dockFactory)),
             _frameRenderer(std::move(frameRenderer)),
             _timer(std::move(timer)),
-            _imgui(std::move(imgui)),
-            _context(std::make_unique<Context>(
-                static_cast<App&>(*this), *_imgui, *_prefs, *_timer))
+            _imgui(std::move(imgui))
         {
         }
 
@@ -151,9 +148,34 @@ namespace
             return _prefs;
         }
 
-        Context& GetContext() override
+        Preferences& GetPreferencesRef() override
         {
-            return *_context;
+            return *_prefs;
+        }
+
+        const Preferences& GetPreferencesRef() const override
+        {
+            return *_prefs;
+        }
+
+        Timer& GetTimer() override
+        {
+            return *_timer;
+        }
+
+        ImGuiIf& GetImGui() override
+        {
+            return *_imgui;
+        }
+
+        const Timer& GetTimer() const override
+        {
+            return *_timer;
+        }
+
+        const ImGuiIf& GetImGui() const override
+        {
+            return *_imgui;
         }
 
         void SetUi(std::unique_ptr<Ui> ui)
@@ -320,7 +342,6 @@ namespace
         std::unique_ptr<ImGuiFrameRenderer> _frameRenderer;
         std::unique_ptr<Timer> _timer;
         std::unique_ptr<ImGuiIf> _imgui;
-        std::unique_ptr<Context> _context;
         std::unique_ptr<Sensors> _sensors;
         std::unique_ptr<Ui> _ui;
         std::unique_ptr<Dock> _dock;
@@ -348,8 +369,8 @@ std::unique_ptr<App> CreateApp(const CliArgs& args)
         std::move(timer),
         std::move(imgui));
     auto* appImpl = static_cast<ImGuiAppImpl*>(app.get());
-    auto sensors = CreateSensors(appImpl->GetContext());
-    auto ui = CreateUi(appImpl->GetContext(), *sensors);
+    auto sensors = CreateSensors(*appImpl);
+    auto ui = CreateUi(*appImpl, *sensors);
     appImpl->SetSensors(std::move(sensors));
     appImpl->SetUi(std::move(ui));
     return app;

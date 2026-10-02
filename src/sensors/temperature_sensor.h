@@ -1,18 +1,20 @@
 #pragma once
 
+#include "app.h"
+
 #include "sensor.h"
 #include "sensor_graph_mixin.h"
 
 #include <memory>
 #include <string>
 
-class Context;
+class App;
 
 class TemperatureSensor : public Sensor, public SensorGraphMixin<double>
 {
 public:
-    explicit TemperatureSensor(const Context& ctx, const std::string& prefPrefix):
-        Sensor(ctx, prefPrefix)
+    explicit TemperatureSensor(App& app, const std::string& prefPrefix):
+        Sensor(app, prefPrefix)
     {
     }
 
@@ -22,6 +24,6 @@ public:
 };
 
 extern std::unique_ptr<TemperatureSensor> CreateTemperatureSensor(
-    const Context& ctx,
+    App& app,
     const std::string& prefPrefix,
     const std::string& hwmonRoot = "/sys/class/hwmon");

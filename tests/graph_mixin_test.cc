@@ -9,12 +9,35 @@
 #include <vector>
 
 #include "app.h"
-#include "context.h"
 #include "imguiif.h"
 #include "preferences/preferences.h"
 #include "sensors/cpu_sensor.h"
 #include "sensors/sensor_graph_mixin.h"
 #include "timer.h"
+namespace {
+    class TestApp : public App
+    {
+    public:
+        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+            _prefs(std::move(prefs)), _timer(timer), _imgui(imgui) {}
+        void Setup() override {}
+        void MainLoop() override {}
+        void Shutdown() override {}
+        std::shared_ptr<Preferences> GetPreferences() override { return _prefs; }
+        Preferences& GetPreferencesRef() override { return *_prefs; }
+        const Preferences& GetPreferencesRef() const override { return *_prefs; }
+        Timer& GetTimer() override { return _timer; }
+        ImGuiIf& GetImGui() override { return _imgui; }
+        const Timer& GetTimer() const override { return _timer; }
+        const ImGuiIf& GetImGui() const override { return _imgui; }
+        void Quit() override {}
+    private:
+        std::shared_ptr<Preferences> _prefs;
+        Timer& _timer;
+        ImGuiIf& _imgui;
+    };
+}
+
 
 namespace
 {
@@ -243,7 +266,7 @@ TEST_CASE("SensorGraphMixin GetChannelName returns channel name")
 TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
 {
     CliArgs args;
-    auto prefs = CreatePreferences(args);
+    std::shared_ptr<Preferences> prefs = CreatePreferences(args);
     const std::string path = ".obj/test_graph_mixin_cpu_stat";
     {
         std::ofstream out(path);
@@ -254,26 +277,7 @@ TEST_CASE("CpuSensorImpl GetChannelName returns CPU number")
     }
     auto timer = CreateTimer();
     auto imgui = CreateImGui();
-    struct DummyApp : public App
-    {
-        void Setup() override {}
-        void MainLoop() override {}
-        void Shutdown() override {}
-        std::shared_ptr<Preferences> GetPreferences() override
-        {
-            return nullptr;
-        }
-        Context& GetContext() override
-        {
-            static auto dp = CreateMapPreferences();
-            static auto dt = CreateTimer();
-            static auto di = CreateImGui();
-            static Context dc(*this, *di, *dp, *dt);
-            return dc;
-        }
-        void Quit() override {}
-    } dummyApp;
-    Context ctx(dummyApp, *imgui, *prefs, *timer);
+        TestApp ctx(prefs, *timer, *imgui);
     auto sensor = CreateCpuSensor(ctx, "cpu", CreateCpuPoller(path));
     auto* gm = dynamic_cast<SensorGraphMixin<CpuSample>*>(sensor.get());
     REQUIRE(gm != nullptr);

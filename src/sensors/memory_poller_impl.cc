@@ -1,4 +1,4 @@
-#include "context.h"
+#include "app.h"
 #include "memory_poller.h"
 
 #include "utils.h"
@@ -98,9 +98,9 @@ std::unique_ptr<MemoryPoller> CreateMemoryPoller(
 }
 
 std::unique_ptr<MemoryPoller> CreateMemoryPoller(
-    const Context& ctx, const std::string& procMemInfoPath)
+    App& app, const std::string& procMemInfoPath)
 {
     auto poller = CreateMemoryPoller(procMemInfoPath);
-    poller->SetCacheIntervalFromContext(ctx);
+    poller->SetCacheIntervalFromApp(app);
     return poller;
 }
