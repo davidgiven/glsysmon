@@ -320,11 +320,11 @@ $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o \
 	@echo $@
 	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
-$(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(BUILD)/sensors/cpu_poller_impl.o
+$(TEST_CPU): $(TEST_BUILD)/cpu_poller_test.o $(BUILD)/sensors/cpu_poller_impl.o $(BUILD)/preferences/preferences.o $(BUILD)/preferences/string_value.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
-$(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(BUILD)/sensors/memory_poller_impl.o
+$(TEST_MEMORY): $(TEST_BUILD)/memory_poller_test.o $(BUILD)/sensors/memory_poller_impl.o $(BUILD)/utils.o $(BUILD)/preferences/preferences.o $(BUILD)/preferences/string_value.o
 	@echo $@
 	@$(CXX) -o $@ $^
 
@@ -336,6 +336,7 @@ $(TEST_POLLER): $(TEST_BUILD)/poller_test.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
 	$(BUILD)/preferences/combined_preferences_impl.o \
 	$(BUILD)/preferences/map_preferences_impl.o \
+	$(BUILD)/preferences/string_value.o \
 	$(BUILD)/sensors/sensors.o \
 	$(BUILD)/sensors/clock_sensor_impl.o \
 	$(BUILD)/sensors/cpu_poller_impl.o \
@@ -349,7 +350,7 @@ $(TEST_POLLER): $(TEST_BUILD)/poller_test.o \
 	$(BUILD)/sensors/sensor.o \
 	$(BUILD)/sensors/sensor_graph_mixin.o \
 	$(BUILD)/sensors/temperature_sensor_impl.o \
-	$(BUILD)/timer.o $(IMGUI_OBJS) $(IMPLOT_OBJS)
+	$(BUILD)/timer.o $(BUILD)/utils.o $(IMGUI_OBJS) $(IMPLOT_OBJS)
 	@echo $@
 	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 

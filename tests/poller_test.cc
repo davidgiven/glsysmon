@@ -368,7 +368,7 @@ TEST_CASE("Sensors factory propagates poller cache interval from preferences")
     CHECK(memPoller == memPoller2);
     CHECK(memPoller2->GetCacheIntervalMs() == 300);
 
-    auto netPoller2 = sensors.CreateNetworkPoller(path);
+    auto netPoller2 = sensors->CreateNetworkPoller(path);
     CHECK(netPoller == netPoller2);
     CHECK(netPoller2->GetCacheIntervalMs() == 300);
 
