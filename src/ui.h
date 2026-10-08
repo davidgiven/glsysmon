@@ -16,6 +16,10 @@ public:
     virtual ~Ui() = default;
 
     virtual void Draw() = 0;
+
+    virtual bool IsConfigOpen() const = 0;
+    virtual void SetConfigOpen(bool open) = 0;
+    virtual void DrawConfigWindow(bool* open) = 0;
 };
 
 extern std::unique_ptr<Ui> CreateUi(App& app, Sensors& sensors);

@@ -70,42 +70,30 @@ namespace
             {
                 if (!_viewportOpen)
                     _viewportOpen = true;
-                _viewportFocusRequested = true;
             }
+        }
 
-            if (_viewportOpen)
-            {
-                ImGuiWindowClass window_class;
-                window_class.ViewportFlagsOverrideSet =
-                    ImGuiViewportFlags_NoAutoMerge;
-                window_class.ViewportFlagsOverrideClear =
-                    ImGuiViewportFlags_NoDecoration;
-                _app.GetImGui().SetNextWindowClass(&window_class);
-                _app.GetImGui().SetNextWindowSize(
-                    ImVec2(800, 600), ImGuiCond_FirstUseEver);
-                _app.GetImGui().Begin("Configuration",
-                    &_viewportOpen,
-                    ImGuiWindowFlags_NoTitleBar);
+        bool IsConfigOpen() const override
+        {
+            return _viewportOpen;
+        }
 
-                if (_viewportFocusRequested)
-                {
-                    ImGuiViewport* vp = _app.GetImGui().GetWindowViewport();
-                    if (vp != nullptr &&
-                        vp != _app.GetImGui().GetMainViewport() &&
-                        vp->PlatformHandle != nullptr)
-                    {
-                        SDL_Window* sdlWin = SDL_GetWindowFromID(
-                            (SDL_WindowID)(uintptr_t)vp->PlatformHandle);
-                        if (sdlWin != nullptr)
-                        {
-                            SDL_RaiseWindow(sdlWin);
-                            _viewportFocusRequested = false;
-                        }
-                    }
-                }
-                _configurationWindow.Draw(&_viewportOpen);
-                _app.GetImGui().End();
-            }
+        void SetConfigOpen(bool open) override
+        {
+            _viewportOpen = open;
+        }
+
+        void DrawConfigWindow(bool* open) override
+        {
+            ImGuiViewport* viewport = _app.GetImGui().GetMainViewport();
+            _app.GetImGui().SetNextWindowPos(viewport->Pos);
+            _app.GetImGui().SetNextWindowSize(viewport->Size);
+            _app.GetImGui().Begin("Configuration",
+                open,
+                ImGuiWindowFlags_NoTitleBar);
+
+            _configurationWindow.Draw(open);
+            _app.GetImGui().End();
         }
 
     private:
@@ -115,7 +103,6 @@ namespace
         std::vector<View*> _activeViews;
         ConfigurationWindow _configurationWindow;
         bool _viewportOpen = false;
-        bool _viewportFocusRequested = false;
     };
 
 } // namespace

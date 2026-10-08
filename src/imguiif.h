@@ -680,18 +680,6 @@ public:
     virtual bool TabItemButton(
         const char* label, ImGuiTabItemFlags flags = 0) = 0;
     virtual void SetTabItemClosed(const char* tab_or_docked_window_label) = 0;
-    virtual ImGuiID DockSpace(ImGuiID dockspace_id,
-        const ImVec2& size = ImVec2(0, 0),
-        ImGuiDockNodeFlags flags = 0,
-        const ImGuiWindowClass* window_class = NULL) = 0;
-    virtual ImGuiID DockSpaceOverViewport(ImGuiID dockspace_id = 0,
-        const ImGuiViewport* viewport = NULL,
-        ImGuiDockNodeFlags flags = 0,
-        const ImGuiWindowClass* window_class = NULL) = 0;
-    virtual void SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond = 0) = 0;
-    virtual void SetNextWindowClass(const ImGuiWindowClass* window_class) = 0;
-    virtual ImGuiID GetWindowDockID() = 0;
-    virtual bool IsWindowDocked() = 0;
     virtual void LogToTTY(int auto_open_depth = -1) = 0;
     virtual void LogToFile(
         int auto_open_depth = -1, const char* filename = NULL) = 0;

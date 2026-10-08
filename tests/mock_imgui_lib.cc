@@ -2021,45 +2021,6 @@ void MockImGuiIf::SetTabItemClosed(const char* tab_or_docked_window_label)
 {
     (void)tab_or_docked_window_label;
 }
-ImGuiID MockImGuiIf::DockSpace(ImGuiID dockspace_id,
-    const ImVec2& size,
-    ImGuiDockNodeFlags flags,
-    const ImGuiWindowClass* window_class)
-{
-    (void)dockspace_id;
-    (void)size;
-    (void)flags;
-    (void)window_class;
-    return 0;
-}
-ImGuiID MockImGuiIf::DockSpaceOverViewport(ImGuiID dockspace_id,
-    const ImGuiViewport* viewport,
-    ImGuiDockNodeFlags flags,
-    const ImGuiWindowClass* window_class)
-{
-    (void)dockspace_id;
-    (void)viewport;
-    (void)flags;
-    (void)window_class;
-    return 0;
-}
-void MockImGuiIf::SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond)
-{
-    (void)dock_id;
-    (void)cond;
-}
-void MockImGuiIf::SetNextWindowClass(const ImGuiWindowClass* window_class)
-{
-    (void)window_class;
-}
-ImGuiID MockImGuiIf::GetWindowDockID()
-{
-    return 0;
-}
-bool MockImGuiIf::IsWindowDocked()
-{
-    return false;
-}
 void MockImGuiIf::LogToTTY(int auto_open_depth)
 {
     (void)auto_open_depth;

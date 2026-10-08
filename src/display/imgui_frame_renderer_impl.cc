@@ -40,7 +40,6 @@ namespace
             _plotContext = ImPlot::CreateContext();
             ImGuiIO& io = ImGui::GetIO();
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-            io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
             io.IniFilename =
                 nullptr; // do not persist window layout to imgui.ini
             ImGui::StyleColorsDark();

@@ -214,6 +214,64 @@ namespace
             _rendererInited = true;
         }
 
+        void EnsureConfigWindow()
+        {
+            if (_configWindow != nullptr)
+                return;
+            SDL_Window* win = SDL_CreateWindow("glsysmon Configuration",
+                800,
+                600,
+                SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALWAYS_ON_TOP);
+            if (win == nullptr)
+                throw AppError("Config window creation failed: " +
+                               std::string(SDL_GetError()));
+            if (!SDL_ClaimWindowForGPUDevice(_device->get(), win))
+            {
+                SDL_DestroyWindow(win);
+                throw AppError("SDL_ClaimWindowForGPUDevice (config) failed: " +
+                               std::string(SDL_GetError()));
+            }
+            SDL_SetGPUSwapchainParameters(_device->get(),
+                win,
+                SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+                SDL_GPU_PRESENTMODE_VSYNC);
+            auto renderer = CreateImGuiFrameRenderer(*_prefs);
+            if (!renderer->Init(_device->get(),
+                    win,
+                    SDL_GetGPUSwapchainTextureFormat(_device->get(), win)))
+            {
+                SDL_ReleaseWindowFromGPUDevice(_device->get(), win);
+                SDL_DestroyWindow(win);
+                throw AppError("ImGuiFrameRenderer::Init (config) failed");
+            }
+            _configWindow = win;
+            _configWindowID = SDL_GetWindowID(win);
+            _configRenderer = std::move(renderer);
+            _configRendererInited = true;
+            SDL_RaiseWindow(win);
+            SDL_ShowWindow(win);
+        }
+
+        void DestroyConfigWindow()
+        {
+            if (_configRenderer && _configRendererInited)
+            {
+                SDL_WaitForGPUIdle(_device->get());
+                _configRenderer->Shutdown();
+                _configRendererInited = false;
+            }
+            _configRenderer.reset();
+            if (_configWindow != nullptr)
+            {
+                SDL_ReleaseWindowFromGPUDevice(_device->get(), _configWindow);
+                SDL_DestroyWindow(_configWindow);
+                _configWindow = nullptr;
+                _configWindowID = 0;
+            }
+            if (_ui)
+                _ui->SetConfigOpen(false);
+        }
+
         void MainLoop() override
         {
             Redraw();
@@ -240,6 +298,11 @@ namespace
                 if (_timer->Tick(now) > 0)
                     pendingRedraw = true;
 
+                if (_ui && _ui->IsConfigOpen() && _configWindow == nullptr)
+                    pendingRedraw = true;
+                if (_ui && !_ui->IsConfigOpen() && _configWindow != nullptr)
+                    pendingRedraw = true;
+
                 if (pendingRedraw)
                     TryRedraw(now, pendingRedraw);
             }
@@ -247,6 +310,8 @@ namespace
 
         void Shutdown() override
         {
+            if (_configWindow != nullptr)
+                DestroyConfigWindow();
             if (_device != nullptr && _rendererInited)
             {
                 SDL_WaitForGPUIdle(_device->get());
@@ -270,6 +335,22 @@ namespace
             if (_ui != nullptr)
                 _ui->Draw();
 
+            bool wantConfig = _ui && _ui->IsConfigOpen();
+            if (wantConfig && _configWindow == nullptr)
+            {
+                try
+                {
+                    EnsureConfigWindow();
+                }
+                catch (const std::exception& e)
+                {
+                    SDL_Log("EnsureConfigWindow failed: %s", e.what());
+                    if (_ui)
+                        _ui->SetConfigOpen(false);
+                    wantConfig = false;
+                }
+            }
+
             SDL_GPUCommandBuffer* command_buffer =
                 SDL_AcquireGPUCommandBuffer(_device->get());
             SDL_GPUTexture* swapchain_texture = nullptr;
@@ -281,10 +362,28 @@ namespace
             _frameRenderer->Render(command_buffer, swapchain_texture);
             SDL_SubmitGPUCommandBuffer(command_buffer);
 
-            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            if (wantConfig && _configWindow && _configRenderer)
             {
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
+                bool open = _ui->IsConfigOpen();
+                _configRenderer->BeginFrame();
+                _ui->DrawConfigWindow(&open);
+                if (open != _ui->IsConfigOpen())
+                    _ui->SetConfigOpen(open);
+
+                SDL_GPUCommandBuffer* cb2 =
+                    SDL_AcquireGPUCommandBuffer(_device->get());
+                SDL_GPUTexture* tex2 = nullptr;
+                SDL_WaitAndAcquireGPUSwapchainTexture(
+                    cb2, _configWindow, &tex2, nullptr, nullptr);
+                _configRenderer->Render(cb2, tex2);
+                SDL_SubmitGPUCommandBuffer(cb2);
+
+                if (!open)
+                    DestroyConfigWindow();
+            }
+            else if (!wantConfig && _configWindow != nullptr)
+            {
+                DestroyConfigWindow();
             }
         }
 
@@ -319,11 +418,18 @@ namespace
         void HandleEvent(SDL_Event& event)
         {
             _frameRenderer->ProcessEvent(&event);
+            if (_configRenderer)
+                _configRenderer->ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
                 Quit();
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                event.window.windowID == SDL_GetWindowID(_window->get()))
-                Quit();
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+            {
+                if (event.window.windowID == SDL_GetWindowID(_window->get()))
+                    Quit();
+                else if (_configWindow &&
+                         event.window.windowID == _configWindowID)
+                    DestroyConfigWindow();
+            }
         }
 
         void TryRedraw(Uint64 now, bool& pendingRedraw)
@@ -349,6 +455,10 @@ namespace
         std::unique_ptr<DockWindow> _window;
         std::unique_ptr<GpuDevice> _device;
         bool _rendererInited = false;
+        SDL_Window* _configWindow = nullptr;
+        SDL_WindowID _configWindowID = 0;
+        std::unique_ptr<ImGuiFrameRenderer> _configRenderer;
+        bool _configRendererInited = false;
         Uint64 _drawNs = 0;
         Uint64 _lastRedrawNs = 0;
         bool _running = true;

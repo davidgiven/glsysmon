@@ -684,18 +684,6 @@ public:
     void EndTabItem() override;
     bool TabItemButton(const char* label, ImGuiTabItemFlags flags = 0) override;
     void SetTabItemClosed(const char* tab_or_docked_window_label) override;
-    ImGuiID DockSpace(ImGuiID dockspace_id,
-        const ImVec2& size = ImVec2(0, 0),
-        ImGuiDockNodeFlags flags = 0,
-        const ImGuiWindowClass* window_class = NULL) override;
-    ImGuiID DockSpaceOverViewport(ImGuiID dockspace_id = 0,
-        const ImGuiViewport* viewport = NULL,
-        ImGuiDockNodeFlags flags = 0,
-        const ImGuiWindowClass* window_class = NULL) override;
-    void SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond = 0) override;
-    void SetNextWindowClass(const ImGuiWindowClass* window_class) override;
-    ImGuiID GetWindowDockID() override;
-    bool IsWindowDocked() override;
     void LogToTTY(int auto_open_depth = -1) override;
     void LogToFile(
         int auto_open_depth = -1, const char* filename = NULL) override;

@@ -155,7 +155,7 @@ namespace
         }
         float GetWindowDpiScale() override
         {
-            return ImGui::GetWindowDpiScale();
+            return ImGui::GetIO().DisplayFramebufferScale.x;
         }
         ImVec2 GetWindowPos() override
         {
@@ -175,7 +175,7 @@ namespace
         }
         ImGuiViewport* GetWindowViewport() override
         {
-            return ImGui::GetWindowViewport();
+            return ImGui::GetMainViewport();
         }
         void SetNextWindowPos(const ImVec2& pos,
             ImGuiCond cond = 0,
@@ -217,7 +217,7 @@ namespace
         }
         void SetNextWindowViewport(ImGuiID viewport_id) override
         {
-            ImGui::SetNextWindowViewport(viewport_id);
+            (void)viewport_id;
         }
         void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0) override
         {
@@ -1747,37 +1747,6 @@ namespace
         {
             ImGui::SetTabItemClosed(tab_or_docked_window_label);
         }
-        ImGuiID DockSpace(ImGuiID dockspace_id,
-            const ImVec2& size = ImVec2(0, 0),
-            ImGuiDockNodeFlags flags = 0,
-            const ImGuiWindowClass* window_class = NULL) override
-        {
-            return ImGui::DockSpace(dockspace_id, size, flags, window_class);
-        }
-        ImGuiID DockSpaceOverViewport(ImGuiID dockspace_id = 0,
-            const ImGuiViewport* viewport = NULL,
-            ImGuiDockNodeFlags flags = 0,
-            const ImGuiWindowClass* window_class = NULL) override
-        {
-            return ImGui::DockSpaceOverViewport(
-                dockspace_id, viewport, flags, window_class);
-        }
-        void SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond = 0) override
-        {
-            ImGui::SetNextWindowDockID(dock_id, cond);
-        }
-        void SetNextWindowClass(const ImGuiWindowClass* window_class) override
-        {
-            ImGui::SetNextWindowClass(window_class);
-        }
-        ImGuiID GetWindowDockID() override
-        {
-            return ImGui::GetWindowDockID();
-        }
-        bool IsWindowDocked() override
-        {
-            return ImGui::IsWindowDocked();
-        }
         void LogToTTY(int auto_open_depth = -1) override
         {
             ImGui::LogToTTY(auto_open_depth);
@@ -1962,12 +1931,14 @@ namespace
         ImDrawList* GetBackgroundDrawList(
             ImGuiViewport* viewport = NULL) override
         {
-            return ImGui::GetBackgroundDrawList(viewport);
+            (void)viewport;
+            return ImGui::GetBackgroundDrawList();
         }
         ImDrawList* GetForegroundDrawList(
             ImGuiViewport* viewport = NULL) override
         {
-            return ImGui::GetForegroundDrawList(viewport);
+            (void)viewport;
+            return ImGui::GetForegroundDrawList();
         }
         bool IsRectVisible(const ImVec2& size) override
         {
@@ -2239,28 +2210,24 @@ namespace
         {
             ImGui::MemFree(ptr);
         }
-        void UpdatePlatformWindows() override
-        {
-            ImGui::UpdatePlatformWindows();
-        }
+        void UpdatePlatformWindows() override {}
         void RenderPlatformWindowsDefault(void* platform_render_arg = NULL,
             void* renderer_render_arg = NULL) override
         {
-            ImGui::RenderPlatformWindowsDefault(
-                platform_render_arg, renderer_render_arg);
+            (void)platform_render_arg;
+            (void)renderer_render_arg;
         }
-        void DestroyPlatformWindows() override
-        {
-            ImGui::DestroyPlatformWindows();
-        }
+        void DestroyPlatformWindows() override {}
         ImGuiViewport* FindViewportByID(ImGuiID viewport_id) override
         {
-            return ImGui::FindViewportByID(viewport_id);
+            (void)viewport_id;
+            return nullptr;
         }
         ImGuiViewport* FindViewportByPlatformHandle(
             void* platform_handle) override
         {
-            return ImGui::FindViewportByPlatformHandle(platform_handle);
+            (void)platform_handle;
+            return nullptr;
         }
         ImPlotContext* ImPlot_CreateContext() override
         {
