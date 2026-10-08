@@ -17,7 +17,7 @@ namespace
 
         SDL_Window* CreateWindow() override
         {
-            const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+            const Side side = GlobalPreferencesFetcher::GetSide(*_prefs);
             const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
             const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
 
@@ -30,7 +30,7 @@ namespace
             int height = bounds.h;
             int x = bounds.x;
             int y = bounds.y;
-            if (side == "right")
+            if (side == Side::Right)
                 x = bounds.x + bounds.w - width;
 
             SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE, "_NET_WM_WINDOW_TYPE_DOCK");

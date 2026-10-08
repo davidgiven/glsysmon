@@ -14,11 +14,11 @@
 namespace
 {
 
-    uint32_t AnchorForSide(const std::string& side)
+    uint32_t AnchorForSide(Side side)
     {
         const uint32_t vertical = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
                                   ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-        if (side == "right")
+        if (side == Side::Right)
             return ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | vertical;
         return ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | vertical;
     }
@@ -33,7 +33,7 @@ namespace
             // Create the window as a roleless wl_surface; SDL will not assign a
             // shell role, so we can attach the layer-shell role before any
             // buffer is attached.
-            const std::string side = GlobalPreferencesFetcher::GetSide(*_prefs);
+            const Side side = GlobalPreferencesFetcher::GetSide(*_prefs);
             const int size = GlobalPreferencesFetcher::GetSize(*_prefs);
             const int monitor = GlobalPreferencesFetcher::GetMonitor(*_prefs);
 

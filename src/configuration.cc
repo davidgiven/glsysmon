@@ -16,12 +16,6 @@
 
 jmp_buf g_restartJmp;
 
-enum class Side
-{
-    Left,
-    Right
-};
-
 ConfigurationWindow::ConfigurationWindow(
     const Views& views, App& app, ImGuiIf& imgui):
     _views(views),

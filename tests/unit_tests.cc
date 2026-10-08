@@ -205,7 +205,7 @@ TEST_CASE("CLI preferences default to left / 100 / monitor 0")
     CliArgs args;
     auto prefs = CreateCliPreferences(args);
 
-    CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "left");
+    CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == Side::Left);
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 100);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 0);
     CHECK(GlobalPreferencesFetcher::GetViews(*prefs) ==
@@ -234,7 +234,7 @@ TEST_CASE("CLI preferences parse --side= / --size= / --monitor=")
     args.values = {"--side=right", "--size=120", "--monitor=2"};
     auto prefs = CreateCliPreferences(args);
 
-    CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == "right");
+    CHECK(GlobalPreferencesFetcher::GetSide(*prefs) == Side::Right);
     CHECK(GlobalPreferencesFetcher::GetSize(*prefs) == 120);
     CHECK(GlobalPreferencesFetcher::GetMonitor(*prefs) == 2);
 }

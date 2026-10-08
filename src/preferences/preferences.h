@@ -19,6 +19,12 @@ struct CliArgs
     std::vector<std::string> values;
 };
 
+enum class Side
+{
+    Left,
+    Right
+};
+
 class Value
 {
 public:
@@ -173,11 +179,9 @@ extern std::unique_ptr<Preferences> CreateCombinedPreferences(
 class GlobalPreferencesFetcher
 {
 public:
-    static std::string GetSide(const Preferences& prefs)
+    static Side GetSide(const Preferences& prefs)
     {
-        if (auto value = prefs.GetString("side"))
-            return *value;
-        return "left";
+        return prefs.GetEnum<Side>("side").value_or(Side::Left);
     }
 
     static int GetSize(const Preferences& prefs)
