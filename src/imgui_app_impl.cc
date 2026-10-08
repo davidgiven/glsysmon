@@ -256,14 +256,17 @@ namespace
         {
             if (_configRenderer && _configRendererInited)
             {
-                SDL_WaitForGPUIdle(_device->get());
+                if (_device && _device->get())
+                    SDL_WaitForGPUIdle(_device->get());
                 _configRenderer->Shutdown();
                 _configRendererInited = false;
             }
             _configRenderer.reset();
             if (_configWindow != nullptr)
             {
-                SDL_ReleaseWindowFromGPUDevice(_device->get(), _configWindow);
+                if (_device && _device->get())
+                    SDL_ReleaseWindowFromGPUDevice(
+                        _device->get(), _configWindow);
                 SDL_DestroyWindow(_configWindow);
                 _configWindow = nullptr;
                 _configWindowID = 0;

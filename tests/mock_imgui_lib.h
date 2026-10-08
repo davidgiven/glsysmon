@@ -55,12 +55,10 @@ public:
     bool IsWindowFocused(ImGuiFocusedFlags flags = 0) override;
     bool IsWindowHovered(ImGuiHoveredFlags flags = 0) override;
     ImDrawList* GetWindowDrawList() override;
-    float GetWindowDpiScale() override;
     ImVec2 GetWindowPos() override;
     ImVec2 GetWindowSize() override;
     float GetWindowWidth() override;
     float GetWindowHeight() override;
-    ImGuiViewport* GetWindowViewport() override;
     void SetNextWindowPos(const ImVec2& pos,
         ImGuiCond cond = 0,
         const ImVec2& pivot = ImVec2(0, 0)) override;
@@ -74,7 +72,6 @@ public:
     void SetNextWindowFocus() override;
     void SetNextWindowScroll(const ImVec2& scroll) override;
     void SetNextWindowBgAlpha(float alpha) override;
-    void SetNextWindowViewport(ImGuiID viewport_id) override;
     void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0) override;
     void SetWindowSize(const ImVec2& size, ImGuiCond cond = 0) override;
     void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0) override;
@@ -822,12 +819,6 @@ public:
         void** p_user_data) override;
     void* MemAlloc(size_t size) override;
     void MemFree(void* ptr) override;
-    void UpdatePlatformWindows() override;
-    void RenderPlatformWindowsDefault(void* platform_render_arg = NULL,
-        void* renderer_render_arg = NULL) override;
-    void DestroyPlatformWindows() override;
-    ImGuiViewport* FindViewportByID(ImGuiID viewport_id) override;
-    ImGuiViewport* FindViewportByPlatformHandle(void* platform_handle) override;
     ImPlotContext* ImPlot_CreateContext() override;
     void ImPlot_DestroyContext(ImPlotContext* ctx = nullptr) override;
     ImPlotContext* ImPlot_GetCurrentContext() override;

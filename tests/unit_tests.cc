@@ -25,7 +25,8 @@ namespace
     class TestApp : public App
     {
     public:
-        TestApp(std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
+        TestApp(
+            std::shared_ptr<Preferences> prefs, Timer& timer, ImGuiIf& imgui):
             _prefs(std::move(prefs)),
             _timer(timer),
             _imgui(imgui)
@@ -63,6 +64,7 @@ namespace
             return _imgui;
         }
         void Quit() override {}
+
     private:
         std::shared_ptr<Preferences> _prefs;
         Timer& _timer;
@@ -98,9 +100,7 @@ namespace
     class TestSensors : public MockSensors
     {
     public:
-        explicit TestSensors(App& app):
-            MockSensors(app.GetTimer()),
-            _app(app)
+        explicit TestSensors(App& app): MockSensors(app.GetTimer()), _app(app)
         {
         }
 
@@ -374,4 +374,22 @@ TEST_CASE("CpuSensorImpl handles missing file gracefully")
     timer->Tick(timer->Now() + delta);
     CHECK(sensor->GetSampleCount() == 0);
     CHECK(sensor->GetSamples(0) == nullptr);
+}
+
+TEST_CASE("Ui config window open state toggles")
+{
+    CliArgs args;
+    args.values = {"--views=HostnameView"};
+    std::shared_ptr<Preferences> prefs = CreatePreferences(args);
+    auto timer = CreateTimer();
+    auto imgui = CreateImGui();
+    TestApp app(prefs, *timer, *imgui);
+    TestSensors sensors(app);
+    auto ui = CreateUi(app, sensors);
+    REQUIRE(ui != nullptr);
+    CHECK_FALSE(ui->IsConfigOpen());
+    ui->SetConfigOpen(true);
+    CHECK(ui->IsConfigOpen());
+    ui->SetConfigOpen(false);
+    CHECK_FALSE(ui->IsConfigOpen());
 }

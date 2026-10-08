@@ -88,9 +88,8 @@ namespace
             ImGuiViewport* viewport = _app.GetImGui().GetMainViewport();
             _app.GetImGui().SetNextWindowPos(viewport->Pos);
             _app.GetImGui().SetNextWindowSize(viewport->Size);
-            _app.GetImGui().Begin("Configuration",
-                open,
-                ImGuiWindowFlags_NoTitleBar);
+            _app.GetImGui().Begin(
+                "Configuration", open, ImGuiWindowFlags_NoTitleBar);
 
             _configurationWindow.Draw(open);
             _app.GetImGui().End();

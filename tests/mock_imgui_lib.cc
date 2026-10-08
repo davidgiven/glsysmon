@@ -171,10 +171,6 @@ ImDrawList* MockImGuiIf::GetWindowDrawList()
 {
     return nullptr;
 }
-float MockImGuiIf::GetWindowDpiScale()
-{
-    return 0;
-}
 ImVec2 MockImGuiIf::GetWindowPos()
 {
     return ImVec2(0, 0);
@@ -190,10 +186,6 @@ float MockImGuiIf::GetWindowWidth()
 float MockImGuiIf::GetWindowHeight()
 {
     return 0;
-}
-ImGuiViewport* MockImGuiIf::GetWindowViewport()
-{
-    return nullptr;
 }
 void MockImGuiIf::SetNextWindowPos(
     const ImVec2& pos, ImGuiCond cond, const ImVec2& pivot)
@@ -234,10 +226,6 @@ void MockImGuiIf::SetNextWindowScroll(const ImVec2& scroll)
 void MockImGuiIf::SetNextWindowBgAlpha(float alpha)
 {
     (void)alpha;
-}
-void MockImGuiIf::SetNextWindowViewport(ImGuiID viewport_id)
-{
-    (void)viewport_id;
 }
 void MockImGuiIf::SetWindowPos(const ImVec2& pos, ImGuiCond cond)
 {
@@ -2499,24 +2487,6 @@ void* MockImGuiIf::MemAlloc(size_t size)
 void MockImGuiIf::MemFree(void* ptr)
 {
     (void)ptr;
-}
-void MockImGuiIf::UpdatePlatformWindows() {}
-void MockImGuiIf::RenderPlatformWindowsDefault(
-    void* platform_render_arg, void* renderer_render_arg)
-{
-    (void)platform_render_arg;
-    (void)renderer_render_arg;
-}
-void MockImGuiIf::DestroyPlatformWindows() {}
-ImGuiViewport* MockImGuiIf::FindViewportByID(ImGuiID viewport_id)
-{
-    (void)viewport_id;
-    return nullptr;
-}
-ImGuiViewport* MockImGuiIf::FindViewportByPlatformHandle(void* platform_handle)
-{
-    (void)platform_handle;
-    return nullptr;
 }
 ImPlotContext* MockImGuiIf::ImPlot_CreateContext()
 {

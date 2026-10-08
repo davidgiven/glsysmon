@@ -153,10 +153,6 @@ namespace
         {
             return ImGui::GetWindowDrawList();
         }
-        float GetWindowDpiScale() override
-        {
-            return ImGui::GetIO().DisplayFramebufferScale.x;
-        }
         ImVec2 GetWindowPos() override
         {
             return ImGui::GetWindowPos();
@@ -172,10 +168,6 @@ namespace
         float GetWindowHeight() override
         {
             return ImGui::GetWindowHeight();
-        }
-        ImGuiViewport* GetWindowViewport() override
-        {
-            return ImGui::GetMainViewport();
         }
         void SetNextWindowPos(const ImVec2& pos,
             ImGuiCond cond = 0,
@@ -214,10 +206,6 @@ namespace
         void SetNextWindowBgAlpha(float alpha) override
         {
             ImGui::SetNextWindowBgAlpha(alpha);
-        }
-        void SetNextWindowViewport(ImGuiID viewport_id) override
-        {
-            (void)viewport_id;
         }
         void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0) override
         {
@@ -2209,25 +2197,6 @@ namespace
         void MemFree(void* ptr) override
         {
             ImGui::MemFree(ptr);
-        }
-        void UpdatePlatformWindows() override {}
-        void RenderPlatformWindowsDefault(void* platform_render_arg = NULL,
-            void* renderer_render_arg = NULL) override
-        {
-            (void)platform_render_arg;
-            (void)renderer_render_arg;
-        }
-        void DestroyPlatformWindows() override {}
-        ImGuiViewport* FindViewportByID(ImGuiID viewport_id) override
-        {
-            (void)viewport_id;
-            return nullptr;
-        }
-        ImGuiViewport* FindViewportByPlatformHandle(
-            void* platform_handle) override
-        {
-            (void)platform_handle;
-            return nullptr;
         }
         ImPlotContext* ImPlot_CreateContext() override
         {

@@ -52,12 +52,10 @@ public:
     virtual bool IsWindowFocused(ImGuiFocusedFlags flags = 0) = 0;
     virtual bool IsWindowHovered(ImGuiHoveredFlags flags = 0) = 0;
     virtual ImDrawList* GetWindowDrawList() = 0;
-    virtual float GetWindowDpiScale() = 0;
     virtual ImVec2 GetWindowPos() = 0;
     virtual ImVec2 GetWindowSize() = 0;
     virtual float GetWindowWidth() = 0;
     virtual float GetWindowHeight() = 0;
-    virtual ImGuiViewport* GetWindowViewport() = 0;
     virtual void SetNextWindowPos(const ImVec2& pos,
         ImGuiCond cond = 0,
         const ImVec2& pivot = ImVec2(0, 0)) = 0;
@@ -71,7 +69,6 @@ public:
     virtual void SetNextWindowFocus() = 0;
     virtual void SetNextWindowScroll(const ImVec2& scroll) = 0;
     virtual void SetNextWindowBgAlpha(float alpha) = 0;
-    virtual void SetNextWindowViewport(ImGuiID viewport_id) = 0;
     virtual void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0) = 0;
     virtual void SetWindowSize(const ImVec2& size, ImGuiCond cond = 0) = 0;
     virtual void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0) = 0;
@@ -823,13 +820,6 @@ public:
         void** p_user_data) = 0;
     virtual void* MemAlloc(size_t size) = 0;
     virtual void MemFree(void* ptr) = 0;
-    virtual void UpdatePlatformWindows() = 0;
-    virtual void RenderPlatformWindowsDefault(
-        void* platform_render_arg = NULL, void* renderer_render_arg = NULL) = 0;
-    virtual void DestroyPlatformWindows() = 0;
-    virtual ImGuiViewport* FindViewportByID(ImGuiID viewport_id) = 0;
-    virtual ImGuiViewport* FindViewportByPlatformHandle(
-        void* platform_handle) = 0;
     virtual ImPlotContext* ImPlot_CreateContext() = 0;
     virtual void ImPlot_DestroyContext(ImPlotContext* ctx = nullptr) = 0;
     virtual ImPlotContext* ImPlot_GetCurrentContext() = 0;

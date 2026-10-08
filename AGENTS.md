@@ -38,12 +38,15 @@ regenerate the golden by copying the `.bad.png` over it). All test binaries
 link against `.obj/imgui_ui_impl.o` and the renderer impl.
 
 The build uses pkg-config for `sdl3`, `x11`, `wayland-client`, and
-`tomlplusplus`. ImGui sources are vendored in `dep/imgui` (core:
-`imgui.cpp`, `imgui_draw.cpp`, `imgui_tables.cpp`, `imgui_widgets.cpp`;
-backends: `dep/imgui/backends/imgui_impl_sdl3.cpp`,
+`tomlplusplus`. ImGui sources are vendored in `dep/imgui` (`main` branch
+`1.92.9b`, no `docking` – core: `imgui.cpp`, `imgui_draw.cpp`,
+`imgui_tables.cpp`, `imgui_widgets.cpp`; backends:
+`dep/imgui/backends/imgui_impl_sdl3.cpp`,
 `dep/imgui/backends/imgui_impl_sdlgpu3.cpp`). Wayland client stubs for the
 layer-shell protocol are generated at build time by `wayland-scanner` from
-`third_party/wayland/wlr-layer-shell-unstable-v1.xml`.
+`third_party/wayland/wlr-layer-shell-unstable-v1.xml`. The configuration
+window is an app-owned second `SDL_Window` (`ALWAYS_ON_TOP`, separate
+`ImGuiFrameRenderer`/`ImGuiContext` + GPU swapchain) – not an ImGui viewport.
 
 Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
 
@@ -57,13 +60,15 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   each module (e.g. `CreatePreferences()`, `CreateUi()`, `CreateApp()`).
 - `src/app.h` — `App` interface (`Setup()`, `Tick()`, `Shutdown()`).
 - `src/imgui_app_impl.cc` — `ImGuiAppImpl` (SDL init, SDL_GPU device, one frame
-  per `Tick()`, teardown) receives `DockFactory`, `Ui`, and `ImGuiFrameRenderer`
-  via manual constructor injection; `Setup()` throws `std::runtime_error` on
-  failure and SDL resources are owned by local RAII guards (an SDL session, the
-  dock window, and the GPU device), so a partial setup is unwound safely;
-  `Shutdown()` releases the guards and is re-entered by the destructor;
-  `CreateApp()` builds the preferences, dock factory, Ui and frame renderer
-  with the `CliArgs`.
+  per `Tick()` for dock + optional second frame for config, teardown) receives
+  `DockFactory`, `Ui`, and `ImGuiFrameRenderer` via manual constructor injection;
+  `Setup()` throws `std::runtime_error` on failure and SDL resources are owned
+  by local RAII guards (an SDL session, the dock window, and the GPU device),
+  so a partial setup is unwound safely; `Shutdown()` releases the guards and is
+  re-entered by the destructor; an app-owned second `SDL_Window` (`800×600`
+  `RESIZABLE|ALWAYS_ON_TOP`, separate `ImGuiFrameRenderer` + swapchain,
+  `SDL_RaiseWindow` on creation) hosts the configuration UI; `CreateApp()` builds
+  the preferences, dock factory, Ui and frame renderer with the `CliArgs`.
 - `src/imgui_frame_renderer.h` — `ImGuiFrameRenderer` interface owning the ImGui
   context and backends (`Init()`, `ProcessEvent()`, `BeginFrame()`, `Render()`
   into any target texture, `Shutdown()`); shared by the app (swapchain target)
@@ -101,7 +106,7 @@ Run/lint: C++20, g++, `-Wall -Wextra`. No test framework or formatter is set up.
   `CreateTomlPreferences()`.
 - `src/combined_preferences_impl.cc` — `CombinedPreferencesImpl`, which merges
   the CLI and TOML sources (CLI wins); `CreatePreferences()`.
-- `src/ui.h` — `Ui` interface.
+- `src/ui.h` — `Ui` interface (`Draw()` for dock, `IsConfigOpen()`/`DrawConfigWindow()` for the app-owned config window).
 - `src/imgui_ui_impl.cc` — `ImGuiUiImpl` takes the injected `Preferences`, looks
   up each configured view name in the view catalogue, builds a view via the
   `ViewFactory` and calls `Tick()` on each during `Draw`; `CreateUi()`.
