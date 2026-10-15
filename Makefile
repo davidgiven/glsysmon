@@ -39,7 +39,7 @@ WAYLAND_SCANNER := $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scan
 
 IMGUI_BACKENDS_DIR := $(IMGUI_DIR)/backends
 DROIDSANS_TTF               := $(IMGUI_DIR)/misc/fonts/DroidSans.ttf
-DROIDSANS_TOOL              := $(BUILD)/binary_to_compressed_c
+BINARY_TO_COMPRESSED_TOOL              := $(BUILD)/binary_to_compressed_c
 DROIDSANS_GEN_CPP           := $(BUILD)/DroidSansFont.cpp
 DROIDSANS_GEN_OBJ           := $(BUILD)/DroidSansFont.o
 CODICON_TTF            := dep/codicons/codicon.ttf
@@ -173,15 +173,15 @@ $(BIN): $(OBJS)
 	@$(CXX) -o $@ $(OBJS) $(SDL_LIBS) $(X11_LIBS) $(WAYLAND_LIBS) \
 		$(TOMLPLUSPLUS_LIBS) $(PROFILER_LIBS)
 
-$(DROIDSANS_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
+$(BINARY_TO_COMPRESSED_TOOL): $(IMGUI_DIR)/misc/fonts/binary_to_compressed_c.cpp
 	@echo $@
 	@mkdir -p $(dir $@)
 	@$(CXX) -O2 -w -o $@ $<
 
-$(DROIDSANS_GEN_CPP): $(DROIDSANS_TTF) $(DROIDSANS_TOOL)
+$(DROIDSANS_GEN_CPP): $(DROIDSANS_TTF) $(BINARY_TO_COMPRESSED_TOOL)
 	@echo $@
 	@mkdir -p $(dir $@)
-	@$(DROIDSANS_TOOL) -nostatic $< DroidSansFont > $@
+	@$(BINARY_TO_COMPRESSED_TOOL) -nostatic $< DroidSansFont > $@
 	@sed -i 's/^const unsigned/extern const unsigned/' $@
 
 $(DROIDSANS_GEN_OBJ): $(DROIDSANS_GEN_CPP)
@@ -189,10 +189,10 @@ $(DROIDSANS_GEN_OBJ): $(DROIDSANS_GEN_CPP)
 	@mkdir -p $(dir $@)
 	@$(CXX) $(COMMON_CFLAGS) -w -c -o $@ $<
 
-$(CODICON_GEN_CPP): $(CODICON_TTF) $(DROIDSANS_TOOL)
+$(CODICON_GEN_CPP): $(CODICON_TTF) $(BINARY_TO_COMPRESSED_TOOL)
 	@echo $@
 	@mkdir -p $(dir $@)
-	@$(DROIDSANS_TOOL) -nostatic $< CodiconFont > $@
+	@$(BINARY_TO_COMPRESSED_TOOL) -nostatic $< CodiconFont > $@
 	@sed -i 's/^const unsigned/extern const unsigned/' $@
 
 $(CODICON_GEN_OBJ): $(CODICON_GEN_CPP)
