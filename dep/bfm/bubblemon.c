@@ -1397,9 +1397,9 @@ static void draw_cpudigit(const int what, const int where,
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 {
-    /* where is the text going to be (now, bottom-center) */
-#define POSX 16
-#define POSY 46
+    /* where is the text going to be */
+    int posx = bfm_width - 25;
+    int posy = 0;
     int bob;
 
     /* memory window */
@@ -1490,8 +1490,8 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	kitptr = kit;
 	for (y = 0; y < 9; y++) {
 	    unsigned char src;
-	    pos = (y + POSY) * bfm_width * 3 + (POSX * 3);
-	    bob = 75;		/* 25 * 3 */
+            pos = (y + posy) * bfm_width * 3 + (posx * 3);
+            bob = 75;		/* 25 * 3 */
 	    while (bob--) {
 		src = bm.rgb_buf[pos];
 
@@ -1518,8 +1518,6 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	}
     }
 #endif				/* ENABLE_MEMSCREEN */
-#undef POSY
-#undef POSX
 }
 #endif
 
