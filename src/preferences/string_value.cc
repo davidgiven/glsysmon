@@ -6,6 +6,21 @@
 #include <string>
 #include <vector>
 
+namespace
+{
+    std::string QuoteItem(const std::string& item)
+    {
+        std::string result;
+        for (char c : item)
+        {
+            if (c == ',' || c == '\\')
+                result.push_back('\\');
+            result.push_back(c);
+        }
+        return result;
+    }
+}
+
 StringValue::StringValue(std::string name, std::string s):
     _name(std::move(name)),
     _str(std::move(s))
@@ -13,9 +28,7 @@ StringValue::StringValue(std::string name, std::string s):
 }
 
 std::string StringValue::GetName() const
-{
-    return _name;
-}
+{ return _name; }
 
 Value::Type StringValue::GetType() const
 {
@@ -31,9 +44,7 @@ Value::Type StringValue::GetType() const
 }
 
 std::optional<std::string> StringValue::GetString() const
-{
-    return _str;
-}
+{ return _str; }
 
 std::optional<int> StringValue::GetInteger() const
 {
@@ -69,17 +80,26 @@ std::optional<bool> StringValue::GetBoolean() const
 std::optional<std::vector<std::string>> StringValue::GetStringList() const
 {
     std::vector<std::string> result;
-    std::size_t start = 0;
-    while (start <= _str.size())
+    std::string item;
+    for (std::size_t i = 0; i < _str.size(); ++i)
     {
-        const std::size_t comma = _str.find(',', start);
-        const std::size_t end =
-            comma == std::string::npos ? _str.size() : comma;
-        result.push_back(_str.substr(start, end - start));
-        if (comma == std::string::npos)
-            break;
-        start = comma + 1;
+        const char c = _str[i];
+        if (c == '\\' && i + 1 < _str.size() &&
+            (_str[i + 1] == ',' || _str[i + 1] == '\\'))
+        {
+            item.push_back(_str[++i]);
+        }
+        else if (c == ',')
+        {
+            result.push_back(std::move(item));
+            item.clear();
+        }
+        else
+        {
+            item.push_back(c);
+        }
     }
+    result.push_back(std::move(item));
     return result;
 }
 
@@ -95,24 +115,16 @@ std::optional<std::set<std::string>> StringValue::GetStringSet() const
 }
 
 void StringValue::SetString(const std::string& value)
-{
-    _str = value;
-}
+{ _str = value; }
 
 void StringValue::SetInteger(int value)
-{
-    _str = std::to_string(value);
-}
+{ _str = std::to_string(value); }
 
 void StringValue::SetDouble(double value)
-{
-    _str = std::to_string(value);
-}
+{ _str = std::to_string(value); }
 
 void StringValue::SetBoolean(bool value)
-{
-    _str = value ? "true" : "false";
-}
+{ _str = value ? "true" : "false"; }
 
 void StringValue::SetStringList(const std::vector<std::string>& value)
 {
@@ -121,7 +133,7 @@ void StringValue::SetStringList(const std::vector<std::string>& value)
     {
         if (i != 0)
             joined.push_back(',');
-        joined += value[i];
+        joined += QuoteItem(value[i]);
     }
     _str = joined;
 }
@@ -134,7 +146,7 @@ void StringValue::SetStringSet(const std::set<std::string>& value)
     {
         if (!first)
             joined.push_back(',');
-        joined += item;
+        joined += QuoteItem(item);
         first = false;
     }
     _str = joined;

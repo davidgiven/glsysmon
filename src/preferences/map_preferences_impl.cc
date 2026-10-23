@@ -13,19 +13,22 @@ namespace
     class MapValue : public Value
     {
     public:
-        MapValue(std::map<std::string, std::string>* map, std::string key):
+        MapValue(std::map<std::string, std::string>* map,
+            std::map<std::string, std::vector<std::string>>* lists,
+            std::string key):
             _map(map),
+            _lists(lists),
             _key(std::move(key))
         {
         }
 
         std::string GetName() const override
-        {
-            return _key;
-        }
+        { return _key; }
 
         Type GetType() const override
         {
+            if (_lists->contains(_key))
+                return Type::StringList;
             auto s = GetString();
             if (!s)
                 return Type::String;
@@ -90,6 +93,8 @@ namespace
 
         std::optional<std::vector<std::string>> GetStringList() const override
         {
+            if (auto it = _lists->find(_key); it != _lists->end())
+                return it->second;
             auto s = GetString();
             if (!s)
                 return std::nullopt;
@@ -121,21 +126,25 @@ namespace
 
         void SetString(const std::string& value) override
         {
+            _lists->erase(_key);
             (*_map)[_key] = value;
         }
 
         void SetInteger(int value) override
         {
+            _lists->erase(_key);
             (*_map)[_key] = std::to_string(value);
         }
 
         void SetDouble(double value) override
         {
+            _lists->erase(_key);
             (*_map)[_key] = std::to_string(value);
         }
 
         void SetBoolean(bool value) override
         {
+            _lists->erase(_key);
             (*_map)[_key] = value ? "true" : "false";
         }
 
@@ -149,24 +158,15 @@ namespace
                 joined += value[i];
             }
             (*_map)[_key] = joined;
+            (*_lists)[_key] = value;
         }
 
         void SetStringSet(const std::set<std::string>& value) override
-        {
-            std::string joined;
-            bool first = true;
-            for (const auto& item : value)
-            {
-                if (!first)
-                    joined.push_back(',');
-                joined += item;
-                first = false;
-            }
-            (*_map)[_key] = joined;
-        }
+        { SetStringList(std::vector<std::string>(value.begin(), value.end())); }
 
     private:
         std::map<std::string, std::string>* _map;
+        std::map<std::string, std::vector<std::string>>* _lists;
         std::string _key;
     };
 
@@ -184,32 +184,30 @@ namespace
             auto it = _values.find(key);
             if (it == _values.end())
                 return nullptr;
-            return std::make_unique<MapValue>(
-                const_cast<std::map<std::string, std::string>*>(&_values), key);
+            return std::make_unique<MapValue>(&_values, &_lists, key);
         }
 
         std::unique_ptr<Value> Add(const std::string& key) override
-        {
-            return std::make_unique<MapValue>(&_values, key);
-        }
+        { return std::make_unique<MapValue>(&_values, &_lists, key); }
 
         std::set<std::unique_ptr<Value>> GetAll() const override
         {
             std::set<std::unique_ptr<Value>> result;
             for (const auto& [key, value] : _values)
-                result.insert(std::make_unique<MapValue>(
-                    const_cast<std::map<std::string, std::string>*>(&_values),
-                    key));
+                result.insert(
+                    std::make_unique<MapValue>(&_values, &_lists, key));
             return result;
         }
 
         void ClearAll() override
         {
             _values.clear();
+            _lists.clear();
         }
 
     private:
         mutable std::map<std::string, std::string> _values;
+        mutable std::map<std::string, std::vector<std::string>> _lists;
     };
 
 } // namespace

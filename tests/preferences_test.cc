@@ -7,6 +7,7 @@
 #include <string>
 
 #include "preferences/preferences.h"
+#include "preferences/string_value.h"
 
 namespace
 {
@@ -57,6 +58,60 @@ namespace
     }
 
 } // namespace
+
+TEST_CASE("StringValue decodes escaped commas and backslashes in collections")
+{
+    StringValue value("items", R"(a\,b,c\\,d\q,end\)");
+    CHECK(value.GetStringList().value() ==
+          std::vector<std::string>{"a,b", "c\\", "d\\q", "end\\"});
+    CHECK(value.GetStringSet().value() ==
+          std::set<std::string>{"a,b", "c\\", "d\\q", "end\\"});
+}
+
+TEST_CASE("StringValue roundtrips list items containing commas and backslashes")
+{
+    StringValue value("items", "");
+    const std::vector<std::string> items{
+        "", "a,b", "a,b", "c\\,d", "end\\", "", "plain", ""};
+    value.SetStringList(items);
+    CHECK(value.GetString().value() == R"(,a\,b,a\,b,c\\\,d,end\\,,plain,)");
+    CHECK(value.GetStringList().value() == items);
+    StringValue reloaded("items", value.GetString().value());
+    CHECK(reloaded.GetStringList().value() == items);
+}
+
+TEST_CASE("StringValue roundtrips set items containing commas and backslashes")
+{
+    StringValue value("items", "");
+    const std::set<std::string> items{"", "a,b", "c\\,d", "end\\"};
+    value.SetStringSet(items);
+    CHECK(value.GetString().value() == R"(,a\,b,c\\\,d,end\\)");
+    CHECK(value.GetStringSet().value() == items);
+    StringValue reloaded("items", value.GetString().value());
+    CHECK(reloaded.GetStringSet().value() == items);
+}
+
+TEST_CASE("StringValue preserves plain comma-separated collection parsing")
+{
+    StringValue value("items", "a,,b,a,");
+    CHECK(value.GetStringList().value() ==
+          std::vector<std::string>{"a", "", "b", "a", ""});
+    CHECK(value.GetStringSet().value() == std::set<std::string>{"", "a", "b"});
+    value.SetString("");
+    CHECK(value.GetStringList().value() == std::vector<std::string>{""});
+}
+
+TEST_CASE("StringValue preserves a single collection item containing a comma")
+{
+    StringValue value("items", "");
+    SUBCASE("list")
+    { value.SetStringList({"a,b"}); }
+    SUBCASE("set")
+    { value.SetStringSet({"a,b"}); }
+    CHECK(value.GetString().value() == R"(a\,b)");
+    CHECK(value.GetStringList().value() == std::vector<std::string>{"a,b"});
+    CHECK(value.GetStringSet().value() == std::set<std::string>{"a,b"});
+}
 
 TEST_CASE(
     "Missing cpu.update_interval returns nullopt (default wired at call site)")
@@ -657,9 +712,8 @@ TEST_CASE(
 
     prefs->SetStringList("sl_empty", {});
     CHECK(prefs->GetString("sl_empty").value() == "");
-    // Reading back an empty stored string gives one empty element per parser
-    CHECK(prefs->GetStringList("sl_empty").value() ==
-          std::vector<std::string>{""});
+    CHECK(
+        prefs->GetStringList("sl_empty").value() == std::vector<std::string>{});
 
     // Sets serialise in sorted order and parse back
     prefs->SetStringSet("ss", {"b", "a", "c"});
@@ -896,6 +950,76 @@ TEST_CASE("WriteTomlPreferences roundtrips typed values and preserves types")
     CHECK(reloaded->GetString("plain").value() == "hello");
 
     std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("WriteTomlPreferences preserves single-item collections as arrays")
+{
+    const std::string tmp = MakeTempDir();
+    ScopedEnv env("XDG_CONFIG_HOME", tmp);
+    auto prefs = CreateMapPreferences();
+
+    SUBCASE("single-item string list")
+    { prefs->SetStringList("network.interfaces", {"eth0"}); }
+    SUBCASE("single-item string set")
+    { prefs->SetStringSet("network.interfaces", {"eth0"}); }
+    SUBCASE("string set reduced from two items to one")
+    {
+        prefs->SetStringSet("network.interfaces", {"eth0", "wlan0"});
+        WriteTomlPreferences(*prefs);
+        prefs->SetStringSet("network.interfaces", {"eth0"});
+    }
+
+    WriteTomlPreferences(*prefs);
+
+    const std::filesystem::path file =
+        std::filesystem::path(tmp) / "glsysmon" / "config.toml";
+    std::ifstream in(file);
+    REQUIRE(in.is_open());
+    const std::string content(
+        (std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    CHECK(content.find("interfaces = [") != std::string::npos);
+
+    auto loaded = CreateTomlPreferences();
+    auto value = loaded->Get("network.interfaces");
+    REQUIRE(value);
+    CHECK(value->GetType() == Value::Type::StringList);
+    CHECK_FALSE(loaded->GetString("network.interfaces").has_value());
+    const auto list = loaded->GetStringList("network.interfaces");
+    CHECK(list == std::optional<std::vector<std::string>>{{"eth0"}});
+    const auto set = loaded->GetStringSet("network.interfaces");
+    CHECK(set == std::optional<std::set<std::string>>{{"eth0"}});
+
+    std::filesystem::remove_all(tmp);
+}
+
+TEST_CASE("MapPreferences preserves collection contents and clears their type")
+{
+    auto prefs = CreateMapPreferences();
+    prefs->SetStringList("items", {"a,b", "", "a,b"});
+    CHECK(prefs->GetStringList("items").value() ==
+          std::vector<std::string>{"a,b", "", "a,b"});
+    prefs->SetStringSet("items", {});
+    CHECK(prefs->Get("items")->GetType() == Value::Type::StringList);
+    CHECK(prefs->GetStringSet("items").value().empty());
+
+    SUBCASE("string replaces collection")
+    {
+        prefs->SetString("items", "plain");
+        CHECK(prefs->Get("items")->GetType() == Value::Type::String);
+        CHECK(prefs->GetStringList("items").value() ==
+              std::vector<std::string>{"plain"});
+    }
+    SUBCASE("integer replaces collection")
+    {
+        prefs->SetInteger("items", 42);
+        CHECK(prefs->Get("items")->GetType() == Value::Type::Integer);
+    }
+    SUBCASE("clear removes collection metadata")
+    {
+        prefs->ClearAll();
+        prefs->SetString("items", "plain");
+        CHECK(prefs->Get("items")->GetType() == Value::Type::String);
+    }
 }
 
 TEST_CASE("WriteTomlPreferences reconstructs TOML groups from dotted paths")

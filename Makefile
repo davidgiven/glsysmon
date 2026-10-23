@@ -309,6 +309,7 @@ $(TEST_GRAPH_MIXIN): $(TEST_BUILD)/graph_mixin_test.o \
 	@$(CXX) -o $@ $^ $(TOMLPLUSPLUS_LIBS)
 
 $(TEST_PREFERENCES): $(TEST_BUILD)/preferences_test.o \
+	$(BUILD)/preferences/string_value.o \
 	$(BUILD)/preferences/preferences.o \
 	$(BUILD)/preferences/cli_preferences_impl.o \
 	$(BUILD)/preferences/toml_preferences_impl.o \
